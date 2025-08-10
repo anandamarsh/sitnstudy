@@ -72,32 +72,35 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     const currentTab = tabs[activeIndex];
     if (!currentTab) return;
 
-    // Start loading when tab changes
-    setLoadingStates((prev) => ({ ...prev, [currentTab.key]: true }));
-    setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 0 }));
+    // Only show loading if this tab hasn't been loaded before
+    if (!loadingStates[currentTab.key]) {
+      // Start loading when tab changes
+      setLoadingStates((prev) => ({ ...prev, [currentTab.key]: true }));
+      setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 0 }));
 
-    // Simulate progress
-    const progressInterval = setInterval(() => {
-      setLoadingProgress((prev) => {
-        const current = prev[currentTab.key] || 0;
-        if (current < 90) {
-          return { ...prev, [currentTab.key]: current + Math.random() * 20 };
-        }
-        return prev;
-      });
-    }, 200);
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          const current = prev[currentTab.key] || 0;
+          if (current < 90) {
+            return { ...prev, [currentTab.key]: current + Math.random() * 20 };
+          }
+          return prev;
+        });
+      }, 200);
 
-    // Complete loading after a delay
-    const completeTimeout = setTimeout(() => {
-      setLoadingStates((prev) => ({ ...prev, [currentTab.key]: false }));
-      setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 100 }));
-    }, 1500);
+      // Complete loading after a delay
+      const completeTimeout = setTimeout(() => {
+        setLoadingStates((prev) => ({ ...prev, [currentTab.key]: false }));
+        setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 100 }));
+      }, 1500);
 
-    return () => {
-      clearInterval(progressInterval);
-      clearTimeout(completeTimeout);
-    };
-  }, [activeIndex, tabs]);
+      return () => {
+        clearInterval(progressInterval);
+        clearTimeout(completeTimeout);
+      };
+    }
+  }, [activeIndex, tabs, loadingStates]);
 
   // Pause media in any background (inactive) webviews when switching tabs
   React.useEffect(() => {
