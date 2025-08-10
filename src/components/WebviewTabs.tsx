@@ -213,23 +213,25 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
               <Box
                 sx={{
                   position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  p: 1,
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "25%",
+                  zIndex: 1000,
                 }}
               >
                 <LinearProgress
                   variant="determinate"
                   value={loadingProgress[t.key] || 0}
+                  sx={{
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                    "& .MuiLinearProgress-bar": {
+                      borderRadius: 4,
+                    },
+                  }}
                 />
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  align="center"
-                >
-                  Loading {t.title}...
-                </Typography>
               </Box>
             )}
           </Box>
