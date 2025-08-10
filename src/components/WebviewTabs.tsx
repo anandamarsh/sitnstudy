@@ -220,7 +220,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
               <Box
                 sx={{
                   position: "absolute",
-                  top: 0,
+                  bottom: 0,
                   left: 0,
                   width: "100%",
                   zIndex: 1000,
@@ -230,7 +230,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                   variant="determinate"
                   value={loadingProgress[t.key] || 0}
                   sx={{
-                    height: 8,
+                    height: 4,
                     borderRadius: 0,
                     backgroundColor: "rgba(255, 255, 255, 0.3)",
                     "& .MuiLinearProgress-bar": {
