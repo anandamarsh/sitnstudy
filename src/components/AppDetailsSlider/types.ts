@@ -7,6 +7,7 @@ export interface SiteConfig {
   iconName?: string;
   iconProps?: Record<string, any>;
   description?: string;
+  svgContent?: string; // Temporary property for SVG content during creation
 }
 
 export interface AppDetailsSliderProps {

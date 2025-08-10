@@ -1,8 +1,71 @@
-import { app, BrowserWindow, nativeImage, Menu, session } from 'electron'
+import { app, BrowserWindow, nativeImage, Menu, session, ipcMain } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { writeFileSync, readFileSync } from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// IPC handlers for site management
+ipcMain.handle('add-new-site', async (event, newSite) => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const currentContent = readFileSync(availableSitesPath, 'utf8')
+    const sites = JSON.parse(currentContent)
+    
+    // Generate a unique filename for the SVG icon
+    const iconFilename = `${newSite.key}.svg`
+    const iconPath = path.join(__dirname, '../public/icons', iconFilename)
+    
+    // If the newSite has SVG content, save it to the local file
+    if (newSite.svgContent) {
+      try {
+        // Ensure the icons directory exists
+        const iconsDir = path.dirname(iconPath)
+        if (!require('fs').existsSync(iconsDir)) {
+          require('fs').mkdirSync(iconsDir, { recursive: true })
+        }
+        
+        // Save the SVG content to the local file
+        writeFileSync(iconPath, newSite.svgContent, 'utf8')
+        
+        // Update the iconPath to point to the local file
+        newSite.iconPath = `/icons/${iconFilename}`
+        
+        console.log(`Saved SVG icon to: ${iconPath}`)
+      } catch (iconError) {
+        console.error('Error saving SVG icon:', iconError)
+        // Continue with the original iconPath if SVG saving fails
+      }
+    }
+    
+    // Remove the temporary svgContent property
+    delete newSite.svgContent
+    
+    sites.push(newSite)
+    
+    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
+    
+    return { 
+      success: true, 
+      message: `Successfully added new site: ${newSite.title}`,
+      iconPath: newSite.iconPath
+    }
+  } catch (error) {
+    console.error('Error adding new site:', error)
+    return { success: false, message: 'Failed to add new site' }
+  }
+})
+
+ipcMain.handle('get-available-sites', async () => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const content = readFileSync(availableSitesPath, 'utf8')
+    return JSON.parse(content)
+  } catch (error) {
+    console.error('Error reading availableSites.json:', error)
+    return []
+  }
+})
 
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {

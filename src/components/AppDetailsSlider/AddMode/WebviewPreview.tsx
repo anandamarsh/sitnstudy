@@ -67,10 +67,7 @@ export const WebviewPreview: React.FC<WebviewPreviewProps> = ({
             textAlign: "center",
             maxWidth: 300,
           }}
-        >
-          Add a website URL above to see a live preview and automatically
-          extract title and description
-        </Typography>
+        ></Typography>
       </Box>
     );
   }

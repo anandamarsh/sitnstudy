@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Button, IconButton } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 import { SiteConfig } from "../types";
@@ -6,6 +6,7 @@ import { useAddModeForm } from "./useAddModeForm";
 import { FormFields } from "./FormFields";
 import { IconPreview } from "./IconPreview";
 import { WebviewPreview } from "./WebviewPreview";
+import { addNewSite } from "../../../utils/siteManager";
 
 interface AddModeProps {
   onClose: () => void;
@@ -13,6 +14,8 @@ interface AddModeProps {
 }
 
 export const AddMode: React.FC<AddModeProps> = ({ onClose, onSave }) => {
+  const [currentSvgContent, setCurrentSvgContent] = useState<string>("");
+
   const {
     formData,
     setFormData,
@@ -24,17 +27,32 @@ export const AddMode: React.FC<AddModeProps> = ({ onClose, onSave }) => {
     isSaveDisabled,
   } = useAddModeForm();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (formData.url && formData.title && formData.key) {
-      const newApp: SiteConfig = {
-        key: formData.key,
-        title: formData.title,
-        url: formData.url,
-        iconPath: formData.iconPath || "",
-        iconType: formData.iconType || "svg",
-        description: formData.description || "",
-      };
-      onSave(newApp);
+      try {
+        const newApp: SiteConfig = {
+          key: formData.key,
+          title: formData.title,
+          url: formData.url,
+          iconPath: formData.iconPath || "",
+          iconType: "svg", // Always svg as requested
+          description: formData.description || "",
+          svgContent: currentSvgContent, // Include the SVG content for local saving
+        };
+
+        // Add to availableSites.json file
+        const result = await addNewSite(newApp);
+
+        if (result.success) {
+          // Call the original onSave callback with updated iconPath
+          onSave({ ...newApp, iconPath: result.iconPath });
+        } else {
+          console.error("Failed to save new site:", result.message);
+        }
+      } catch (error) {
+        console.error("Failed to save new site:", error);
+        // You might want to show an error message to the user here
+      }
     }
   };
 
@@ -69,7 +87,10 @@ export const AddMode: React.FC<AddModeProps> = ({ onClose, onSave }) => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Icon Preview */}
             <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <IconPreview iconPath={formData.iconPath || ""} />
+              <IconPreview
+                iconPath={formData.iconPath || ""}
+                onSvgContentChange={setCurrentSvgContent}
+              />
             </Box>
 
             <FormFields

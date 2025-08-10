@@ -4,9 +4,13 @@ import FaviconToSVG from "../FaviconToSVG";
 
 interface IconPreviewProps {
   iconPath: string;
+  onSvgContentChange?: (svgContent: string) => void;
 }
 
-export const IconPreview: React.FC<IconPreviewProps> = ({ iconPath }) => {
+export const IconPreview: React.FC<IconPreviewProps> = ({
+  iconPath,
+  onSvgContentChange,
+}) => {
   return (
     <Box
       sx={{
@@ -19,7 +23,11 @@ export const IconPreview: React.FC<IconPreviewProps> = ({ iconPath }) => {
         flexShrink: 0,
       }}
     >
-      <FaviconToSVG faviconUrl={iconPath} size={160} />
+      <FaviconToSVG
+        faviconUrl={iconPath}
+        size={160}
+        onSvgContentChange={onSvgContentChange}
+      />
     </Box>
   );
 };
