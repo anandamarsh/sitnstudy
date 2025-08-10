@@ -19,6 +19,11 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     return ipcRenderer.invoke(channel, ...omit)
   },
 
+  // Expose navigation-blocked event listener
+  onNavigationBlocked(callback: (data: { blockedUrl: string; currentDomain: string; targetDomain: string }) => void) {
+    return ipcRenderer.on('navigation-blocked', (event, data) => callback(data))
+  },
+
   // You can expose other APTs you need here.
   // ...
 })

@@ -210,6 +210,104 @@ function createWindow() {
       // You can customize this behavior based on your needs
       return { action: 'allow' };
     });
+
+    // Block navigation to external domains
+    webContents.on('will-navigate', (event, navigationUrl) => {
+      const currentUrl = webContents.getURL();
+      const currentDomain = new URL(currentUrl).hostname;
+      const navigationDomain = new URL(navigationUrl).hostname;
+      
+      if (currentDomain !== navigationDomain) {
+        console.log(`Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
+        event.preventDefault();
+        
+        // Send message to renderer to show error snackbar
+        if (win) {
+          win.webContents.send('navigation-blocked', {
+            blockedUrl: navigationUrl,
+            currentDomain: currentDomain,
+            targetDomain: navigationDomain
+          });
+        }
+      }
+    });
+
+    // Inject JavaScript to intercept link clicks and form submissions
+    webContents.on('did-finish-load', () => {
+      const currentUrl = webContents.getURL();
+      const currentDomain = new URL(currentUrl).hostname;
+      
+      // Inject script to intercept link clicks and form submissions
+      webContents.executeJavaScript(`
+        (function() {
+          const currentDomain = '${currentDomain}';
+          
+          // Intercept link clicks
+          document.addEventListener('click', function(e) {
+            const target = e.target.closest('a');
+            if (target && target.href) {
+              try {
+                const url = new URL(target.href);
+                if (url.hostname !== currentDomain) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                                     // Send message to main process via console
+                   console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
+                     blockedUrl: target.href,
+                     currentDomain: currentDomain,
+                     targetDomain: url.hostname
+                   }));
+                  
+                  return false;
+                }
+              } catch (error) {
+                // Invalid URL, allow the click
+              }
+            }
+          }, true);
+          
+          // Intercept form submissions
+          document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.action) {
+              try {
+                const url = new URL(form.action);
+                if (url.hostname !== currentDomain) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                                     // Send message to main process via console
+                   console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
+                     blockedUrl: form.action,
+                     currentDomain: currentDomain,
+                     targetDomain: url.hostname
+                   }));
+                  
+                  return false;
+                }
+              } catch (error) {
+                // Invalid URL, allow the submission
+              }
+            }
+          }, true);
+        })();
+      `);
+    });
+    
+    // Listen for console messages from injected script
+    webContents.on('console-message', (event, level, message, line, sourceId) => {
+      if (message.startsWith('NAVIGATION_BLOCKED:')) {
+        try {
+          const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
+          if (win) {
+            win.webContents.send('navigation-blocked', data);
+          }
+        } catch (error) {
+          console.error('Error parsing navigation blocked message:', error);
+        }
+      }
+    });
   });
 
   // Set Dock icon on macOS (especially useful in dev where bundle icon isn't used)
