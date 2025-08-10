@@ -38,5 +38,13 @@
       "color": "#10A37F"
     },
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance"
+  },
+  {
+    "key": "youtube_me5n1bxf",
+    "title": "YouTube",
+    "url": "https://www.youtube.com/",
+    "iconPath": "/icons/youtube.svg",
+    "iconType": "svg",
+    "description": "Access www.youtube.com - a web application for productivity and learning."
   }
 ]

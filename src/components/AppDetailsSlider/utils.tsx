@@ -1,4 +1,6 @@
 import { Box } from "@mui/material";
+import { Apps } from "@mui/icons-material";
+import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./types";
 
 export const IconImg = ({ src, alt }: { src: string; alt: string }) => (
@@ -28,6 +30,43 @@ export const getIconComponent = (site: SiteConfig) => {
             objectFit: "contain",
           }}
         />
+      );
+    }
+  }
+
+  // Handle react-icon type
+  if (site.iconType === "react-icon") {
+    if (site.iconName === "Apps") {
+      const size = site.iconProps?.size || 64;
+      const color = site.iconProps?.color || "inherit";
+      return (
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Apps sx={{ fontSize: size, color: color }} />
+        </Box>
+      );
+    } else if (site.iconName === "SiOpenai") {
+      const size = site.iconProps?.size || 64;
+      const color = site.iconProps?.color || "#10A37F";
+      return (
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <SiOpenai size={size} color={color} />
+        </Box>
       );
     }
   }

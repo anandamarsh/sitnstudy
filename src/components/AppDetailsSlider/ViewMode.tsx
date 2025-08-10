@@ -6,6 +6,10 @@ import {
   Paper,
   IconButton,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { SiteConfig } from "./types";
@@ -26,8 +30,14 @@ const ViewMode: React.FC<ViewModeProps> = ({
   onRemoveApp,
 }) => {
   const [isRemoving, setIsRemoving] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+
+  const handleRemoveClick = () => {
+    setShowRemoveConfirm(true);
+  };
 
   const handleRemoveConfirm = async () => {
+    setShowRemoveConfirm(false);
     setIsRemoving(true);
     try {
       const result = await removeSite(app.key);
@@ -44,6 +54,10 @@ const ViewMode: React.FC<ViewModeProps> = ({
     } finally {
       setIsRemoving(false);
     }
+  };
+
+  const handleRemoveCancel = () => {
+    setShowRemoveConfirm(false);
   };
 
   return (
@@ -119,7 +133,7 @@ const ViewMode: React.FC<ViewModeProps> = ({
             <Button
               variant="outlined"
               color="error"
-              onClick={handleRemoveConfirm}
+              onClick={handleRemoveClick}
               disabled={isRemoving}
               startIcon={<DeleteIcon />}
               sx={{ minWidth: 120 }}
@@ -129,6 +143,28 @@ const ViewMode: React.FC<ViewModeProps> = ({
           </Box>
         </Box>
       </Box>
+
+      {/* Remove confirmation dialog */}
+      <Dialog open={showRemoveConfirm} onClose={handleRemoveCancel}>
+        <DialogTitle>Remove Application</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to remove "{app.title}"? This action cannot be
+            undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleRemoveCancel}>Cancel</Button>
+          <Button
+            onClick={handleRemoveConfirm}
+            color="error"
+            variant="contained"
+            disabled={isRemoving}
+          >
+            {isRemoving ? "REMOVING..." : "Remove"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
