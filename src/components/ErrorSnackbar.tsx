@@ -39,7 +39,7 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
     <Snackbar
       open={open}
       autoHideDuration={6000}
-      onClose={onClose}
+      onClose={handleClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       sx={{ zIndex: 9999 }}
     >
