@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Box,
   List,
@@ -7,8 +7,6 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  Typography,
-  Tooltip,
   IconButton,
 } from "@mui/material";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
@@ -205,6 +203,34 @@ export default function LeftNavMenu(): JSX.Element {
     }
   };
 
+  const closeTab = (tabKey: string): void => {
+    const tabIndex = tabs.findIndex((t) => t.key === tabKey);
+    if (tabIndex === -1) return;
+
+    // Remove the tab
+    const newTabs = tabs.filter((t) => t.key !== tabKey);
+    setTabs(newTabs);
+
+    // If we're closing the currently active tab, switch to another tab or landing page
+    if (tabIndex === activeIndex) {
+      if (newTabs.length === 0) {
+        // No more tabs, show landing page
+        setShowLandingPage(true);
+        setSelectedSiteKey("landing");
+        setActiveIndex(0);
+      } else {
+        // Switch to the next available tab, or the previous one if we're at the end
+        const newActiveIndex =
+          tabIndex >= newTabs.length ? tabIndex - 1 : tabIndex;
+        setActiveIndex(newActiveIndex);
+        setSelectedSiteKey(newTabs[newActiveIndex].key);
+      }
+    } else if (tabIndex < activeIndex) {
+      // If we closed a tab before the active one, adjust the active index
+      setActiveIndex(activeIndex - 1);
+    }
+  };
+
   const handleAppSelect = (site: SiteConfig): void => {
     const siteTab: SiteTab = {
       key: site.key,
@@ -292,7 +318,11 @@ export default function LeftNavMenu(): JSX.Element {
         {showLandingPage ? (
           <AppStore onAppSelect={handleAppSelect} />
         ) : (
-          <WebviewTabs tabs={tabs} activeIndex={activeIndex} />
+          <WebviewTabs
+            tabs={tabs}
+            activeIndex={activeIndex}
+            onCloseTab={closeTab}
+          />
         )}
       </Box>
     </Box>

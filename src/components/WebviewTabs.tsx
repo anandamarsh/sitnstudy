@@ -1,5 +1,6 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, Fab } from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
 
 export interface SiteTab {
   key: string;
@@ -11,10 +12,11 @@ export interface SiteTab {
 interface WebviewTabsProps {
   tabs: SiteTab[];
   activeIndex: number;
+  onCloseTab?: (tabKey: string) => void;
 }
 
 export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
-  const { tabs, activeIndex } = props;
+  const { tabs, activeIndex, onCloseTab } = props;
   const webviewRefs = React.useRef<any[]>([]);
 
   // Function to pause all webviews (can be called from parent)
@@ -90,6 +92,12 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     }
   }, [activeIndex]);
 
+  const handleCloseTab = () => {
+    if (onCloseTab && tabs[activeIndex]) {
+      onCloseTab(tabs[activeIndex].key);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -98,8 +106,28 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
         height: "100%",
         overflow: "hidden",
         minWidth: 0,
+        position: "relative",
       }}
     >
+      {/* Close FAB - positioned absolutely on top right */}
+      {onCloseTab && (
+        <Fab
+          size="small"
+          color="primary"
+          aria-label="close webview"
+          onClick={handleCloseTab}
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 1000,
+            boxShadow: 3,
+          }}
+        >
+          <CloseIcon />
+        </Fab>
+      )}
+
       <Box
         sx={{
           position: "relative",
