@@ -113,18 +113,23 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       {onCloseTab && (
         <Fab
           size="small"
-          color="primary"
+          color="error"
           aria-label="close webview"
           onClick={handleCloseTab}
           sx={{
             position: "absolute",
-            top: 16,
-            right: 16,
+            top: 8,
+            right: 8,
             zIndex: 1000,
-            boxShadow: 3,
+            boxShadow: 2,
+            opacity: 0.7,
+            transition: "opacity 0.2s ease",
+            "&:hover": {
+              opacity: 1,
+            },
           }}
         >
-          <CloseIcon />
+          <CloseIcon sx={{ fontSize: 16 }} />
         </Fab>
       )}
 
