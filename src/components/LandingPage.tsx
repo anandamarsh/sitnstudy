@@ -24,8 +24,6 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   const [selectedApp, setSelectedApp] = useState<SiteConfig | null>(null);
   const [sliderOpen, setSliderOpen] = useState(false);
-  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
-  const [appToRemove, setAppToRemove] = useState<SiteConfig | null>(null);
   const [availableApps, setAvailableApps] = useState<SiteConfig[]>([]);
 
   // Load available apps on component mount and after changes
@@ -89,36 +87,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
     setSliderOpen(false);
   };
 
-  const handleRemoveClick = (app: SiteConfig) => {
-    setAppToRemove(app);
-    setRemoveDialogOpen(true);
-  };
-
-  const handleRemoveConfirm = async () => {
-    if (appToRemove) {
-      try {
-        // The actual removal is handled by the ViewMode component
-        // This function is called after successful removal
-        setRemoveDialogOpen(false);
-        setAppToRemove(null);
-        setSliderOpen(false);
-        setSelectedApp(null);
-        // Refresh the available apps to reflect the removal
-        await loadAvailableApps();
-      } catch (error) {
-        console.error("Error handling removal:", error);
-      }
-    }
-  };
-
-  const handleRemoveCancel = () => {
-    setRemoveDialogOpen(false);
-    setAppToRemove(null);
-  };
-
-  const handleCloseSlider = () => {
+  const handleCloseSlider = async () => {
     setSliderOpen(false);
     setSelectedApp(null);
+    // Refresh available apps when slider closes in case an app was removed
+    await loadAvailableApps();
   };
 
   return (
@@ -184,29 +157,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
         isAddMode={false}
         onClose={handleCloseSlider}
         onOpenApp={handleOpenApp}
-        onRemoveApp={handleRemoveClick}
+        onRemoveApp={() => {}} // Dummy function since removal is handled in ViewMode
       />
-
-      {/* Remove confirmation dialog */}
-      <Dialog open={removeDialogOpen} onClose={handleRemoveCancel}>
-        <DialogTitle>Remove Application</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to remove "{appToRemove?.title}"? This action
-            cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleRemoveCancel}>Cancel</Button>
-          <Button
-            onClick={handleRemoveConfirm}
-            color="error"
-            variant="contained"
-          >
-            Remove
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

@@ -32,7 +32,8 @@ const ViewMode: React.FC<ViewModeProps> = ({
     try {
       const result = await removeSite(app.key);
       if (result.success) {
-        onRemoveApp(app);
+        // Just close the slider, don't call onRemoveApp here
+        // The parent component will handle refreshing the list
         onClose();
       } else {
         console.error("Failed to remove site:", result.message);
