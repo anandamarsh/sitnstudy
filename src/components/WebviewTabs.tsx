@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Fab } from "@mui/material";
+import { Box, Fab, LinearProgress, Typography } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 
 export interface SiteTab {
@@ -18,6 +18,12 @@ interface WebviewTabsProps {
 export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
   const { tabs, activeIndex, onCloseTab } = props;
   const webviewRefs = React.useRef<any[]>([]);
+  const [loadingStates, setLoadingStates] = React.useState<{
+    [key: string]: boolean;
+  }>({});
+  const [loadingProgress, setLoadingProgress] = React.useState<{
+    [key: string]: number;
+  }>({});
 
   // Function to pause all webviews (can be called from parent)
   const pauseAllWebviews = () => {
@@ -60,6 +66,38 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       delete (window as any).pauseAllWebviews;
     };
   }, []);
+
+  // Simulate loading progress for better UX
+  React.useEffect(() => {
+    const currentTab = tabs[activeIndex];
+    if (!currentTab) return;
+
+    // Start loading when tab changes
+    setLoadingStates((prev) => ({ ...prev, [currentTab.key]: true }));
+    setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 0 }));
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setLoadingProgress((prev) => {
+        const current = prev[currentTab.key] || 0;
+        if (current < 90) {
+          return { ...prev, [currentTab.key]: current + Math.random() * 20 };
+        }
+        return prev;
+      });
+    }, 200);
+
+    // Complete loading after a delay
+    const completeTimeout = setTimeout(() => {
+      setLoadingStates((prev) => ({ ...prev, [currentTab.key]: false }));
+      setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 100 }));
+    }, 1500);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearTimeout(completeTimeout);
+    };
+  }, [activeIndex, tabs]);
 
   // Pause media in any background (inactive) webviews when switching tabs
   React.useEffect(() => {
@@ -171,6 +209,29 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                 webviewRefs.current[idx] = el;
               }}
             />
+            {idx === activeIndex && loadingStates[t.key] && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  p: 1,
+                }}
+              >
+                <LinearProgress
+                  variant="determinate"
+                  value={loadingProgress[t.key] || 0}
+                />
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  align="center"
+                >
+                  Loading {t.title}...
+                </Typography>
+              </Box>
+            )}
           </Box>
         ))}
       </Box>
