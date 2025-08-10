@@ -144,12 +144,6 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "stretch",
-                "&:focus": {
-                  outline: "none",
-                },
-                "&:focus-visible": {
-                  outline: "none",
-                },
               }}
             >
               <Box
@@ -211,12 +205,6 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
-                  "&:focus": {
-                    outline: "none",
-                  },
-                  "&:focus-visible": {
-                    outline: "none",
-                  },
                 }}
               >
                 <Box
