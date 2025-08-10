@@ -1,8 +1,109 @@
-import { app, BrowserWindow, nativeImage, Menu, session } from 'electron'
+import { app, BrowserWindow, nativeImage, Menu, session, ipcMain } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { writeFileSync, readFileSync } from 'fs'
+
+// DevTools are now enabled on-demand:
+// - Right-click → "Inspect Element" to inspect specific elements
+// - Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to toggle DevTools
+// - Cmd+Shift+C (macOS) or Ctrl+Shift+C (Windows/Linux) to open DevTools in element picker mode
+// - View menu → "Toggle Developer Tools"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// IPC handlers for site management
+ipcMain.handle('add-new-site', async (event, newSite) => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const currentContent = readFileSync(availableSitesPath, 'utf8')
+    const sites = JSON.parse(currentContent)
+    
+    // Generate a unique filename for the SVG icon
+    const iconFilename = `${newSite.key}.svg`
+    const iconPath = path.join(__dirname, '../public/icons', iconFilename)
+    
+    // If the newSite has SVG content, save it to the local file
+    if (newSite.svgContent) {
+      try {
+        // Ensure the icons directory exists
+        const iconsDir = path.dirname(iconPath)
+        if (!require('fs').existsSync(iconsDir)) {
+          require('fs').mkdirSync(iconsDir, { recursive: true })
+        }
+        
+        // Save the SVG content to the local file
+        writeFileSync(iconPath, newSite.svgContent, 'utf8')
+        
+        // Update the iconPath to point to the local file
+        newSite.iconPath = `/icons/${iconFilename}`
+        
+        console.log(`Saved SVG icon to: ${iconPath}`)
+      } catch (iconError) {
+        console.error('Error saving SVG icon:', iconError)
+        // Continue with the original iconPath if SVG saving fails
+      }
+    }
+    
+    // Remove the temporary svgContent property
+    delete newSite.svgContent
+    
+    sites.push(newSite)
+    
+    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
+    
+    return { 
+      success: true, 
+      message: `Successfully added new site: ${newSite.title}`,
+      iconPath: newSite.iconPath
+    }
+  } catch (error) {
+    console.error('Error adding new site:', error)
+    return { success: false, message: 'Failed to add new site' }
+  }
+})
+
+ipcMain.handle('remove-site', async (event, siteKey) => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const currentContent = readFileSync(availableSitesPath, 'utf8')
+    const sites = JSON.parse(currentContent)
+    
+    // Find the site to remove
+    const siteIndex = sites.findIndex((site: any) => site.key === siteKey)
+    
+    if (siteIndex === -1) {
+      return { 
+        success: false, 
+        message: `Site with key "${siteKey}" not found.` 
+      }
+    }
+    
+    // Remove the site
+    sites.splice(siteIndex, 1)
+    
+    // Write back to the file
+    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
+    
+    return { 
+      success: true, 
+      message: `Successfully removed site: ${siteKey}` 
+    }
+  } catch (error) {
+    console.error('Error removing site:', error)
+    return { success: false, message: 'Failed to remove site' }
+  }
+})
+
+ipcMain.handle('get-available-sites', async () => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const content = readFileSync(availableSitesPath, 'utf8')
+    return JSON.parse(content)
+  } catch (error) {
+    console.error('Error reading availableSites.json:', error)
+    return []
+  }
+})
 
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
@@ -59,6 +160,45 @@ function createWindow() {
     win?.show()
   })
 
+  // Remove automatic DevTools opening - let user enable it manually
+  // win.webContents.openDevTools()
+
+  // Enable right-click context menu with Inspect Element
+  win.webContents.on('context-menu', (e, params) => {
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Inspect Element',
+        click: () => win?.webContents.inspectElement(params.x, params.y)
+      },
+      { type: 'separator' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' }
+    ])
+    contextMenu.popup({ window: win! })
+  })
+
+  // Enable keyboard shortcuts for DevTools
+  win.webContents.on('before-input-event', (event, input) => {
+    // Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to open DevTools
+    if (input.control && input.shift && input.key === 'i') {
+      event.preventDefault()
+      win?.webContents.toggleDevTools()
+    }
+    // Cmd+Shift+C (macOS) or Ctrl+Shift+C (Windows/Linux) to open DevTools in element picker mode
+    if (input.control && input.shift && input.key === 'c') {
+      event.preventDefault()
+      win?.webContents.toggleDevTools()
+      // Small delay to ensure DevTools is open before entering element picker mode
+      setTimeout(() => {
+        win?.webContents.sendInputEvent({
+          type: 'keyDown',
+          keyCode: 'F12'
+        })
+      }, 100)
+    }
+  })
+
   // Webview attached handler (DevTools disabled by request)
   win.webContents.on('did-attach-webview', () => {})
 
@@ -77,7 +217,24 @@ function createWindow() {
   const template: Electron.MenuItemConstructorOptions[] = [
     { role: 'appMenu' },
     { role: 'editMenu' },
-    { role: 'viewMenu' },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { 
+          label: 'Toggle Developer Tools',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Shift+I' : 'Ctrl+Shift+I',
+          click: () => win?.webContents.toggleDevTools()
+        },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
     { role: 'windowMenu' },
     {
       label: 'Account',

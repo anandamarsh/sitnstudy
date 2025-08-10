@@ -17,6 +17,48 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
   const { tabs, activeIndex } = props;
   const webviewRefs = React.useRef<any[]>([]);
 
+  // Function to pause all webviews (can be called from parent)
+  const pauseAllWebviews = () => {
+    webviewRefs.current.forEach((wv) => {
+      if (!wv) return;
+      try {
+        if (typeof wv.executeJavaScript === "function") {
+          wv.executeJavaScript(`
+            // Pause all audio and video
+            Array.from(document.querySelectorAll('video,audio')).forEach(m => {
+              try { m.pause(); m.muted = true; } catch {}
+            });
+            
+            // Stop any running game loops or animations
+            if (window.requestAnimationFrame) {
+              // Cancel any pending animation frames
+              for (let i = 1; i <= 1000; i++) {
+                window.cancelAnimationFrame(i);
+              }
+            }
+            
+            // Pause any running intervals or timeouts that might be game loops
+            const highestId = setTimeout(() => {}, 0);
+            for (let i = 1; i <= highestId; i++) {
+              clearTimeout(i);
+              clearInterval(i);
+            }
+          `);
+        }
+      } catch {
+        // no-op
+      }
+    });
+  };
+
+  // Expose the function globally so it can be called from anywhere
+  React.useEffect(() => {
+    (window as any).pauseAllWebviews = pauseAllWebviews;
+    return () => {
+      delete (window as any).pauseAllWebviews;
+    };
+  }, []);
+
   // Pause media in any background (inactive) webviews when switching tabs
   React.useEffect(() => {
     webviewRefs.current.forEach((wv, idx) => {

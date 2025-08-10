@@ -1,8 +1,8 @@
 import "./App.css";
-import MiniVariantDrawer from "./components/MiniVariantDrawer";
+import LeftNavMenu from "./components/LeftNavMenu";
 
 function App() {
-  return <MiniVariantDrawer />;
+  return <LeftNavMenu />;
 }
 
 export default App;

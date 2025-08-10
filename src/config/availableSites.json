@@ -1,0 +1,50 @@
+[
+  {
+    "key": "landing",
+    "title": "App Store",
+    "url": "",
+    "iconType": "react-icon",
+    "iconName": "Apps",
+    "iconProps": {
+      "size": 20,
+      "color": "inherit"
+    },
+    "description": "Browse and manage your applications"
+  },
+  {
+    "key": "ixl",
+    "title": "IXL",
+    "url": "https://ixl.com/",
+    "iconPath": "/icons/ixl.svg",
+    "iconType": "svg",
+    "description": "Interactive learning platform for math, language arts, science, and social studies"
+  },
+  {
+    "key": "netflix",
+    "title": "Netflix",
+    "url": "https://www.netflix.com/",
+    "iconPath": "/icons/netflix.svg",
+    "iconType": "svg",
+    "description": "Streaming service for movies, TV shows, documentaries, and educational content"
+  },
+  {
+    "key": "chatgpt",
+    "title": "ChatGPT",
+    "url": "https://chatgpt.com/",
+    "iconType": "react-icon",
+    "iconName": "SiOpenai",
+    "iconProps": {
+      "size": 20,
+      "color": "#10A37F"
+    },
+    "description": "AI-powered chatbot for learning, problem-solving, and creative assistance"
+  },
+  {
+    "key": "youtube_me5n1bxf",
+    "title": "YouTube",
+    "url": "https://www.youtube.com/",
+    "iconPath": "/icons/youtube.svg",
+    "iconType": "svg",
+    "description": "Access www.youtube.com - a web application for productivity and learning."
+  }
+]
