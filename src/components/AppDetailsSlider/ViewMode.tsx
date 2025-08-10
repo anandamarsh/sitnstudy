@@ -146,51 +146,44 @@ const ViewMode: React.FC<ViewModeProps> = ({
       </Box>
 
       {/* Remove confirmation dialog */}
-      <Dialog 
-        open={showRemoveConfirm} 
+      <Dialog
+        open={showRemoveConfirm}
         onClose={handleRemoveCancel}
         PaperProps={{
           sx: {
             borderRadius: 2,
             minWidth: 400,
             maxWidth: 500,
-          }
+          },
         }}
       >
-        <DialogTitle 
-          sx={{ 
+        <DialogTitle
+          sx={{
             pb: 1,
             px: 3,
             pt: 3,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5
           }}
         >
-          <DeleteIcon color="error" sx={{ fontSize: 28 }} />
           <Typography variant="h6" component="span">
             Remove Application
           </Typography>
         </DialogTitle>
-        
+
         <DialogContent sx={{ px: 3, pb: 2 }}>
           <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.6 }}>
             Are you sure you want to remove <strong>"{app.title}"</strong>?
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-            This action cannot be undone. The application will be permanently removed from your list.
-          </Typography>
         </DialogContent>
-        
+
         <DialogActions sx={{ px: 3, pb: 3, gap: 2 }}>
-          <Button 
+          <Button
             onClick={handleRemoveCancel}
             variant="outlined"
-            sx={{ 
+            sx={{
               minWidth: 100,
               px: 3,
               py: 1.5,
-              borderRadius: 2
+              borderRadius: 2,
             }}
           >
             Cancel
@@ -200,13 +193,15 @@ const ViewMode: React.FC<ViewModeProps> = ({
             color="error"
             variant="contained"
             disabled={isRemoving}
-            startIcon={isRemoving ? <CircularProgress size={16} /> : <DeleteIcon />}
-            sx={{ 
+            startIcon={
+              isRemoving ? <CircularProgress size={16} /> : <DeleteIcon />
+            }
+            sx={{
               minWidth: 120,
               px: 3,
               py: 1.5,
               borderRadius: 2,
-              boxShadow: 2
+              boxShadow: 2,
             }}
           >
             {isRemoving ? "Removing..." : "Remove"}
