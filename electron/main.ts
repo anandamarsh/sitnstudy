@@ -59,6 +59,24 @@ function createWindow() {
     win?.show()
   })
 
+  // Enable DevTools for debugging
+  win.webContents.openDevTools()
+
+  // Enable right-click context menu with Inspect Element
+  win.webContents.on('context-menu', (e, params) => {
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Inspect Element',
+        click: () => win?.webContents.inspectElement(params.x, params.y)
+      },
+      { type: 'separator' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' }
+    ])
+    contextMenu.popup({ window: win! })
+  })
+
   // Webview attached handler (DevTools disabled by request)
   win.webContents.on('did-attach-webview', () => {})
 
@@ -77,7 +95,20 @@ function createWindow() {
   const template: Electron.MenuItemConstructorOptions[] = [
     { role: 'appMenu' },
     { role: 'editMenu' },
-    { role: 'viewMenu' },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
     { role: 'windowMenu' },
     {
       label: 'Account',

@@ -15,7 +15,9 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import WebviewTabs, { SiteTab } from "./WebviewTabs";
+import AppStore from "./AppStore";
 import { SiOpenai } from "react-icons/si";
+import { Apps } from "@mui/icons-material";
 import availableSitesConfig from "../config/availableSites.json";
 
 const drawerWidth = 240;
@@ -96,32 +98,69 @@ export default function LeftNavMenu(): JSX.Element {
     if (site.iconType === "svg" && site.iconPath) {
       return <IconImg src={site.iconPath} alt={site.title} />;
     } else if (site.iconType === "react-icon" && site.iconName === "SiOpenai") {
-      return <SiOpenai size={site.iconProps?.size || 20} color={site.iconProps?.color || "#10A37F"} />;
+      return (
+        <SiOpenai
+          size={site.iconProps?.size || 20}
+          color={site.iconProps?.color || "#10A37F"}
+        />
+      );
+    } else if (site.iconType === "react-icon" && site.iconName === "Apps") {
+      return (
+        <Apps
+          sx={{
+            fontSize: site.iconProps?.size || 20,
+            color: site.iconProps?.color || "inherit",
+          }}
+        />
+      );
     }
     return <InboxIcon />;
   };
 
-  const availableSites: SiteTab[] = (availableSitesConfig as SiteConfig[]).map((site: SiteConfig) => ({
-    key: site.key,
-    title: site.title,
-    url: site.url,
-    icon: getIconComponent(site),
-  }));
+  const availableSites: SiteTab[] = (availableSitesConfig as SiteConfig[]).map(
+    (site: SiteConfig) => ({
+      key: site.key,
+      title: site.title,
+      url: site.url,
+      icon: getIconComponent(site),
+    })
+  );
 
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const [showLandingPage, setShowLandingPage] = React.useState(true); // Changed to true to show landing page by default
+  const [selectedSiteKey, setSelectedSiteKey] = React.useState("landing"); // Track selected site
 
   const openSite = (site: SiteTab): void => {
+    setSelectedSiteKey(site.key);
+
+    if (site.key === "landing") {
+      setShowLandingPage(true);
+      return;
+    }
+
     const existingIndex = tabs.findIndex((t) => t.key === site.key);
     if (existingIndex >= 0) {
       setActiveIndex(existingIndex);
+      setShowLandingPage(false);
     } else {
       setTabs((prev) => {
         const next = [...prev, site];
         setActiveIndex(next.length - 1);
+        setShowLandingPage(false);
         return next;
       });
     }
+  };
+
+  const handleAppSelect = (site: SiteConfig): void => {
+    const siteTab: SiteTab = {
+      key: site.key,
+      title: site.title,
+      url: site.url,
+      icon: getIconComponent(site),
+    };
+    openSite(siteTab);
   };
 
   // Drawer toggling is handled inline on the header button
@@ -154,30 +193,35 @@ export default function LeftNavMenu(): JSX.Element {
         <Divider />
         <List>
           {availableSites.map((site) => (
-            <ListItem key={site.key} disablePadding sx={{ display: "block" }}>
-              <ListItemButton
-                onClick={() => openSite(site)}
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? "initial" : "center",
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
+            <React.Fragment key={site.key}>
+              <ListItem disablePadding sx={{ display: "block" }}>
+                <ListItemButton
+                  onClick={() => openSite(site)}
+                  selected={selectedSiteKey === site.key}
                   sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : "auto",
-                    justifyContent: "center",
+                    minHeight: 48,
+                    justifyContent: open ? "initial" : "center",
+                    px: 2.5,
                   }}
                 >
-                  {site.icon ?? <InboxIcon />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={site.title}
-                  sx={{ opacity: open ? 1 : 0 }}
-                />
-              </ListItemButton>
-            </ListItem>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : "auto",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {site.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={site.title}
+                    sx={{ opacity: open ? 1 : 0 }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              {/* Add divider after the App Store (landing) item */}
+              {site.key === "landing" && <Divider sx={{ my: 1 }} />}
+            </React.Fragment>
           ))}
         </List>
         <Divider />
@@ -194,7 +238,11 @@ export default function LeftNavMenu(): JSX.Element {
           width: "100%",
         }}
       >
-        <WebviewTabs tabs={tabs} activeIndex={activeIndex} />
+        {showLandingPage ? (
+          <AppStore onAppSelect={handleAppSelect} />
+        ) : (
+          <WebviewTabs tabs={tabs} activeIndex={activeIndex} />
+        )}
       </Box>
     </Box>
   );
