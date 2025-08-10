@@ -46,5 +46,17 @@
     "iconPath": "/icons/youtube.svg",
     "iconType": "svg",
     "description": "Access www.youtube.com - a web application for productivity and learning."
+  },
+  {
+    "key": "freepacman_me5nexqz",
+    "title": "Pacman",
+    "url": "https://freepacman.org/",
+    "iconType": "react-icon",
+    "iconName": "GiGamepad",
+    "iconProps": {
+      "size": 20,
+      "color": "#FFD700"
+    },
+    "description": "Pacman - Play Game Instantly!"
   }
 ]
