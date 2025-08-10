@@ -199,8 +199,18 @@ function createWindow() {
     }
   })
 
-  // Webview attached handler (DevTools disabled by request)
-  win.webContents.on('did-attach-webview', () => {})
+  // Webview attached handler - enable popups and handle new windows
+  win.webContents.on('did-attach-webview', (event, webContents) => {
+    // Enable popups for this webview
+    webContents.setWindowOpenHandler(({ url, frameName, features }) => {
+      // Open popups in the same webview or create a new window
+      console.log('Webview popup requested:', url, frameName, features);
+      
+      // For now, allow all popups to open in the same webview
+      // You can customize this behavior based on your needs
+      return { action: 'allow' };
+    });
+  });
 
   // Set Dock icon on macOS (especially useful in dev where bundle icon isn't used)
   if (process.platform === 'darwin') {
