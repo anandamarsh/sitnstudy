@@ -7,13 +7,40 @@ declare global {
   }
 }
 
-export const addNewSite = async (newSite: SiteConfig): Promise<{ success: boolean; message: string; iconPath?: string }> => {
+export interface AddSiteResult {
+  success: boolean;
+  message: string;
+  iconPath?: string;
+}
+
+export interface RemoveSiteResult {
+  success: boolean;
+  message: string;
+}
+
+export const addNewSite = async (newSite: SiteConfig): Promise<AddSiteResult> => {
   try {
     const result = await window.ipcRenderer.invoke('add-new-site', newSite);
     return result;
   } catch (error) {
     console.error('Error adding new site:', error);
-    throw new Error('Failed to add new site to availableSites.json');
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+};
+
+export const removeSite = async (siteKey: string): Promise<RemoveSiteResult> => {
+  try {
+    const result = await window.ipcRenderer.invoke('remove-site', siteKey);
+    return result;
+  } catch (error) {
+    console.error('Error removing site:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
 };
 

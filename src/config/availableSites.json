@@ -46,21 +46,5 @@
       "color": "#10A37F"
     },
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance"
-  },
-  {
-    "key": "github_me5a4ibn",
-    "title": "GitHub",
-    "url": "https://github.com/",
-    "iconPath": "/icons/github.svg",
-    "iconType": "svg",
-    "description": "Git version control platform for collaborative software development and code hosting"
-  },
-  {
-    "key": "smh_me5a9gx4",
-    "title": "SMH",
-    "url": "https://www.smh.com.au/",
-    "iconPath": "/icons/smh.svg",
-    "iconType": "svg",
-    "description": "The Sydney Morning Herald - Australian news, business, and current affairs"
   }
 ]

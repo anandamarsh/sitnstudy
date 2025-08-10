@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
+  Container,
   Card,
   CardActionArea,
   Typography,
-  Container,
   Button,
   Dialog,
   DialogTitle,
@@ -13,22 +13,12 @@ import {
 } from "@mui/material";
 import { MoveToInbox as InboxIcon, Add } from "@mui/icons-material";
 import { SiOpenai } from "react-icons/si";
-import availableSitesConfig from "../config/availableSites.json";
+import { SiteConfig } from "./AppDetailsSlider/types";
 import AppDetailsSlider from "./AppDetailsSlider";
-
-interface SiteConfig {
-  key: string;
-  title: string;
-  url: string;
-  iconPath?: string;
-  iconType: "svg" | "react-icon";
-  iconName?: string;
-  iconProps?: Record<string, any>;
-  description?: string;
-}
+import { getAvailableSites } from "../utils/siteManager";
 
 interface AppStoreProps {
-  onAppSelect: (site: SiteConfig) => void;
+  onAppSelect: (app: SiteConfig) => void;
 }
 
 const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
@@ -37,6 +27,22 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [appToRemove, setAppToRemove] = useState<SiteConfig | null>(null);
   const [isAddMode, setIsAddMode] = useState(false);
+  const [availableApps, setAvailableApps] = useState<SiteConfig[]>([]);
+
+  // Load available apps on component mount and after changes
+  useEffect(() => {
+    loadAvailableApps();
+  }, []);
+
+  const loadAvailableApps = async () => {
+    try {
+      const sites = await getAvailableSites();
+      const filteredSites = sites.filter((site) => site.key !== "landing");
+      setAvailableApps(filteredSites);
+    } catch (error) {
+      console.error("Error loading available sites:", error);
+    }
+  };
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => (
     <Box
@@ -74,10 +80,6 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
     return <InboxIcon />;
   };
 
-  const availableApps = (availableSitesConfig as SiteConfig[]).filter(
-    (site) => site.key !== "landing"
-  );
-
   const handleAppClick = (app: SiteConfig) => {
     setSelectedApp(app);
     setIsAddMode(false);
@@ -100,13 +102,21 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
     setRemoveDialogOpen(true);
   };
 
-  const handleRemoveConfirm = () => {
-    // TODO: Implement actual removal logic
-    console.log("Removing app:", appToRemove);
-    setRemoveDialogOpen(false);
-    setAppToRemove(null);
-    setSliderOpen(false);
-    setSelectedApp(null);
+  const handleRemoveConfirm = async () => {
+    if (appToRemove) {
+      try {
+        // The actual removal is handled by the ViewMode component
+        // This function is called after successful removal
+        setRemoveDialogOpen(false);
+        setAppToRemove(null);
+        setSliderOpen(false);
+        setSelectedApp(null);
+        // Refresh the available apps to reflect the removal
+        await loadAvailableApps();
+      } catch (error) {
+        console.error("Error handling removal:", error);
+      }
+    }
   };
 
   const handleRemoveCancel = () => {

@@ -56,6 +56,38 @@ ipcMain.handle('add-new-site', async (event, newSite) => {
   }
 })
 
+ipcMain.handle('remove-site', async (event, siteKey) => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const currentContent = readFileSync(availableSitesPath, 'utf8')
+    const sites = JSON.parse(currentContent)
+    
+    // Find the site to remove
+    const siteIndex = sites.findIndex((site: any) => site.key === siteKey)
+    
+    if (siteIndex === -1) {
+      return { 
+        success: false, 
+        message: `Site with key "${siteKey}" not found.` 
+      }
+    }
+    
+    // Remove the site
+    sites.splice(siteIndex, 1)
+    
+    // Write back to the file
+    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
+    
+    return { 
+      success: true, 
+      message: `Successfully removed site: ${siteKey}` 
+    }
+  } catch (error) {
+    console.error('Error removing site:', error)
+    return { success: false, message: 'Failed to remove site' }
+  }
+})
+
 ipcMain.handle('get-available-sites', async () => {
   try {
     const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')

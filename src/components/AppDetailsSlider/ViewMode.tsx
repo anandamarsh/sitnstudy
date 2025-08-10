@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -10,6 +10,7 @@ import {
 import { Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { SiteConfig } from "./types";
 import { getIconComponent } from "./utils";
+import { removeSite } from "../../utils/siteManager";
 
 interface ViewModeProps {
   app: SiteConfig;
@@ -24,9 +25,24 @@ const ViewMode: React.FC<ViewModeProps> = ({
   onOpenApp,
   onRemoveApp,
 }) => {
-  const handleRemoveConfirm = () => {
-    onRemoveApp(app);
-    onClose();
+  const [isRemoving, setIsRemoving] = useState(false);
+
+  const handleRemoveConfirm = async () => {
+    setIsRemoving(true);
+    try {
+      const result = await removeSite(app.key);
+      if (result.success) {
+        onRemoveApp(app);
+        onClose();
+      } else {
+        console.error("Failed to remove site:", result.message);
+        // You might want to show an error message to the user here
+      }
+    } catch (error) {
+      console.error("Error removing site:", error);
+    } finally {
+      setIsRemoving(false);
+    }
   };
 
   return (
@@ -35,15 +51,12 @@ const ViewMode: React.FC<ViewModeProps> = ({
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
           p: 3,
           pb: 2,
         }}
       >
-        <Typography variant="h5" component="h2">
-          {app.title}
-        </Typography>
         <IconButton onClick={onClose} size="small">
           <CloseIcon />
         </IconButton>
@@ -56,13 +69,14 @@ const ViewMode: React.FC<ViewModeProps> = ({
             display: "flex",
             flexDirection: "column",
             gap: 3,
-            maxWidth: 600,
+            maxWidth: 800,
             mx: "auto",
             height: "100%",
           }}
         >
-          {/* App Icon */}
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
+          {/* App Icon and Details Row */}
+          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
+            {/* App Icon - Left side, no borders */}
             <Box
               sx={{
                 width: 120,
@@ -70,48 +84,32 @@ const ViewMode: React.FC<ViewModeProps> = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "1px solid #e0e0e0",
-                borderRadius: 2,
-                backgroundColor: "white",
+                flexShrink: 0,
               }}
             >
               {getIconComponent(app)}
             </Box>
-          </Box>
 
-          {/* App Details */}
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                URL
-              </Typography>
+            {/* App Details - Right side */}
+            <Box
+              sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}
+            >
               <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
                 {app.url}
               </Typography>
-            </Box>
 
-            {app.description && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Description
+              {app.description && (
+                <Typography variant="body2" color="text.secondary">
+                  {app.description}
                 </Typography>
-                <Typography variant="body1">{app.description}</Typography>
-              </Box>
-            )}
-
-            <Box>
-              <Typography variant="subtitle2" color="text.secondary">
-                App Key
-              </Typography>
-              <Chip label={app.key} size="small" variant="outlined" />
+              )}
             </Box>
-          </Paper>
+          </Box>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Same row */}
           <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
             <Button
               variant="contained"
-              fullWidth
               onClick={() => onOpenApp(app)}
               sx={{ minWidth: 120 }}
             >
@@ -121,10 +119,11 @@ const ViewMode: React.FC<ViewModeProps> = ({
               variant="outlined"
               color="error"
               onClick={handleRemoveConfirm}
+              disabled={isRemoving}
               startIcon={<DeleteIcon />}
               sx={{ minWidth: 120 }}
             >
-              REMOVE
+              {isRemoving ? "REMOVING..." : "REMOVE"}
             </Button>
           </Box>
         </Box>

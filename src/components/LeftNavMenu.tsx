@@ -1,24 +1,28 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Typography,
+  Tooltip,
+  IconButton,
+} from "@mui/material";
+import InboxIcon from "@mui/icons-material/MoveToInbox";
+import { SiOpenai } from "react-icons/si";
+import { SiteConfig } from "./AppDetailsSlider/types";
+import { getAvailableSites } from "../utils/siteManager";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
-import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
+import MenuIcon from "@mui/icons-material/Menu";
+import { Apps } from "@mui/icons-material";
 import WebviewTabs, { SiteTab } from "./WebviewTabs";
 import AppStore from "./AppStore";
-import { SiOpenai } from "react-icons/si";
-import { Apps } from "@mui/icons-material";
-import availableSitesConfig from "../config/availableSites.json";
 
 const drawerWidth = 240;
 
@@ -70,39 +74,73 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-interface SiteConfig {
-  key: string;
-  title: string;
-  url: string;
-  iconPath?: string;
-  iconType: "svg" | "react-icon";
-  iconName?: string;
-  iconProps?: Record<string, any>;
-}
-
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
+  const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
+  const [tabs, setTabs] = React.useState<SiteTab[]>([]);
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const [showLandingPage, setShowLandingPage] = React.useState(true); // Changed to true to show landing page by default
+  const [selectedSiteKey, setSelectedSiteKey] = React.useState("landing"); // Track selected site
+
+  // Load available sites on component mount
+  React.useEffect(() => {
+    const loadSites = async () => {
+      try {
+        const sites = await getAvailableSites();
+        const siteTabs: SiteTab[] = sites.map((site: SiteConfig) => ({
+          key: site.key,
+          title: site.title,
+          url: site.url,
+          icon: getIconComponent(site),
+        }));
+        setAvailableSites(siteTabs);
+      } catch (error) {
+        console.error("Error loading available sites:", error);
+      }
+    };
+
+    loadSites();
+  }, []);
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => (
-    <img
+    <Box
+      component="img"
       src={src}
       alt={alt}
-      width={20}
-      height={20}
-      style={{ display: "block" }}
+      sx={{
+        width: 20,
+        height: 20,
+        objectFit: "contain",
+      }}
     />
   );
 
   const getIconComponent = (site: SiteConfig) => {
-    if (site.iconType === "svg" && site.iconPath) {
+    if (site.key === "landing") {
+      return (
+        <Apps
+          sx={{
+            fontSize: site.iconProps?.size || 20,
+            color: site.iconProps?.color || "inherit",
+          }}
+        />
+      );
+    } else if (site.iconType === "svg" && site.iconPath) {
       return <IconImg src={site.iconPath} alt={site.title} />;
     } else if (site.iconType === "react-icon" && site.iconName === "SiOpenai") {
       return (
-        <SiOpenai
-          size={site.iconProps?.size || 20}
-          color={site.iconProps?.color || "#10A37F"}
-        />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: 20,
+            height: 20,
+          }}
+        >
+          <SiOpenai size={20} color="#10A37F" />
+        </Box>
       );
     } else if (site.iconType === "react-icon" && site.iconName === "Apps") {
       return (
@@ -116,20 +154,6 @@ export default function LeftNavMenu(): JSX.Element {
     }
     return <InboxIcon />;
   };
-
-  const availableSites: SiteTab[] = (availableSitesConfig as SiteConfig[]).map(
-    (site: SiteConfig) => ({
-      key: site.key,
-      title: site.title,
-      url: site.url,
-      icon: getIconComponent(site),
-    })
-  );
-
-  const [tabs, setTabs] = React.useState<SiteTab[]>([]);
-  const [activeIndex, setActiveIndex] = React.useState(0);
-  const [showLandingPage, setShowLandingPage] = React.useState(true); // Changed to true to show landing page by default
-  const [selectedSiteKey, setSelectedSiteKey] = React.useState("landing"); // Track selected site
 
   const openSite = (site: SiteTab): void => {
     setSelectedSiteKey(site.key);
@@ -175,7 +199,6 @@ export default function LeftNavMenu(): JSX.Element {
         minWidth: 0,
       }}
     >
-      <CssBaseline />
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
           <IconButton onClick={() => setOpen((o) => !o)}>
