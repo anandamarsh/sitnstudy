@@ -256,7 +256,7 @@ export default function LeftNavMenu(): JSX.Element {
     >
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
-          <IconButton 
+          <IconButton
             onClick={() => setOpen((o) => !o)}
             sx={{
               "&:focus": {
