@@ -256,7 +256,17 @@ export default function LeftNavMenu(): JSX.Element {
     >
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
-          <IconButton onClick={() => setOpen((o) => !o)}>
+          <IconButton 
+            onClick={() => setOpen((o) => !o)}
+            sx={{
+              "&:focus": {
+                outline: "none",
+              },
+              "&:focus-visible": {
+                outline: "none",
+              },
+            }}
+          >
             {open ? (
               theme.direction === "rtl" ? (
                 <ChevronRightIcon />
@@ -281,6 +291,12 @@ export default function LeftNavMenu(): JSX.Element {
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
                     position: "relative",
+                    "&:focus": {
+                      outline: "none",
+                    },
+                    "&:focus-visible": {
+                      outline: "none",
+                    },
                   }}
                 >
                   <ListItemIcon
@@ -313,6 +329,12 @@ export default function LeftNavMenu(): JSX.Element {
                         transition: "opacity 0.2s ease",
                         "&:hover": {
                           opacity: 1,
+                        },
+                        "&:focus": {
+                          outline: "none",
+                        },
+                        "&:focus-visible": {
+                          outline: "none",
                         },
                       }}
                     >
