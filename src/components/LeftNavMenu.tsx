@@ -16,6 +16,7 @@ import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import WebviewTabs, { SiteTab } from "./WebviewTabs";
 import { SiOpenai } from "react-icons/si";
+import availableSitesConfig from "../config/availableSites.json";
 
 const drawerWidth = 240;
 
@@ -67,7 +68,17 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-export default function MiniVariantDrawer(): JSX.Element {
+interface SiteConfig {
+  key: string;
+  title: string;
+  url: string;
+  iconPath?: string;
+  iconType: "svg" | "react-icon";
+  iconName?: string;
+  iconProps?: Record<string, any>;
+}
+
+export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
 
@@ -81,32 +92,21 @@ export default function MiniVariantDrawer(): JSX.Element {
     />
   );
 
-  const availableSites: SiteTab[] = [
-    {
-      key: "ixl",
-      title: "IXL",
-      url: "https://ixl.com/",
-      icon: <IconImg src="/icons/ixl.svg" alt="IXL" />,
-    },
-    {
-      key: "youtube",
-      title: "YouTube",
-      url: "https://www.youtube.com/",
-      icon: <IconImg src="/icons/youtube.svg" alt="YouTube" />,
-    },
-    {
-      key: "netflix",
-      title: "Netflix",
-      url: "https://www.netflix.com/",
-      icon: <IconImg src="/icons/netflix.svg" alt="Netflix" />,
-    },
-    {
-      key: "chatgpt",
-      title: "ChatGPT",
-      url: "https://chatgpt.com/",
-      icon: <SiOpenai size={20} color="#10A37F" />,
-    },
-  ];
+  const getIconComponent = (site: SiteConfig) => {
+    if (site.iconType === "svg" && site.iconPath) {
+      return <IconImg src={site.iconPath} alt={site.title} />;
+    } else if (site.iconType === "react-icon" && site.iconName === "SiOpenai") {
+      return <SiOpenai size={site.iconProps?.size || 20} color={site.iconProps?.color || "#10A37F"} />;
+    }
+    return <InboxIcon />;
+  };
+
+  const availableSites: SiteTab[] = (availableSitesConfig as SiteConfig[]).map((site: SiteConfig) => ({
+    key: site.key,
+    title: site.title,
+    url: site.url,
+    icon: getIconComponent(site),
+  }));
 
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
   const [activeIndex, setActiveIndex] = React.useState(0);
