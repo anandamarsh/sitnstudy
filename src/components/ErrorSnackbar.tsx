@@ -54,7 +54,7 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
             mt: 1,
             wordBreak: 'break-all'
           }}>
-            Blocked URL: {details}
+            {details}
           </Box>
         )}
       </Alert>
