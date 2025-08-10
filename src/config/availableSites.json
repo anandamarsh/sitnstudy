@@ -54,5 +54,13 @@
     "iconPath": "https://www.abc.net.au/favicon.ico",
     "iconType": "svg",
     "description": "Access www.abc.net.au - a web application for productivity and learning."
+  },
+  {
+    "key": "google_me5r6cfr",
+    "title": "Google",
+    "url": "https://www.google.com/",
+    "iconPath": "/icons/google.svg",
+    "iconType": "svg",
+    "description": "Search engine and web services platform"
   }
 ]
