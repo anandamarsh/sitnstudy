@@ -1,7 +1,7 @@
 import { app, BrowserWindow, nativeImage, Menu, session, ipcMain } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import { writeFileSync, readFileSync } from 'fs'
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 
 // DevTools are now enabled on-demand:
 // - Right-click → "Inspect Element" to inspect specific elements
@@ -27,8 +27,8 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
       try {
         // Ensure the icons directory exists
         const iconsDir = path.dirname(iconPath)
-        if (!require('fs').existsSync(iconsDir)) {
-          require('fs').mkdirSync(iconsDir, { recursive: true })
+        if (!existsSync(iconsDir)) {
+          mkdirSync(iconsDir, { recursive: true })
         }
         
         // Save the SVG content to the local file
@@ -136,13 +136,13 @@ ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: s
     const logFilePath = path.join(configDir, `${siteKey}_urls.json`)
     
     // Create config directory if it doesn't exist
-    if (!require('fs').existsSync(configDir)) {
-      require('fs').mkdirSync(configDir, { recursive: true })
+    if (!existsSync(configDir)) {
+      mkdirSync(configDir, { recursive: true })
     }
     
     // Read existing log or create new one
     let urlLog: any[] = []
-    if (require('fs').existsSync(logFilePath)) {
+    if (existsSync(logFilePath)) {
       try {
         const content = readFileSync(logFilePath, 'utf8')
         urlLog = JSON.parse(content)
@@ -175,7 +175,7 @@ ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
   try {
     const logFilePath = path.join(__dirname, '../src/config', `${siteKey}_urls.json`)
     
-    if (!require('fs').existsSync(logFilePath)) {
+    if (!existsSync(logFilePath)) {
       return { success: true, data: [] }
     }
     
@@ -431,13 +431,13 @@ function createWindow() {
             const logFilePath = path.join(configDir, `${site.key}_urls.json`)
             
             // Create config directory if it doesn't exist
-            if (!require('fs').existsSync(configDir)) {
-              require('fs').mkdirSync(configDir, { recursive: true })
+            if (!existsSync(configDir)) {
+              mkdirSync(configDir, { recursive: true })
             }
             
             // Read existing log or create new one
             let urlLog: any[] = []
-            if (require('fs').existsSync(logFilePath)) {
+            if (existsSync(logFilePath)) {
               try {
                 const content = readFileSync(logFilePath, 'utf8')
                 urlLog = JSON.parse(content)
