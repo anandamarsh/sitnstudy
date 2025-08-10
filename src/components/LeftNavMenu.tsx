@@ -297,12 +297,13 @@ export default function LeftNavMenu(): JSX.Element {
                     sx={{ opacity: open ? 1 : 0 }}
                   />
                   {/* Close button for open webviews */}
-                  {open && tabs.some(tab => tab.key === site.key) && (
+                  {open && tabs.some((tab) => tab.key === site.key) && (
                     <IconButton
                       size="small"
                       onClick={(e) => {
                         e.stopPropagation();
                         closeTab(site.key);
+                        setOpen(false); // Close the drawer after closing the webview
                       }}
                       sx={{
                         position: "absolute",
