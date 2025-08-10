@@ -3,6 +3,12 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync } from 'fs'
 
+// DevTools are now enabled on-demand:
+// - Right-click → "Inspect Element" to inspect specific elements
+// - Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to toggle DevTools
+// - Cmd+Shift+C (macOS) or Ctrl+Shift+C (Windows/Linux) to open DevTools in element picker mode
+// - View menu → "Toggle Developer Tools"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // IPC handlers for site management
@@ -154,8 +160,8 @@ function createWindow() {
     win?.show()
   })
 
-  // Enable DevTools for debugging
-  win.webContents.openDevTools()
+  // Remove automatic DevTools opening - let user enable it manually
+  // win.webContents.openDevTools()
 
   // Enable right-click context menu with Inspect Element
   win.webContents.on('context-menu', (e, params) => {
@@ -170,6 +176,27 @@ function createWindow() {
       { role: 'selectAll' }
     ])
     contextMenu.popup({ window: win! })
+  })
+
+  // Enable keyboard shortcuts for DevTools
+  win.webContents.on('before-input-event', (event, input) => {
+    // Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to open DevTools
+    if (input.control && input.shift && input.key === 'i') {
+      event.preventDefault()
+      win?.webContents.toggleDevTools()
+    }
+    // Cmd+Shift+C (macOS) or Ctrl+Shift+C (Windows/Linux) to open DevTools in element picker mode
+    if (input.control && input.shift && input.key === 'c') {
+      event.preventDefault()
+      win?.webContents.toggleDevTools()
+      // Small delay to ensure DevTools is open before entering element picker mode
+      setTimeout(() => {
+        win?.webContents.sendInputEvent({
+          type: 'keyDown',
+          keyCode: 'F12'
+        })
+      }, 100)
+    }
   })
 
   // Webview attached handler (DevTools disabled by request)
@@ -195,7 +222,11 @@ function createWindow() {
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { role: 'toggleDevTools' },
+        { 
+          label: 'Toggle Developer Tools',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Shift+I' : 'Ctrl+Shift+I',
+          click: () => win?.webContents.toggleDevTools()
+        },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
