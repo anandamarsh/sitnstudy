@@ -101,6 +101,10 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
     setIsAddMode(false);
     // Refresh available apps when slider closes in case an app was removed
     await loadAvailableApps();
+    // Also refresh the left navigation menu
+    if ((window as any).refreshLeftMenu) {
+      (window as any).refreshLeftMenu();
+    }
   };
 
   return (

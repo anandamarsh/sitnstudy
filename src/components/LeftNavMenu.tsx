@@ -103,6 +103,30 @@ export default function LeftNavMenu(): JSX.Element {
     loadSites();
   }, []);
 
+  // Function to refresh available sites (can be called from other components)
+  const refreshSites = async () => {
+    try {
+      const sites = await getAvailableSites();
+      const siteTabs: SiteTab[] = sites.map((site: SiteConfig) => ({
+        key: site.key,
+        title: site.title,
+        url: site.url,
+        icon: getIconComponent(site),
+      }));
+      setAvailableSites(siteTabs);
+    } catch (error) {
+      console.error("Error refreshing available sites:", error);
+    }
+  };
+
+  // Expose refreshSites globally so other components can call it
+  React.useEffect(() => {
+    (window as any).refreshLeftMenu = refreshSites;
+    return () => {
+      delete (window as any).refreshLeftMenu;
+    };
+  }, []);
+
   const IconImg = ({ src, alt }: { src: string; alt: string }) => (
     <Box
       component="img"
@@ -159,6 +183,10 @@ export default function LeftNavMenu(): JSX.Element {
     setSelectedSiteKey(site.key);
 
     if (site.key === "landing") {
+      // Pause all webviews when switching to landing page to stop audio/games
+      if ((window as any).pauseAllWebviews) {
+        (window as any).pauseAllWebviews();
+      }
       setShowLandingPage(true);
       return;
     }

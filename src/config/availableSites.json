@@ -48,15 +48,11 @@
     "description": "Access www.youtube.com - a web application for productivity and learning."
   },
   {
-    "key": "freepacman_me5nexqz",
-    "title": "Pacman",
-    "url": "https://freepacman.org/",
-    "iconType": "react-icon",
-    "iconName": "GiGamepad",
-    "iconProps": {
-      "size": 20,
-      "color": "#FFD700"
-    },
-    "description": "Pacman - Play Game Instantly!"
+    "key": "github_me5o71u3",
+    "title": "GitHub · Build and ship software on a single, collaborative platform · GitHub",
+    "url": "https://github.com/",
+    "iconPath": "https://github.com/favicon.ico",
+    "iconType": "svg",
+    "description": "Access github.com - a web application for productivity and learning."
   }
 ]

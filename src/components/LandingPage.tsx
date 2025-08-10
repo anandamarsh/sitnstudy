@@ -92,6 +92,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
     setSelectedApp(null);
     // Refresh available apps when slider closes in case an app was removed
     await loadAvailableApps();
+    // Also refresh the left navigation menu
+    if ((window as any).refreshLeftMenu) {
+      (window as any).refreshLeftMenu();
+    }
   };
 
   return (
