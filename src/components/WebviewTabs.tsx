@@ -1,6 +1,5 @@
 import React from "react";
-import { Box, Fab, LinearProgress, Typography } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import { Box, LinearProgress } from "@mui/material";
 
 export interface SiteTab {
   key: string;
@@ -154,33 +153,6 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
         position: "relative",
       }}
     >
-      {/* Close FAB - positioned absolutely on top right */}
-      {onCloseTab && (
-        <Fab
-          size="small"
-          color="error"
-          aria-label="close webview"
-          onClick={handleCloseTab}
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            zIndex: 1000,
-            boxShadow: 2,
-            opacity: 0.7,
-            transition: "opacity 0.2s ease",
-            width: 28,
-            height: 28,
-            minHeight: 28,
-            "&:hover": {
-              opacity: 1,
-            },
-          }}
-        >
-          <CloseIcon sx={{ fontSize: 14 }} />
-        </Fab>
-      )}
-
       <Box
         sx={{
           position: "relative",

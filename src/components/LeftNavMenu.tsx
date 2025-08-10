@@ -19,6 +19,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Apps } from "@mui/icons-material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import WebviewTabs, { SiteTab } from "./WebviewTabs";
 import AppStore from "./AppStore";
 
@@ -279,6 +280,7 @@ export default function LeftNavMenu(): JSX.Element {
                     minHeight: 48,
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
+                    position: "relative",
                   }}
                 >
                   <ListItemIcon
@@ -294,6 +296,28 @@ export default function LeftNavMenu(): JSX.Element {
                     primary={site.title}
                     sx={{ opacity: open ? 1 : 0 }}
                   />
+                  {/* Close button for open webviews */}
+                  {open && tabs.some(tab => tab.key === site.key) && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeTab(site.key);
+                      }}
+                      sx={{
+                        position: "absolute",
+                        right: 8,
+                        color: "error.main",
+                        opacity: 0.7,
+                        transition: "opacity 0.2s ease",
+                        "&:hover": {
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  )}
                 </ListItemButton>
               </ListItem>
               {/* Add divider after the App Store (landing) item */}
