@@ -1,11 +1,10 @@
 import React from 'react';
-import { Snackbar, Alert, AlertTitle, Typography, Box } from '@mui/material';
+import { Snackbar, Alert, Typography } from '@mui/material';
 import { Error as ErrorIcon } from '@mui/icons-material';
 
 interface ErrorSnackbarProps {
   open: boolean;
   message: string;
-  details?: string;
   onClose: () => void;
 }
 
@@ -31,23 +30,9 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
           },
         }}
       >
-        <AlertTitle sx={{ fontWeight: 'bold', mb: 0.5 }}>
-          Navigation Blocked
-        </AlertTitle>
-        <Typography variant="body2" sx={{ mb: details ? 1 : 0 }}>
+        <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
           {message}
         </Typography>
-        {details && (
-          <Box sx={{ 
-            backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-            p: 1, 
-            borderRadius: 1,
-            fontSize: '0.75rem',
-            fontFamily: 'monospace'
-          }}>
-            {details}
-          </Box>
-        )}
       </Alert>
     </Snackbar>
   );

@@ -7,7 +7,6 @@ function App() {
   const [errorSnackbar, setErrorSnackbar] = useState<{
     open: boolean;
     message: string;
-    details?: string;
   }>({
     open: false,
     message: "",
@@ -22,8 +21,7 @@ function App() {
     }) => {
       setErrorSnackbar({
         open: true,
-        message: `You cannot navigate to external websites. You must stay within ${data.currentDomain}.`,
-        details: `Blocked: ${data.blockedUrl}`,
+        message: "Sorry! You can only visit websites within this app.",
       });
     };
 
@@ -48,7 +46,6 @@ function App() {
       <ErrorSnackbar
         open={errorSnackbar.open}
         message={errorSnackbar.message}
-        details={errorSnackbar.details}
         onClose={handleCloseErrorSnackbar}
       />
     </>
