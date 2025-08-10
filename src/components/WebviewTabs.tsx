@@ -24,6 +24,9 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
   const [loadingProgress, setLoadingProgress] = React.useState<{
     [key: string]: number;
   }>({});
+  const [loadedTabs, setLoadedTabs] = React.useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Function to pause all webviews (can be called from parent)
   const pauseAllWebviews = () => {
@@ -73,7 +76,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     if (!currentTab) return;
 
     // Only show loading if this tab hasn't been loaded before
-    if (!loadingStates[currentTab.key]) {
+    if (!loadedTabs[currentTab.key]) {
       // Start loading when tab changes
       setLoadingStates((prev) => ({ ...prev, [currentTab.key]: true }));
       setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 0 }));
@@ -93,6 +96,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       const completeTimeout = setTimeout(() => {
         setLoadingStates((prev) => ({ ...prev, [currentTab.key]: false }));
         setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 100 }));
+        setLoadedTabs((prev) => ({ ...prev, [currentTab.key]: true }));
       }, 1500);
 
       return () => {
@@ -100,7 +104,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
         clearTimeout(completeTimeout);
       };
     }
-  }, [activeIndex, tabs, loadingStates]);
+  }, [activeIndex, tabs, loadedTabs]);
 
   // Pause media in any background (inactive) webviews when switching tabs
   React.useEffect(() => {
