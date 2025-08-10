@@ -46,13 +46,5 @@
     "iconPath": "/icons/youtube.svg",
     "iconType": "svg",
     "description": "Access www.youtube.com - a web application for productivity and learning."
-  },
-  {
-    "key": "khanacademy_me5olsxg",
-    "title": "Khan Academy",
-    "url": "https://www.khanacademy.org/",
-    "iconPath": "https://www.khanacademy.org/favicon.ico",
-    "iconType": "svg",
-    "description": "Khan Academy | Free Online Courses, Lessons & Practice"
   }
 ]
