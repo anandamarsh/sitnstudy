@@ -344,6 +344,13 @@ function createWindow() {
                   }));
                   
                   return false;
+                } else {
+                  // Log internal navigation immediately when link is clicked
+                  console.log('URL_CHANGE:' + JSON.stringify({
+                    url: target.href,
+                    previousUrl: window.location.href,
+                    currentDomain: currentDomain
+                  }));
                 }
               } catch (error) {
                 // Invalid URL, allow the click
@@ -369,6 +376,13 @@ function createWindow() {
                   }));
                   
                   return false;
+                } else {
+                  // Log internal navigation immediately when form is submitted
+                  console.log('URL_CHANGE:' + JSON.stringify({
+                    url: form.action,
+                    previousUrl: window.location.href,
+                    currentDomain: currentDomain
+                  }));
                 }
               } catch (error) {
                 // Invalid URL, allow the submission
@@ -379,52 +393,65 @@ function createWindow() {
           // Monitor client-side navigation changes (SPA routing, pushState, etc.)
           let lastUrl = window.location.href;
           
-          // Function to check if URL changed and log it
-          const checkUrlChange = () => {
-            const currentUrl = window.location.href;
-            if (currentUrl !== lastUrl) {
-              // Send URL change for logging via console
-              console.log('URL_CHANGE:' + JSON.stringify({
-                url: currentUrl,
-                previousUrl: lastUrl,
-                currentDomain: currentDomain
-              }));
-              lastUrl = currentUrl;
-            }
-          };
-          
           // Monitor pushState and replaceState
           const originalPushState = history.pushState;
           const originalReplaceState = history.replaceState;
           
           history.pushState = function(...args) {
+            // Log the new URL immediately when pushState is called
+            const newUrl = args[2]; // The third argument is the URL
+            if (newUrl) {
+              console.log('URL_CHANGE:' + JSON.stringify({
+                url: newUrl,
+                previousUrl: lastUrl,
+                currentDomain: currentDomain
+              }));
+            }
+            
             originalPushState.apply(this, args);
-            setTimeout(checkUrlChange, 100); // Small delay to ensure DOM is updated
+            lastUrl = window.location.href;
           };
           
           history.replaceState = function(...args) {
+            // Log the new URL immediately when replaceState is called
+            const newUrl = args[2]; // The third argument is the URL
+            if (newUrl) {
+              console.log('URL_CHANGE:' + JSON.stringify({
+                url: newUrl,
+                previousUrl: lastUrl,
+                currentDomain: currentDomain
+              }));
+            }
+            
             originalReplaceState.apply(this, args);
-            setTimeout(checkUrlChange, 100);
+            lastUrl = window.location.href;
           };
           
           // Monitor popstate events
           window.addEventListener('popstate', function() {
-            setTimeout(checkUrlChange, 100);
+            // Log immediately when popstate occurs
+            const currentUrl = window.location.href;
+            console.log('URL_CHANGE:' + JSON.stringify({
+              url: currentUrl,
+              previousUrl: lastUrl,
+              currentDomain: currentDomain
+            }));
+            lastUrl = currentUrl;
           });
           
           // Monitor hash changes
           window.addEventListener('hashchange', function() {
-            setTimeout(checkUrlChange, 100);
-          });
-          
-          // Initial URL logging
-          setTimeout(() => {
+            // Log immediately when hashchange occurs
+            const currentUrl = window.location.href;
             console.log('URL_CHANGE:' + JSON.stringify({
-              url: window.location.href,
-              previousUrl: '',
+              url: currentUrl,
+              previousUrl: lastUrl,
               currentDomain: currentDomain
             }));
-          }, 1000);
+            lastUrl = currentUrl;
+          });
+          
+
         })();
       `);
     });
