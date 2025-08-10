@@ -224,7 +224,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                   left: "50%",
                   transform: "translate(-50%, -50%)",
                   width: "25%",
-                  zIndex: 1000,
+                  zIndex: 1,
                 }}
               >
                 <LinearProgress

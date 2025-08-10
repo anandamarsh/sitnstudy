@@ -46,5 +46,13 @@
     "iconPath": "/icons/youtube.svg",
     "iconType": "svg",
     "description": "Access www.youtube.com - a web application for productivity and learning."
+  },
+  {
+    "key": "abc_me5qdkfz",
+    "title": "ABC Kids",
+    "url": "https://www.abc.net.au/abckids",
+    "iconPath": "https://www.abc.net.au/favicon.ico",
+    "iconType": "svg",
+    "description": "Access www.abc.net.au - a web application for productivity and learning."
   }
 ]
