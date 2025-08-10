@@ -136,8 +136,6 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     }
   }, [activeIndex]);
 
-
-
   return (
     <Box
       sx={{

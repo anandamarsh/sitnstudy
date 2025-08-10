@@ -13,7 +13,11 @@ import {
   Switch,
   FormControlLabel,
 } from "@mui/material";
-import { Close as CloseIcon, Delete as DeleteIcon, History as HistoryIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  History as HistoryIcon,
+} from "@mui/icons-material";
 import { SiteConfig } from "./types";
 import { getIconComponent } from "./utils";
 import { removeSite } from "../../utils/siteManager";
@@ -25,14 +29,12 @@ interface ViewModeProps {
   onRemoveApp: (app: SiteConfig) => void;
 }
 
-const ViewMode: React.FC<ViewModeProps> = ({
-  app,
-  onClose,
-  onOpenApp,
-}) => {
+const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
-  const [urlLoggingEnabled, setUrlLoggingEnabled] = useState(app.urlLogging || false);
+  const [urlLoggingEnabled, setUrlLoggingEnabled] = useState(
+    app.urlLogging || false
+  );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
 
   const handleRemoveClick = () => {
@@ -66,16 +68,19 @@ const ViewMode: React.FC<ViewModeProps> = ({
   const handleUrlLoggingToggle = async (enabled: boolean) => {
     setIsTogglingLogging(true);
     try {
-      const result = await (window as any).ipcRenderer.toggleUrlLogging(app.key, enabled);
+      const result = await (window as any).ipcRenderer.toggleUrlLogging(
+        app.key,
+        enabled
+      );
       if (result.success) {
         setUrlLoggingEnabled(enabled);
         // Update the app object locally
         app.urlLogging = enabled;
       } else {
-        console.error('Failed to toggle URL logging:', result.message);
+        console.error("Failed to toggle URL logging:", result.message);
       }
     } catch (error) {
-      console.error('Error toggling URL logging:', error);
+      console.error("Error toggling URL logging:", error);
     } finally {
       setIsTogglingLogging(false);
     }

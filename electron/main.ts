@@ -321,7 +321,7 @@ function createWindow() {
       const currentUrl = webContents.getURL();
       const currentDomain = new URL(currentUrl).hostname;
       
-      // Inject script to intercept link clicks and form submissions
+      // Inject script to intercept link clicks, form submissions, and client-side navigation
       webContents.executeJavaScript(`
         (function() {
           const currentDomain = '${currentDomain}';
@@ -336,12 +336,12 @@ function createWindow() {
                   e.preventDefault();
                   e.stopPropagation();
                   
-                                     // Send message to main process via console
-                   console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
-                     blockedUrl: target.href,
-                     currentDomain: currentDomain,
-                     targetDomain: url.hostname
-                   }));
+                  // Send message to main process via console
+                  console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
+                    blockedUrl: target.href,
+                    currentDomain: currentDomain,
+                    targetDomain: url.hostname
+                  }));
                   
                   return false;
                 }
@@ -361,12 +361,12 @@ function createWindow() {
                   e.preventDefault();
                   e.stopPropagation();
                   
-                                     // Send message to main process via console
-                   console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
-                     blockedUrl: form.action,
-                     currentDomain: currentDomain,
-                     targetDomain: url.hostname
-                   }));
+                  // Send message to main process via console
+                  console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
+                    blockedUrl: form.action,
+                    currentDomain: currentDomain,
+                    targetDomain: url.hostname
+                  }));
                   
                   return false;
                 }
@@ -375,6 +375,56 @@ function createWindow() {
               }
             }
           }, true);
+          
+          // Monitor client-side navigation changes (SPA routing, pushState, etc.)
+          let lastUrl = window.location.href;
+          
+          // Function to check if URL changed and log it
+          const checkUrlChange = () => {
+            const currentUrl = window.location.href;
+            if (currentUrl !== lastUrl) {
+              // Send URL change for logging via console
+              console.log('URL_CHANGE:' + JSON.stringify({
+                url: currentUrl,
+                previousUrl: lastUrl,
+                currentDomain: currentDomain
+              }));
+              lastUrl = currentUrl;
+            }
+          };
+          
+          // Monitor pushState and replaceState
+          const originalPushState = history.pushState;
+          const originalReplaceState = history.replaceState;
+          
+          history.pushState = function(...args) {
+            originalPushState.apply(this, args);
+            setTimeout(checkUrlChange, 100); // Small delay to ensure DOM is updated
+          };
+          
+          history.replaceState = function(...args) {
+            originalReplaceState.apply(this, args);
+            setTimeout(checkUrlChange, 100);
+          };
+          
+          // Monitor popstate events
+          window.addEventListener('popstate', function() {
+            setTimeout(checkUrlChange, 100);
+          });
+          
+          // Monitor hash changes
+          window.addEventListener('hashchange', function() {
+            setTimeout(checkUrlChange, 100);
+          });
+          
+          // Initial URL logging
+          setTimeout(() => {
+            console.log('URL_CHANGE:' + JSON.stringify({
+              url: window.location.href,
+              previousUrl: '',
+              currentDomain: currentDomain
+            }));
+          }, 1000);
         })();
       `);
     });
@@ -390,11 +440,21 @@ function createWindow() {
         } catch (error) {
           console.error('Error parsing navigation blocked message:', error);
         }
+      } else if (message.startsWith('URL_CHANGE:')) {
+        try {
+          const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
+          // Log URL changes for enabled sites
+          if (data.url && data.currentDomain) {
+            logUrlNavigation(data.url);
+          }
+        } catch (error) {
+          console.error('Error parsing URL change message:', error);
+        }
       }
     });
 
     // Log URL navigation when logging is enabled for this site
-    webContents.on('did-navigate', async (_event, navigationUrl) => {
+    const logUrlNavigation = async (url: string) => {
       try {
         // Get the current site key from the webview partition or URL
         const currentUrl = webContents.getURL();
@@ -450,7 +510,7 @@ function createWindow() {
             // Add new entry
             const newEntry = {
               timestamp: new Date().toISOString(),
-              url: navigationUrl,
+              url: url,
               title: pageTitle || ''
             }
             
@@ -459,7 +519,7 @@ function createWindow() {
             // Write back to file
             writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
             
-            console.log(`URL logged for ${site.key}: ${navigationUrl}`)
+            console.log(`URL logged for ${site.key}: ${url}`)
           } catch (logError) {
             console.error('Error logging URL:', logError)
           }
@@ -467,6 +527,16 @@ function createWindow() {
       } catch (error) {
         console.error('Error logging URL navigation:', error)
       }
+    };
+
+    // Listen for full page navigations
+    webContents.on('did-navigate', async (_event, navigationUrl) => {
+      await logUrlNavigation(navigationUrl);
+    });
+
+    // Listen for in-page navigations (SPA routing, hash changes, etc.)
+    webContents.on('did-navigate-in-page', async (_event, navigationUrl) => {
+      await logUrlNavigation(navigationUrl);
     });
   });
 
