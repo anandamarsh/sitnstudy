@@ -124,12 +124,15 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
             boxShadow: 2,
             opacity: 0.7,
             transition: "opacity 0.2s ease",
+            width: 28,
+            height: 28,
+            minHeight: 28,
             "&:hover": {
               opacity: 1,
             },
           }}
         >
-          <CloseIcon sx={{ fontSize: 16 }} />
+          <CloseIcon sx={{ fontSize: 14 }} />
         </Fab>
       )}
 
