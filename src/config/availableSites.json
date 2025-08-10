@@ -46,13 +46,5 @@
     "iconPath": "/icons/youtube.svg",
     "iconType": "svg",
     "description": "Access www.youtube.com - a web application for productivity and learning."
-  },
-  {
-    "key": "github_me5o71u3",
-    "title": "GitHub · Build and ship software on a single, collaborative platform · GitHub",
-    "url": "https://github.com/",
-    "iconPath": "https://github.com/favicon.ico",
-    "iconType": "svg",
-    "description": "Access github.com - a web application for productivity and learning."
   }
 ]
