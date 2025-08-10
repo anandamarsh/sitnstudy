@@ -18,7 +18,7 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
     }
   };
 
-  const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (_event: React.SyntheticEvent | Event, reason?: string) => {
     // Only close if it's a manual close (X button or escape key)
     // Don't close if it's a click on the main content area
     if (reason === 'clickaway') {

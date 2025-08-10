@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
   Button,
-  Paper,
   IconButton,
   Chip,
   Dialog,
@@ -11,8 +10,10 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
-import { Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Close as CloseIcon, Delete as DeleteIcon, History as HistoryIcon } from "@mui/icons-material";
 import { SiteConfig } from "./types";
 import { getIconComponent } from "./utils";
 import { removeSite } from "../../utils/siteManager";
@@ -28,10 +29,11 @@ const ViewMode: React.FC<ViewModeProps> = ({
   app,
   onClose,
   onOpenApp,
-  onRemoveApp,
 }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [urlLoggingEnabled, setUrlLoggingEnabled] = useState(app.urlLogging || false);
+  const [isTogglingLogging, setIsTogglingLogging] = useState(false);
 
   const handleRemoveClick = () => {
     setShowRemoveConfirm(true);
@@ -60,6 +62,29 @@ const ViewMode: React.FC<ViewModeProps> = ({
   const handleRemoveCancel = () => {
     setShowRemoveConfirm(false);
   };
+
+  const handleUrlLoggingToggle = async (enabled: boolean) => {
+    setIsTogglingLogging(true);
+    try {
+      const result = await (window as any).ipcRenderer.toggleUrlLogging(app.key, enabled);
+      if (result.success) {
+        setUrlLoggingEnabled(enabled);
+        // Update the app object locally
+        app.urlLogging = enabled;
+      } else {
+        console.error('Failed to toggle URL logging:', result.message);
+      }
+    } catch (error) {
+      console.error('Error toggling URL logging:', error);
+    } finally {
+      setIsTogglingLogging(false);
+    }
+  };
+
+  // Sync URL logging state when app changes
+  useEffect(() => {
+    setUrlLoggingEnabled(app.urlLogging || false);
+  }, [app.urlLogging]);
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -120,6 +145,36 @@ const ViewMode: React.FC<ViewModeProps> = ({
                 </Typography>
               )}
             </Box>
+          </Box>
+
+          {/* URL Logging Toggle */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={urlLoggingEnabled}
+                  onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
+                  disabled={isTogglingLogging}
+                  color="primary"
+                />
+              }
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <HistoryIcon fontSize="small" />
+                  <Typography variant="body2">
+                    {isTogglingLogging ? "Updating..." : "URL Logging"}
+                  </Typography>
+                </Box>
+              }
+            />
+            {urlLoggingEnabled && (
+              <Chip
+                label="Active"
+                color="success"
+                size="small"
+                variant="outlined"
+              />
+            )}
           </Box>
 
           {/* Action Buttons - Same row */}

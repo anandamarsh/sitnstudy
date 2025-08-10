@@ -5,11 +5,6 @@ import {
   Card,
   CardActionArea,
   Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import { MoveToInbox as InboxIcon } from "@mui/icons-material";
 import { SiOpenai } from "react-icons/si";

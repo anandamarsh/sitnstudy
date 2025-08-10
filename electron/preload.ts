@@ -21,7 +21,16 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   // Expose navigation-blocked event listener
   onNavigationBlocked(callback: (data: { blockedUrl: string; currentDomain: string; targetDomain: string }) => void) {
-    return ipcRenderer.on('navigation-blocked', (event, data) => callback(data))
+    return ipcRenderer.on('navigation-blocked', (_event, data) => callback(data))
+  },
+
+  // URL logging methods
+  toggleUrlLogging(siteKey: string, enabled: boolean) {
+    return ipcRenderer.invoke('toggle-url-logging', siteKey, enabled)
+  },
+
+  getUrlLog(siteKey: string) {
+    return ipcRenderer.invoke('get-url-log', siteKey)
   },
 
   // You can expose other APTs you need here.

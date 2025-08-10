@@ -15,7 +15,7 @@ interface WebviewTabsProps {
 }
 
 export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
-  const { tabs, activeIndex, onCloseTab } = props;
+  const { tabs, activeIndex } = props;
   const webviewRefs = React.useRef<any[]>([]);
   const [loadingStates, setLoadingStates] = React.useState<{
     [key: string]: boolean;
@@ -136,11 +136,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     }
   }, [activeIndex]);
 
-  const handleCloseTab = () => {
-    if (onCloseTab && tabs[activeIndex]) {
-      onCloseTab(tabs[activeIndex].key);
-    }
-  };
+
 
   return (
     <Box

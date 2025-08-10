@@ -12,7 +12,7 @@ import { writeFileSync, readFileSync } from 'fs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // IPC handlers for site management
-ipcMain.handle('add-new-site', async (event, newSite) => {
+ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
     const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
@@ -62,7 +62,7 @@ ipcMain.handle('add-new-site', async (event, newSite) => {
   }
 })
 
-ipcMain.handle('remove-site', async (event, siteKey) => {
+ipcMain.handle('remove-site', async (_event, siteKey) => {
   try {
     const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
@@ -102,6 +102,90 @@ ipcMain.handle('get-available-sites', async () => {
   } catch (error) {
     console.error('Error reading availableSites.json:', error)
     return []
+  }
+})
+
+// IPC handlers for URL logging
+ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: boolean) => {
+  try {
+    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const currentContent = readFileSync(availableSitesPath, 'utf8')
+    const sites = JSON.parse(currentContent)
+    
+    const siteIndex = sites.findIndex((site: any) => site.key === siteKey)
+    if (siteIndex === -1) {
+      return { success: false, message: `Site with key "${siteKey}" not found.` }
+    }
+    
+    // Update the site's URL logging setting
+    sites[siteIndex].urlLogging = enabled
+    
+    // Write back to the file
+    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
+    
+    return { success: true, message: `URL logging ${enabled ? 'enabled' : 'disabled'} for ${sites[siteIndex].title}` }
+  } catch (error) {
+    console.error('Error toggling URL logging:', error)
+    return { success: false, message: 'Failed to toggle URL logging' }
+  }
+})
+
+ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: string) => {
+  try {
+    const configDir = path.join(__dirname, '../src/config')
+    const logFilePath = path.join(configDir, `${siteKey}_urls.json`)
+    
+    // Create config directory if it doesn't exist
+    if (!require('fs').existsSync(configDir)) {
+      require('fs').mkdirSync(configDir, { recursive: true })
+    }
+    
+    // Read existing log or create new one
+    let urlLog: any[] = []
+    if (require('fs').existsSync(logFilePath)) {
+      try {
+        const content = readFileSync(logFilePath, 'utf8')
+        urlLog = JSON.parse(content)
+      } catch (parseError) {
+        console.error('Error parsing existing URL log:', parseError)
+        urlLog = []
+      }
+    }
+    
+    // Add new entry
+    const newEntry = {
+      timestamp: new Date().toISOString(),
+      url: url,
+      title: title || ''
+    }
+    
+    urlLog.push(newEntry)
+    
+    // Write back to file
+    writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
+    
+    return { success: true, message: 'URL logged successfully' }
+  } catch (error) {
+    console.error('Error logging URL:', error)
+    return { success: false, message: 'Failed to log URL' }
+  }
+})
+
+ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
+  try {
+    const logFilePath = path.join(__dirname, '../src/config', `${siteKey}_urls.json`)
+    
+    if (!require('fs').existsSync(logFilePath)) {
+      return { success: true, data: [] }
+    }
+    
+    const content = readFileSync(logFilePath, 'utf8')
+    const urlLog = JSON.parse(content)
+    
+    return { success: true, data: urlLog }
+  } catch (error) {
+    console.error('Error reading URL log:', error)
+    return { success: false, message: 'Failed to read URL log', data: [] }
   }
 })
 
@@ -164,7 +248,7 @@ function createWindow() {
   // win.webContents.openDevTools()
 
   // Enable right-click context menu with Inspect Element
-  win.webContents.on('context-menu', (e, params) => {
+  win.webContents.on('context-menu', (_e, params) => {
     const contextMenu = Menu.buildFromTemplate([
       {
         label: 'Inspect Element',
@@ -200,7 +284,7 @@ function createWindow() {
   })
 
   // Webview attached handler - enable popups and handle new windows
-  win.webContents.on('did-attach-webview', (event, webContents) => {
+  win.webContents.on('did-attach-webview', (_event, webContents) => {
     // Enable popups for this webview
     webContents.setWindowOpenHandler(({ url, frameName, features }) => {
       // Open popups in the same webview or create a new window
@@ -296,7 +380,7 @@ function createWindow() {
     });
     
     // Listen for console messages from injected script
-    webContents.on('console-message', (event, level, message, line, sourceId) => {
+    webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
       if (message.startsWith('NAVIGATION_BLOCKED:')) {
         try {
           const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
@@ -306,6 +390,82 @@ function createWindow() {
         } catch (error) {
           console.error('Error parsing navigation blocked message:', error);
         }
+      }
+    });
+
+    // Log URL navigation when logging is enabled for this site
+    webContents.on('did-navigate', async (_event, navigationUrl) => {
+      try {
+        // Get the current site key from the webview partition or URL
+        const currentUrl = webContents.getURL();
+        const currentDomain = new URL(currentUrl).hostname;
+        
+        // Find the site by matching domain (this is a simple approach)
+        // In a more robust implementation, you might want to store the site key in the webview
+        const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+        const sitesContent = readFileSync(availableSitesPath, 'utf8')
+        const sites = JSON.parse(sitesContent)
+        
+        const site = sites.find((s: any) => {
+          try {
+            const siteDomain = new URL(s.url).hostname
+            return siteDomain === currentDomain
+          } catch {
+            return false
+          }
+        })
+        
+        if (site && site.urlLogging) {
+          // Get page title if available
+          let pageTitle = ''
+          try {
+            pageTitle = await webContents.executeJavaScript('document.title')
+          } catch (error) {
+            // Title might not be available yet
+          }
+          
+          // Log the URL - we need to call the handler function directly
+          // Since we can't call ipcMain handlers directly, we'll implement the logging logic here
+          try {
+            const configDir = path.join(__dirname, '../src/config')
+            const logFilePath = path.join(configDir, `${site.key}_urls.json`)
+            
+            // Create config directory if it doesn't exist
+            if (!require('fs').existsSync(configDir)) {
+              require('fs').mkdirSync(configDir, { recursive: true })
+            }
+            
+            // Read existing log or create new one
+            let urlLog: any[] = []
+            if (require('fs').existsSync(logFilePath)) {
+              try {
+                const content = readFileSync(logFilePath, 'utf8')
+                urlLog = JSON.parse(content)
+              } catch (parseError) {
+                console.error('Error parsing existing URL log:', parseError)
+                urlLog = []
+              }
+            }
+            
+            // Add new entry
+            const newEntry = {
+              timestamp: new Date().toISOString(),
+              url: navigationUrl,
+              title: pageTitle || ''
+            }
+            
+            urlLog.push(newEntry)
+            
+            // Write back to file
+            writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
+            
+            console.log(`URL logged for ${site.key}: ${navigationUrl}`)
+          } catch (logError) {
+            console.error('Error logging URL:', logError)
+          }
+        }
+      } catch (error) {
+        console.error('Error logging URL navigation:', error)
       }
     });
   });
