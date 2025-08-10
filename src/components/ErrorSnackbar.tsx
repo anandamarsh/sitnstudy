@@ -18,6 +18,23 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
     }
   };
 
+  const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+    // Only close if it's a manual close (X button or escape key)
+    // Don't close if it's a click on the main content area
+    if (reason === 'clickaway') {
+      return;
+    }
+    setShowDetails(false);
+    onClose();
+  };
+
+  // Reset showDetails when snackbar opens
+  React.useEffect(() => {
+    if (open) {
+      setShowDetails(false);
+    }
+  }, [open]);
+
   return (
     <Snackbar
       open={open}
@@ -27,7 +44,7 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
       sx={{ zIndex: 9999 }}
     >
       <Alert
-        onClose={onClose}
+        onClose={handleClose}
         severity="error"
         variant="filled"
         icon={<ErrorIcon />}
