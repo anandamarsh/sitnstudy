@@ -17,7 +17,8 @@
     "url": "https://ixl.com/",
     "iconPath": "/icons/ixl.svg",
     "iconType": "svg",
-    "description": "Interactive learning platform for math, language arts, science, and social studies"
+    "description": "Interactive learning platform for math, language arts, science, and social studies",
+    "urlLogging": true
   },
   {
     "key": "netflix",
@@ -37,7 +38,8 @@
       "size": 20,
       "color": "#10A37F"
     },
-    "description": "AI-powered chatbot for learning, problem-solving, and creative assistance"
+    "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
+    "urlLogging": true
   },
   {
     "key": "youtube_me5n1bxf",

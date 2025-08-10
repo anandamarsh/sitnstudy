@@ -344,14 +344,14 @@ function createWindow() {
                   }));
                   
                   return false;
-                } else {
-                  // Log internal navigation immediately when link is clicked
-                  console.log('URL_CHANGE:' + JSON.stringify({
-                    url: target.href,
-                    previousUrl: window.location.href,
-                    currentDomain: currentDomain
-                  }));
-                }
+                                 } else if (target.href.startsWith('http')) {
+                   // Log internal navigation immediately when link is clicked - only fully qualified URLs
+                   console.log('URL_CHANGE:' + JSON.stringify({
+                     url: target.href,
+                     previousUrl: window.location.href,
+                     currentDomain: currentDomain
+                   }));
+                 }
               } catch (error) {
                 // Invalid URL, allow the click
               }
@@ -376,14 +376,14 @@ function createWindow() {
                   }));
                   
                   return false;
-                } else {
-                  // Log internal navigation immediately when form is submitted
-                  console.log('URL_CHANGE:' + JSON.stringify({
-                    url: form.action,
-                    previousUrl: window.location.href,
-                    currentDomain: currentDomain
-                  }));
-                }
+                                 } else if (form.action.startsWith('http')) {
+                   // Log internal navigation immediately when form is submitted - only fully qualified URLs
+                   console.log('URL_CHANGE:' + JSON.stringify({
+                     url: form.action,
+                     previousUrl: window.location.href,
+                     currentDomain: currentDomain
+                   }));
+                 }
               } catch (error) {
                 // Invalid URL, allow the submission
               }
@@ -397,35 +397,35 @@ function createWindow() {
           const originalPushState = history.pushState;
           const originalReplaceState = history.replaceState;
           
-          history.pushState = function(...args) {
-            // Log the new URL immediately when pushState is called
-            const newUrl = args[2]; // The third argument is the URL
-            if (newUrl) {
-              console.log('URL_CHANGE:' + JSON.stringify({
-                url: newUrl,
-                previousUrl: lastUrl,
-                currentDomain: currentDomain
-              }));
-            }
-            
-            originalPushState.apply(this, args);
-            lastUrl = window.location.href;
-          };
+                     history.pushState = function(...args) {
+             // Log the new URL immediately when pushState is called - only fully qualified URLs
+             const newUrl = args[2]; // The third argument is the URL
+             if (newUrl && newUrl.startsWith('http')) {
+               console.log('URL_CHANGE:' + JSON.stringify({
+                 url: newUrl,
+                 previousUrl: lastUrl,
+                 currentDomain: currentDomain
+               }));
+             }
+             
+             originalPushState.apply(this, args);
+             lastUrl = window.location.href;
+           };
           
-          history.replaceState = function(...args) {
-            // Log the new URL immediately when replaceState is called
-            const newUrl = args[2]; // The third argument is the URL
-            if (newUrl) {
-              console.log('URL_CHANGE:' + JSON.stringify({
-                url: newUrl,
-                previousUrl: lastUrl,
-                currentDomain: currentDomain
-              }));
-            }
-            
-            originalReplaceState.apply(this, args);
-            lastUrl = window.location.href;
-          };
+                     history.replaceState = function(...args) {
+             // Log the new URL immediately when replaceState is called - only fully qualified URLs
+             const newUrl = args[2]; // The third argument is the URL
+             if (newUrl && newUrl.startsWith('http')) {
+               console.log('URL_CHANGE:' + JSON.stringify({
+                 url: newUrl,
+                 previousUrl: lastUrl,
+                 currentDomain: currentDomain
+               }));
+             }
+             
+             originalReplaceState.apply(this, args);
+             lastUrl = window.location.href;
+           };
           
           // Monitor popstate events
           window.addEventListener('popstate', function() {
@@ -467,17 +467,17 @@ function createWindow() {
         } catch (error) {
           console.error('Error parsing navigation blocked message:', error);
         }
-      } else if (message.startsWith('URL_CHANGE:')) {
-        try {
-          const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
-          // Log URL changes for enabled sites
-          if (data.url && data.currentDomain) {
-            logUrlNavigation(data.url);
-          }
-        } catch (error) {
-          console.error('Error parsing URL change message:', error);
-        }
-      }
+               } else if (message.startsWith('URL_CHANGE:')) {
+           try {
+             const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
+             // Log URL changes for enabled sites - only fully qualified URLs
+             if (data.url && data.currentDomain && data.url.startsWith('http')) {
+               logUrlNavigation(data.url);
+             }
+           } catch (error) {
+             console.error('Error parsing URL change message:', error);
+           }
+         }
     });
 
     // Log URL navigation when logging is enabled for this site
