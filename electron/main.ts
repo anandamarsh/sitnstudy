@@ -507,14 +507,18 @@ function createWindow() {
               }
             }
             
-            // Add new entry
-            const newEntry = {
-              timestamp: new Date().toISOString(),
-              url: url,
-              title: pageTitle || ''
-            }
+            // Check if URL already exists in the log
+            const existingEntry = urlLog.find(entry => entry.url === url);
             
-            urlLog.push(newEntry)
+            if (!existingEntry) {
+              // Add new entry only if it's unique
+              const newEntry = {
+                url: url,
+                title: pageTitle || ''
+              }
+              
+              urlLog.push(newEntry)
+            }
             
             // Write back to file
             writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')

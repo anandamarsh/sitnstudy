@@ -12,7 +12,6 @@ export interface SiteConfig {
 }
 
 export interface UrlLogEntry {
-  timestamp: string;
   url: string;
   title?: string;
 }
