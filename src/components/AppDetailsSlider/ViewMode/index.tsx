@@ -18,9 +18,10 @@ import {
   Delete as DeleteIcon,
   History as HistoryIcon,
 } from "@mui/icons-material";
-import { SiteConfig } from "./types";
-import { getIconComponent } from "./utils";
-import { removeSite } from "../../utils/siteManager";
+import { SiteConfig } from "../types";
+import { getIconComponent } from "../utils";
+import { removeSite } from "../../../utils/siteManager";
+import AccessHistory from "./AccessHistory";
 
 interface ViewModeProps {
   app: SiteConfig;
@@ -120,87 +121,100 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             height: "100%",
           }}
         >
-          {/* App Icon and Details Row */}
-          <Box sx={{ display: "flex", gap: 3, alignItems: "flex-start" }}>
-            {/* App Icon - Left side, no borders */}
+          {/* Two-column layout: Left for app info + controls (30%), Right for access history (70%) */}
+          <Box sx={{ display: "flex", gap: 4, mt: 2 }}>
+            {/* Left column: App Icon, Details, and all Controls - 30% width */}
             <Box
               sx={{
-                width: 120,
-                height: 120,
+                width: "30%",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                flexDirection: "column",
+                gap: 3,
               }}
             >
-              {getIconComponent(app)}
-            </Box>
+              {/* App Icon */}
+              <Box
+                sx={{
+                  width: 120,
+                  height: 120,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                {getIconComponent(app)}
+              </Box>
 
-            {/* App Details - Right side */}
-            <Box
-              sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}
-            >
-              <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
-                {app.url}
-              </Typography>
-
-              {app.description && (
-                <Typography variant="body2" color="text.secondary">
-                  {app.description}
+              {/* App Details */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
+                  {app.url}
                 </Typography>
-              )}
-            </Box>
-          </Box>
 
-          {/* URL Logging Toggle */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 2 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={urlLoggingEnabled}
-                  onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
-                  disabled={isTogglingLogging}
-                  color="primary"
-                />
-              }
-              label={
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <HistoryIcon fontSize="small" />
-                  <Typography variant="body2">
-                    {isTogglingLogging ? "Updating..." : "URL Logging"}
+                {app.description && (
+                  <Typography variant="body2" color="text.secondary">
+                    {app.description}
                   </Typography>
-                </Box>
-              }
-            />
-            {urlLoggingEnabled && (
-              <Chip
-                label="Active"
-                color="success"
-                size="small"
-                variant="outlined"
-              />
-            )}
-          </Box>
+                )}
+              </Box>
 
-          {/* Action Buttons - Same row */}
-          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-            <Button
-              variant="contained"
-              onClick={() => onOpenApp(app)}
-              sx={{ minWidth: 120 }}
-            >
-              OPEN APPLICATION
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleRemoveClick}
-              disabled={isRemoving}
-              startIcon={<DeleteIcon />}
-              sx={{ minWidth: 120 }}
-            >
-              {isRemoving ? "REMOVING..." : "REMOVE"}
-            </Button>
+              {/* URL Logging Toggle */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={urlLoggingEnabled}
+                      onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
+                      disabled={isTogglingLogging}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <HistoryIcon fontSize="small" />
+                      <Typography variant="body2">
+                        {isTogglingLogging ? "Updating..." : "URL Logging"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {urlLoggingEnabled && (
+                  <Chip
+                    label="Active"
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                  />
+                )}
+              </Box>
+
+              {/* Action Buttons */}
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => onOpenApp(app)}
+                  sx={{ minWidth: 120 }}
+                >
+                  OPEN APPLICATION
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleRemoveClick}
+                  disabled={isRemoving}
+                  startIcon={<DeleteIcon />}
+                  sx={{ minWidth: 120 }}
+                >
+                  {isRemoving ? "REMOVING..." : "REMOVE"}
+                </Button>
+              </Box>
+            </Box>
+
+            {/* Right column: Access History in its own scrollable pane - 70% width */}
+            <Box sx={{ width: "70%" }}>
+              <AccessHistory appKey={app.key} />
+            </Box>
           </Box>
         </Box>
       </Box>

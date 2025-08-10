@@ -56,7 +56,8 @@
     "url": "https://www.abc.net.au/abckids",
     "iconPath": "https://www.abc.net.au/favicon.ico",
     "iconType": "svg",
-    "description": "Access www.abc.net.au - a web application for productivity and learning."
+    "description": "Access www.abc.net.au - a web application for productivity and learning.",
+    "urlLogging": true
   },
   {
     "key": "google_me5r6cfr",

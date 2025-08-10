@@ -189,6 +189,36 @@ ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
   }
 })
 
+// IPC handlers for config file access
+ipcMain.handle('get-config-files', async () => {
+  try {
+    const configDir = path.join(__dirname, '../src/config')
+    const fs = await import('fs/promises')
+    const files = await fs.readdir(configDir)
+    return files.filter(file => file.endsWith('_urls.json'))
+  } catch (error) {
+    console.error('Error reading config directory:', error)
+    return []
+  }
+})
+
+ipcMain.handle('read-config-file', async (_event, fileName: string) => {
+  try {
+    const configDir = path.join(__dirname, '../src/config')
+    const filePath = path.join(configDir, fileName)
+    
+    if (!existsSync(filePath)) {
+      return null
+    }
+    
+    const content = readFileSync(filePath, 'utf8')
+    return JSON.parse(content)
+  } catch (error) {
+    console.error('Error reading config file:', error)
+    return null
+  }
+})
+
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
   app.setName('Sit-N-Study')
