@@ -76,7 +76,7 @@ const Drawer = styled(MuiDrawer, {
 
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
   const [activeIndex, setActiveIndex] = React.useState(0);
