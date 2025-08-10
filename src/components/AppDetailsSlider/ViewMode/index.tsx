@@ -121,12 +121,12 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             height: "100%",
           }}
         >
-          {/* Two-column layout: Left for app info + controls (30%), Right for access history (70%) */}
-          <Box sx={{ display: "flex", gap: 4, mt: 2 }}>
-            {/* Left column: App Icon, Details, and all Controls - 30% width */}
+          {/* Two-column layout: Left for app info + controls, Right for access history */}
+          <Box sx={{ display: "flex", gap: 4, mt: 2, width: "100%" }}>
+            {/* Left column: App Icon, Details, and all Controls - flexible width */}
             <Box
               sx={{
-                width: "30%",
+                minWidth: "280px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 3,
@@ -211,8 +211,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
               </Box>
             </Box>
 
-            {/* Right column: Access History in its own scrollable pane - 70% width */}
-            <Box sx={{ width: "70%" }}>
+            {/* Right column: Access History in its own scrollable pane - takes remaining space */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <AccessHistory appKey={app.key} />
             </Box>
           </Box>
