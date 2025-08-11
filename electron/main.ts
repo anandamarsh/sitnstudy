@@ -13,7 +13,7 @@ import { promises as fs } from 'fs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Map to track which site each webview belongs to
-const webviewSiteMap = new Map<number, string>()
+const webviewSiteMap = new Map<string, string>()
 
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
@@ -455,7 +455,8 @@ app.whenReady().then(() => {
           
           try {
             // Get the site key from our webview mapping
-            originalSiteKey = webviewSiteMap.get(webContents.id);
+            const webviewId = String(webContents.id);
+            originalSiteKey = webviewSiteMap.get(webviewId);
             
             if (originalSiteKey) {
               const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
@@ -493,36 +494,37 @@ app.whenReady().then(() => {
         const currentUrl = webContents.getURL();
         const currentDomain = new URL(currentUrl).hostname;
         
-        // Try to determine the site key for this webview if we don't have it yet
-        if (!webviewSiteMap.has(webContents.id)) {
-          try {
-            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
-            const sitesContent = readFileSync(availableSitesPath, 'utf8')
-            const sites = JSON.parse(sitesContent)
-            
-            // Find the site by matching the current URL domain
-            const site = sites.find((s: any) => {
-              try {
-                const siteDomain = new URL(s.url).hostname
-                // Check if current domain matches the site domain or is a subdomain
-                return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain)
-              } catch {
-                return false
-              }
-            })
-            
-            if (site) {
-              webviewSiteMap.set(webContents.id, site.key)
-              console.log(`Mapped webview ${webContents.id} to site: ${site.key} (domain: ${currentDomain})`)
-            } else {
-              console.log(`Could not map webview ${webContents.id} to any site. Current domain: ${currentDomain}`)
-              // Log available sites for debugging
-              console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
+              // Try to determine the site key for this webview if we don't have it yet
+      const webviewId = String(webContents.id); // Convert to string to ensure it's serializable
+      if (!webviewSiteMap.has(webviewId)) {
+        try {
+          const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
+          const sitesContent = readFileSync(availableSitesPath, 'utf8')
+          const sites = JSON.parse(sitesContent)
+          
+          // Find the site by matching the current URL domain
+          const site = sites.find((s: any) => {
+            try {
+              const siteDomain = new URL(s.url).hostname
+              // Check if current domain matches the site domain or is a subdomain
+              return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain)
+            } catch {
+              return false
             }
-          } catch (error) {
-            console.error('Error mapping webview to site:', error)
+          })
+          
+          if (site) {
+            webviewSiteMap.set(webviewId, site.key)
+            console.log(`Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
+          } else {
+            console.log(`Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
+            // Log available sites for debugging
+            console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
           }
+        } catch (error) {
+          console.error('Error mapping webview to site:', error)
         }
+      }
         
         // Inject script to intercept link clicks, form submissions, and client-side navigation
         webContents.executeJavaScript(`
@@ -651,7 +653,12 @@ app.whenReady().then(() => {
            try {
              const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
              if (win) {
-               win.webContents.send('navigation-blocked', data);
+               // Only send serializable data to prevent cloning errors
+               win.webContents.send('navigation-blocked', {
+                 blockedUrl: data.blockedUrl || '',
+                 currentDomain: data.currentDomain || '',
+                 targetDomain: data.targetDomain || ''
+               });
              }
            } catch (error) {
              console.error('Error parsing navigation blocked message:', error);
@@ -672,8 +679,9 @@ app.whenReady().then(() => {
        // Log URL navigation when logging is enabled for this site
        const logUrlNavigation = async (url: string) => {
         try {
-          // First try to get the site key from our webview mapping
-          let siteKey = webviewSiteMap.get(webContents.id);
+                  // First try to get the site key from our webview mapping
+        const webviewId = String(webContents.id);
+        let siteKey = webviewSiteMap.get(webviewId);
           
           if (!siteKey) {
             // Fallback: Get the current site key from the webview URL
@@ -698,7 +706,7 @@ app.whenReady().then(() => {
             if (site) {
               siteKey = site.key;
               // Store this mapping for future use
-              webviewSiteMap.set(webContents.id, site.key);
+              webviewSiteMap.set(webviewId, site.key);
             }
           }
           
@@ -765,7 +773,7 @@ app.whenReady().then(() => {
               console.log(`URL logging not enabled for site: ${siteKey}`)
             }
           } else {
-            console.log(`Could not determine site key for webview ${webContents.id}. URL: ${url}`)
+            console.log(`Could not determine site key for webview ${webviewId}. URL: ${url}`)
           }
         } catch (error) {
           console.error('Error logging URL navigation:', error)
@@ -774,13 +782,15 @@ app.whenReady().then(() => {
 
       // Listen for full page navigations
       webContents.on('did-navigate', async (_event, navigationUrl) => {
-        console.log(`Navigation detected for webview ${webContents.id}: ${navigationUrl}`);
+        const webviewId = String(webContents.id);
+        console.log(`Navigation detected for webview ${webviewId}: ${navigationUrl}`);
         await logUrlNavigation(navigationUrl);
       });
 
       // Listen for in-page navigations (SPA routing, hash changes, etc.)
       webContents.on('did-navigate-in-page', async (_event, navigationUrl) => {
-        console.log(`In-page navigation detected for webview ${webContents.id}: ${navigationUrl}`);
+        const webviewId = String(webContents.id);
+        console.log(`In-page navigation detected for webview ${webviewId}: ${navigationUrl}`);
         await logUrlNavigation(navigationUrl);
       });
     });
