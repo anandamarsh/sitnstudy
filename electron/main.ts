@@ -642,35 +642,35 @@ app.whenReady().then(() => {
             
 
           })();
-        `);
-      });
-      
-      // Listen for console messages from injected script
-      webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
-        if (message.startsWith('NAVIGATION_BLOCKED:')) {
-          try {
-            const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
-            if (win) {
-              win.webContents.send('navigation-blocked', data);
-            }
-          } catch (error) {
-            console.error('Error parsing navigation blocked message:', error);
-          }
-                 } else if (message.startsWith('URL_CHANGE:')) {
-             try {
-               const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
-               // Log URL changes for enabled sites - only fully qualified URLs
-               if (data.url && data.currentDomain && data.url.startsWith('http')) {
-                 logUrlNavigation(data.url);
-               }
-             } catch (error) {
-               console.error('Error parsing URL change message:', error);
+                 `);
+       });
+       
+       // Listen for console messages from injected script
+       webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
+         if (message.startsWith('NAVIGATION_BLOCKED:')) {
+           try {
+             const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
+             if (win) {
+               win.webContents.send('navigation-blocked', data);
              }
+           } catch (error) {
+             console.error('Error parsing navigation blocked message:', error);
            }
-      });
+         } else if (message.startsWith('URL_CHANGE:')) {
+           try {
+             const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
+             // Log URL changes for enabled sites - only fully qualified URLs
+             if (data.url && data.currentDomain && data.url.startsWith('http')) {
+               logUrlNavigation(data.url);
+             }
+           } catch (error) {
+             console.error('Error parsing URL change message:', error);
+           }
+         }
+       });
 
-      // Log URL navigation when logging is enabled for this site
-      const logUrlNavigation = async (url: string) => {
+       // Log URL navigation when logging is enabled for this site
+       const logUrlNavigation = async (url: string) => {
         try {
           // First try to get the site key from our webview mapping
           let siteKey = webviewSiteMap.get(webContents.id);
