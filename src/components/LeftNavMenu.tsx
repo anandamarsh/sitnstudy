@@ -343,11 +343,16 @@ export default function LeftNavMenu(): JSX.Element {
         minWidth: 0,
       }}
     >
-      <Drawer 
-        variant={open ? "temporary" : "permanent"} 
+      <Drawer
+        variant="permanent"
         open={open}
-        ModalProps={{
-          keepMounted: true, // Better mobile performance
+        sx={{
+          // When open, make it overlay the content
+          "& .MuiDrawer-paper": {
+            position: "fixed",
+            zIndex: 1200,
+            boxShadow: "0 0 20px rgba(0,0,0,0.3)",
+          }
         }}
       >
         <DrawerHeader>
@@ -455,9 +460,8 @@ export default function LeftNavMenu(): JSX.Element {
           minWidth: 0,
           overflow: "hidden",
           width: "100%",
-          // When drawer is open, content takes full width (drawer overlays)
-          // When drawer is closed, content is pushed to the right by the closed drawer width
-          marginLeft: open ? 0 : `calc(${theme.spacing(8)} + 1px)`,
+          // Content always takes full width since drawer overlays
+          marginLeft: 0,
         }}
       >
         {showLandingPage ? (
