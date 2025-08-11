@@ -193,7 +193,7 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
 
   return (
     <Box sx={{ flexGrow: 1, height: "100vh", overflow: "auto", p: 3 }}>
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+      <Box sx={{ mt: 2, mb: 4, width: "100%" }}>
         <Box
           sx={{
             display: "grid",
@@ -310,7 +310,7 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
             </Card>
           ))}
         </Box>
-      </Container>
+      </Box>
 
       {/* App Details Slider */}
       <AppDetailsSlider

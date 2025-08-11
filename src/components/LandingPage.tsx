@@ -183,7 +183,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
 
   return (
     <Box sx={{ flexGrow: 1, height: "100vh", overflow: "auto", p: 1 }}>
-      <Container maxWidth="lg" sx={{ mt: 1, mb: 2 }}>
+      <Box sx={{ mt: 1, mb: 2, width: "100%" }}>
         <Box
           sx={{
             display: "grid",
@@ -235,7 +235,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
             </Card>
           ))}
         </Box>
-      </Container>
+      </Box>
 
       {/* App Details Slider */}
       <AppDetailsSlider

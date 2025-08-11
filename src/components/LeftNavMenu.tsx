@@ -25,7 +25,7 @@ import { Close as CloseIcon } from "@mui/icons-material";
 import WebviewTabs, { SiteTab } from "./WebviewTabs";
 import AppStore from "./AppStore";
 
-const drawerWidth = 240;
+const drawerWidth = 320;
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
@@ -343,7 +343,13 @@ export default function LeftNavMenu(): JSX.Element {
         minWidth: 0,
       }}
     >
-      <Drawer variant="permanent" open={open}>
+      <Drawer 
+        variant={open ? "temporary" : "permanent"} 
+        open={open}
+        ModalProps={{
+          keepMounted: true, // Better mobile performance
+        }}
+      >
         <DrawerHeader>
           <IconButton
             onClick={() => setOpen((o) => !o)}
@@ -449,6 +455,9 @@ export default function LeftNavMenu(): JSX.Element {
           minWidth: 0,
           overflow: "hidden",
           width: "100%",
+          // When drawer is open, content takes full width (drawer overlays)
+          // When drawer is closed, content is pushed to the right by the closed drawer width
+          marginLeft: open ? 0 : `calc(${theme.spacing(8)} + 1px)`,
         }}
       >
         {showLandingPage ? (
