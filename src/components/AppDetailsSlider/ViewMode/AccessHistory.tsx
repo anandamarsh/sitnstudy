@@ -119,7 +119,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
       {/* Scrollable Content Container */}
       <Box
         sx={{
-          height: "calc(100% - 4rem)", // Dynamic height: container height - 2rem (top + bottom)
+          height: "calc(100% - 3rem)", // Full height minus header height (mb: 2 = 1rem + header content ~2rem)
           overflow: "auto",
           border: "1px solid",
           borderColor: "divider",
