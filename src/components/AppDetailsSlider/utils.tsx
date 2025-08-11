@@ -34,14 +34,12 @@ export const IconImg = ({ src, alt }: { src: string; alt: string }) => {
         sx={{
           width: "100%",
           height: "100%",
-          fontSize: "60%",
-          backgroundColor: backgroundColor,
-          color: "white",
+          fontSize: "4rem",
+          backgroundColor: "transparent",
+          color: backgroundColor,
           fontWeight: "bold",
           fontFamily:
             "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
-          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-          border: "3px solid white",
         }}
       >
         {alt.charAt(0).toUpperCase()}
@@ -60,7 +58,6 @@ export const IconImg = ({ src, alt }: { src: string; alt: string }) => {
         height: "100%",
         objectFit: "contain",
         borderRadius: "12px",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
       }}
     />
   );
@@ -141,14 +138,12 @@ export const getIconComponent = (site: SiteConfig) => {
       sx={{
         width: "100%",
         height: "100%",
-        fontSize: "60%",
-        backgroundColor: backgroundColor,
-        color: "white",
+        fontSize: "4rem",
+        backgroundColor: "transparent",
+        color: backgroundColor,
         fontWeight: "bold",
         fontFamily:
           "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-        border: "3px solid white",
       }}
     >
       {site.title.charAt(0).toUpperCase()}
