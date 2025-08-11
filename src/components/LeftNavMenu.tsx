@@ -77,8 +77,8 @@ const Drawer = styled(MuiDrawer, {
 
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
-  // Calculate spacing values to avoid concatenation issues
-  const closedDrawerSpacing = theme.spacing(8) + 50;
+  // Hardcode spacing values to avoid CSS concatenation issues
+  const closedDrawerSpacing = 64 + 50; // theme.spacing(8) = 64
   const [open, setOpen] = React.useState(false);
   const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
