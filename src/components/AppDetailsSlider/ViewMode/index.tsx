@@ -4,11 +4,6 @@ import {
   Typography,
   Button,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  CircularProgress,
   Switch,
   FormControlLabel,
 } from "@mui/material";
@@ -20,6 +15,7 @@ import { SiteConfig } from "../types";
 import { getIconComponent } from "../utils";
 import { removeSite } from "../../../utils/siteManager";
 import AccessHistory from "./AccessHistory";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface ViewModeProps {
   app: SiteConfig;
@@ -31,6 +27,7 @@ interface ViewModeProps {
 const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [showUrlLoggingConfirm, setShowUrlLoggingConfirm] = useState(false);
   const [urlLoggingEnabled, setUrlLoggingEnabled] = useState(
     app.urlLogging || false
   );
@@ -64,7 +61,38 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     setShowRemoveConfirm(false);
   };
 
+  const handleUrlLoggingConfirm = async () => {
+    setShowUrlLoggingConfirm(false);
+    await toggleUrlLogging(false);
+    
+    // Remove the history file when turning off URL logging
+    try {
+      const result = await (window as any).ipcRenderer.removeUrlLogFile(app.key);
+      if (result.success) {
+        console.log("URL log file removed successfully");
+      } else {
+        console.error("Failed to remove URL log file:", result.message);
+      }
+    } catch (error) {
+      console.error("Error removing URL log file:", error);
+    }
+  };
+
+  const handleUrlLoggingCancel = () => {
+    setShowUrlLoggingConfirm(false);
+  };
+
   const handleUrlLoggingToggle = async (enabled: boolean) => {
+    if (!enabled && urlLoggingEnabled) {
+      // Show confirmation when turning off URL logging
+      setShowUrlLoggingConfirm(true);
+      return;
+    }
+    
+    await toggleUrlLogging(enabled);
+  };
+
+  const toggleUrlLogging = async (enabled: boolean) => {
     setIsTogglingLogging(true);
     try {
       const result = await (window as any).ipcRenderer.toggleUrlLogging(
@@ -93,7 +121,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Main Content */}
-      <Box sx={{ flex: 1, position: "relative", padding: "2rem" }}>
+      <Box sx={{ flex: 1, position: "relative", padding: "3rem 4rem" }}>
         <Box
           sx={{
             display: "flex",
@@ -212,69 +240,28 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
         </Box>
       </Box>
 
-      {/* Remove confirmation dialog */}
-      <Dialog
+      {/* Confirmation modals */}
+      <ConfirmationModal
         open={showRemoveConfirm}
         onClose={handleRemoveCancel}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            minWidth: 400,
-            maxWidth: 500,
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            pb: 1,
-            px: 3,
-            pt: 3,
-          }}
-        >
-          <Typography variant="h6" component="span">
-            Remove Application
-          </Typography>
-        </DialogTitle>
+        onConfirm={handleRemoveConfirm}
+        title="Remove Application"
+        message={`Are you sure you want to remove "${app.title}"?`}
+        confirmText={isRemoving ? "Removing..." : "Remove"}
+        cancelText="Cancel"
+        confirmColor="error"
+      />
 
-        <DialogContent sx={{ px: 3, pb: 2 }}>
-          <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.6 }}>
-            Are you sure you want to remove <strong>"{app.title}"</strong>?
-          </Typography>
-        </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 3, gap: 2 }}>
-          <Button
-            onClick={handleRemoveCancel}
-            variant="outlined"
-            sx={{
-              minWidth: 100,
-              px: 3,
-              py: 1.5,
-              borderRadius: 2,
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleRemoveConfirm}
-            color="error"
-            variant="contained"
-            disabled={isRemoving}
-            startIcon={
-              isRemoving ? <CircularProgress size={16} /> : <DeleteIcon />
-            }
-            sx={{
-              minWidth: 120,
-              px: 3,
-              py: 1.5,
-              borderRadius: 2,
-              boxShadow: 2,
-            }}
-          >
-            {isRemoving ? "Removing..." : "Remove"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmationModal
+        open={showUrlLoggingConfirm}
+        onClose={handleUrlLoggingCancel}
+        onConfirm={handleUrlLoggingConfirm}
+        title="Turn Off URL Logging"
+        message={`Turning off URL logging for "${app.title}" will permanently remove all access history. This action cannot be undone. Are you sure you want to continue?`}
+        confirmText="Turn Off Logging"
+        cancelText="Cancel"
+        confirmColor="warning"
+      />
     </Box>
   );
 };

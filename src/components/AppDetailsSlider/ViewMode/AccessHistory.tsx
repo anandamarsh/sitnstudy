@@ -7,12 +7,10 @@ import {
   ListItem,
   ListItemText,
   ListItemButton,
-  Tooltip,
   CircularProgress,
 } from "@mui/material";
 import {
   History as HistoryIcon,
-  OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 
 interface UrlLogEntry {
@@ -180,9 +178,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
                       </Typography>
                     }
                   />
-                  <Tooltip title="Open in browser">
-                    <OpenInNewIcon fontSize="small" color="action" />
-                  </Tooltip>
+
                 </ListItemButton>
               </ListItem>
             ))}

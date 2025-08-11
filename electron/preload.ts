@@ -38,9 +38,13 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     return ipcRenderer.invoke('get-config-files')
   },
 
-  readConfigFile(fileName: string) {
-    return ipcRenderer.invoke('read-config-file', fileName)
-  },
+        readConfigFile(fileName: string) {
+        return ipcRenderer.invoke('read-config-file', fileName)
+      },
+
+      removeUrlLogFile(appKey: string) {
+        return ipcRenderer.invoke('remove-url-log-file', appKey)
+      },
 
   // You can expose other APTs you need here.
   // ...

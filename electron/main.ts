@@ -219,6 +219,26 @@ ipcMain.handle('read-config-file', async (_event, fileName: string) => {
   }
 })
 
+ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
+  try {
+    const configDir = path.join(__dirname, '../src/config')
+    const fs = await import('fs/promises')
+    const files = await fs.readdir(configDir)
+    const matchingFile = files.find(file => file.includes(appKey) && file.endsWith('_urls.json'))
+    
+    if (matchingFile) {
+      const filePath = path.join(configDir, matchingFile)
+      await fs.unlink(filePath)
+      return { success: true, message: 'URL log file removed successfully' }
+    }
+    
+    return { success: false, message: 'No URL log file found for this app' }
+  } catch (error) {
+    console.error('Error removing URL log file:', error)
+    return { success: false, message: 'Failed to remove URL log file' }
+  }
+})
+
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
   app.setName('Sit-N-Study')
