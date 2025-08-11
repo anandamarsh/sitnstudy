@@ -112,7 +112,7 @@ ipcMain.handle('get-available-sites', async () => {
 // IPC handlers for URL logging
 ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'config')
+    const configDir = path.join(__dirname, '..', 'src', 'app_data')
     const availableSitesPath = path.join(configDir, 'app.json')
     
     // Read current app.json
@@ -140,7 +140,7 @@ ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: bo
 
 ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'config')
+    const configDir = path.join(__dirname, '..', 'src', 'app_data')
     const availableSitesPath = path.join(configDir, 'app.json')
     
     // Read current app.json
