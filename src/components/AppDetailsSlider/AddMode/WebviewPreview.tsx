@@ -215,7 +215,7 @@ export const WebviewPreview: React.FC<WebviewPreviewProps> = ({
       ref={webviewRef}
       src={url}
       allowpopups
-      partition="persist:sitnstudy"
+      partition="persist:sitnstudy-shared"
       style={{
         width: "100%",
         height: "100%",

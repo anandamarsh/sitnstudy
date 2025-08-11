@@ -48,7 +48,7 @@
     "iconPath": "/icons/youtube.svg",
     "iconType": "svg",
     "description": "Access www.youtube.com - a web application for productivity and learning.",
-    "urlLogging": true
+    "urlLogging": false
   },
   {
     "key": "abc_me5qdkfz",

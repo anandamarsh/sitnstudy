@@ -172,7 +172,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
               src={t.url}
               allowpopups
               webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
-              partition={`persist:sitnstudy-${t.key}`}
+              partition="persist:sitnstudy-shared"
               style={{
                 width: "100%",
                 height: "100%",

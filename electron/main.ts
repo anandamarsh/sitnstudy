@@ -11,6 +11,42 @@ import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Create a shared session for all webviews to enable cookie sharing
+const sharedSession = session.fromPartition('persist:sitnstudy-shared', {
+  cache: true
+})
+
+// Configure the shared session for better cookie and storage persistence
+sharedSession.webRequest.onBeforeSendHeaders((details, callback) => {
+  // Ensure cookies are sent with all requests
+  if (details.requestHeaders.Cookie) {
+    callback({ requestHeaders: details.requestHeaders })
+  } else {
+    callback({ requestHeaders: details.requestHeaders })
+  }
+})
+
+// Enable persistent storage for the shared session
+sharedSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+  // Allow common permissions for better user experience
+  const allowedPermissions = ['notifications', 'media', 'geolocation']
+  if (allowedPermissions.includes(permission)) {
+    callback(true)
+  } else {
+    callback(false)
+  }
+})
+
+// Configure session storage and cookies to persist
+sharedSession.setPreloads([])
+sharedSession.clearStorageData({
+  storages: ['cookies', 'filesystem', 'indexdb', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage']
+}).then(() => {
+  console.log('Shared session storage cleared and ready for use')
+}).catch((error) => {
+  console.log('Shared session storage already clean:', error)
+})
+
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
@@ -272,6 +308,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       webviewTag: true,
+      session: sharedSession, // Use the shared session for all webviews
     },
   })
 
@@ -674,7 +711,6 @@ function createWindow() {
 }
 
 function openChatgptLoginWindow() {
-  const cgptSession = session.fromPartition('persist:sitnstudy-chatgpt')
   const loginWin = new BrowserWindow({
     width: 1100,
     height: 800,
@@ -683,14 +719,13 @@ function openChatgptLoginWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      session: cgptSession,
+      session: sharedSession,
     },
   })
   loginWin.loadURL('https://chat.openai.com/auth/login')
 }
 
 function openYoutubeLoginWindow() {
-  const ytSession = session.fromPartition('persist:sitnstudy-youtube')
   const loginWin = new BrowserWindow({
     width: 1100,
     height: 800,
@@ -699,7 +734,7 @@ function openYoutubeLoginWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      session: ytSession,
+      session: sharedSession,
     },
   })
   loginWin.loadURL('https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/')
