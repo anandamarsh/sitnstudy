@@ -341,6 +341,7 @@ export default function LeftNavMenu(): JSX.Element {
         width: "100%",
         overflow: "hidden",
         minWidth: 0,
+        position: "relative",
       }}
     >
       <Drawer
@@ -352,7 +353,11 @@ export default function LeftNavMenu(): JSX.Element {
             position: "fixed",
             zIndex: 1200,
             boxShadow: "0 0 20px rgba(0,0,0,0.3)",
-          }
+            // Ensure drawer doesn't affect layout
+            left: 0,
+            top: 0,
+            height: "100vh",
+          },
         }}
       >
         <DrawerHeader>
@@ -457,11 +462,14 @@ export default function LeftNavMenu(): JSX.Element {
           flexGrow: 1,
           p: 0,
           minHeight: 0,
-          minWidth: 0,
           overflow: "hidden",
-          width: "100%",
-          // Content always takes full width since drawer overlays
-          marginLeft: 0,
+          width: "100%", // Full container width
+          position: "relative",
+          // Ensure content is never affected by drawer width
+          left: 0,
+          right: 0,
+          // Force full width regardless of drawer state
+          minWidth: "100%",
         }}
       >
         {showLandingPage ? (
