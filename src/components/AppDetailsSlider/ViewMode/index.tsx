@@ -94,23 +94,22 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          p: 3,
-          pb: 2,
-        }}
-      >
-        <IconButton onClick={onClose} size="small">
+      {/* Main Content */}
+      <Box sx={{ flex: 1, position: "relative", padding: "2rem" }}>
+        {/* Close button - absolute positioned */}
+        <IconButton 
+          onClick={onClose} 
+          size="small"
+          sx={{
+            position: "absolute",
+            top: "2rem",
+            right: "2rem",
+            zIndex: 1,
+          }}
+        >
           <CloseIcon />
         </IconButton>
-      </Box>
 
-      {/* Main Content */}
-      <Box sx={{ flex: 1, px: 3, pb: 4 }}>
         <Box
           sx={{
             display: "flex",
@@ -118,11 +117,10 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             gap: 3,
             mx: "auto",
             height: "100%",
-            padding: "0 2rem 0 2rem",
           }}
         >
           {/* Two-column layout: Left for app info + controls, Right for access history */}
-          <Box sx={{ display: "flex", gap: 4, width: "100%", py: "2rem" }}>
+          <Box sx={{ display: "flex", gap: 4, width: "100%" }}>
             {/* Left column: App Icon, Details, and all Controls - 50% width */}
             <Box
               sx={{
@@ -132,35 +130,37 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 gap: "2rem",
               }}
             >
-                                                {/* App Icon */}
-                 <Box
-                   sx={{
-                     width: 120,
-                     height: 120,
-                     display: "flex",
-                     alignItems: "center",
-                     justifyContent: "center",
-                     flexShrink: 0,
-                   }}
-                 >
-                   {getIconComponent(app)}
-                 </Box>
+              {/* App Icon */}
+              <Box
+                sx={{
+                  width: 120,
+                  height: 120,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                {getIconComponent(app)}
+              </Box>
 
-                 {/* App Details */}
-                 <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                   <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
-                     {app.url}
-                   </Typography>
+              {/* App Details */}
+              <Box
+                sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+              >
+                <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
+                  {app.url}
+                </Typography>
 
-                   {app.description && (
-                     <Typography variant="body2" color="text.secondary">
-                       {app.description}
-                     </Typography>
-                   )}
-                 </Box>
+                {app.description && (
+                  <Typography variant="body2" color="text.secondary">
+                    {app.description}
+                  </Typography>
+                )}
+              </Box>
 
-                 {/* URL Logging Toggle */}
-                 <Box sx={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+              {/* URL Logging Toggle */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: "2rem" }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -189,8 +189,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 )}
               </Box>
 
-                 {/* Action Buttons */}
-                 <Box sx={{ display: "flex", gap: "2rem" }}>
+              {/* Action Buttons */}
+              <Box sx={{ display: "flex", gap: "2rem" }}>
                 <Button
                   variant="contained"
                   onClick={() => onOpenApp(app)}
