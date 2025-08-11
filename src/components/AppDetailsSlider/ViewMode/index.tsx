@@ -32,7 +32,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     app.urlLogging || false
   );
   const [allowExternalNavigation, setAllowExternalNavigation] = useState(
-    app.allowExternalNavigation !== false // Default to true if not set
+    app.allowExternalNavigation || false // Default to false if not set
   );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
   const [isTogglingNavigation, setIsTogglingNavigation] = useState(false);

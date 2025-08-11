@@ -10,7 +10,7 @@
       "color": "inherit"
     },
     "description": "Browse and manage your applications",
-    "allowExternalNavigation": true
+    "allowExternalNavigation": false
   },
   {
     "key": "ixl",
@@ -20,7 +20,7 @@
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": true,
-    "allowExternalNavigation": true
+    "allowExternalNavigation": false
   },
   {
     "key": "netflix",
@@ -29,7 +29,7 @@
     "iconPath": "/icons/netflix.svg",
     "iconType": "svg",
     "description": "Streaming service for movies, TV shows, documentaries, and educational content",
-    "allowExternalNavigation": true
+    "allowExternalNavigation": false
   },
   {
     "key": "chatgpt",
@@ -43,7 +43,7 @@
     },
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
     "urlLogging": true,
-    "allowExternalNavigation": true
+    "allowExternalNavigation": false
   },
   {
     "key": "youtube_me5n1bxf",
@@ -63,7 +63,7 @@
     "iconType": "svg",
     "description": "Access www.abc.net.au - a web application for productivity and learning.",
     "urlLogging": false,
-    "allowExternalNavigation": true
+    "allowExternalNavigation": false
   },
   {
     "key": "google_me5r6cfr",
@@ -72,6 +72,6 @@
     "iconPath": "/icons/google.svg",
     "iconType": "svg",
     "description": "Search engine and web services platform",
-    "allowExternalNavigation": true
+    "allowExternalNavigation": false
   }
 ]
