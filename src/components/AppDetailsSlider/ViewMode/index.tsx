@@ -15,7 +15,7 @@ import { SiteConfig } from "../types";
 import { getIconComponent } from "../utils";
 import { removeSite } from "../../../utils/siteManager";
 import AccessHistory from "./AccessHistory";
-import ConfirmationModal from "./ConfirmationModal";
+import ConfirmationModal from "../../ConfirmationModal";
 
 interface ViewModeProps {
   app: SiteConfig;
