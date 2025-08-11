@@ -18,7 +18,7 @@ const webviewSiteMap = new Map<number, string>()
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
     const sites = JSON.parse(currentContent)
     
@@ -68,7 +68,7 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
 
 ipcMain.handle('remove-site', async (_event, siteKey) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
     const sites = JSON.parse(currentContent)
     
@@ -100,11 +100,11 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
 
 ipcMain.handle('get-available-sites', async () => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
     const content = readFileSync(availableSitesPath, 'utf8')
     return JSON.parse(content)
   } catch (error) {
-    console.error('Error reading availableSites.json:', error)
+    console.error('Error reading app.json:', error)
     return []
   }
 })
@@ -113,9 +113,9 @@ ipcMain.handle('get-available-sites', async () => {
 ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: boolean) => {
   try {
     const configDir = path.join(__dirname, '..', 'src', 'config')
-    const availableSitesPath = path.join(configDir, 'availableSites.json')
+    const availableSitesPath = path.join(configDir, 'app.json')
     
-    // Read current availableSites.json
+    // Read current app.json
     const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
     const availableSites = JSON.parse(currentContent)
     
@@ -129,7 +129,7 @@ ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: bo
       console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
       return { success: true }
     } else {
-      console.error(`Site ${siteKey} not found in availableSites.json`)
+      console.error(`Site ${siteKey} not found in app.json`)
       return { success: false, error: 'Site not found' }
     }
   } catch (error) {
@@ -141,9 +141,9 @@ ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: bo
 ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, enabled: boolean) => {
   try {
     const configDir = path.join(__dirname, '..', 'src', 'config')
-    const availableSitesPath = path.join(configDir, 'availableSites.json')
+    const availableSitesPath = path.join(configDir, 'app.json')
     
-    // Read current availableSites.json
+    // Read current app.json
     const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
     const availableSites = JSON.parse(currentContent)
     
@@ -157,7 +157,7 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
       console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
       return { success: true }
     } else {
-      console.error(`Site ${siteKey} not found in availableSites.json`)
+      console.error(`Site ${siteKey} not found in app.json`)
       return { success: false, error: 'Site not found' }
     }
   } catch (error) {
@@ -168,7 +168,7 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
 
 ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const logFilePath = path.join(configDir, `${siteKey}_urls.json`)
     
     // Create config directory if it doesn't exist
@@ -209,7 +209,7 @@ ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: s
 
 ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
   try {
-    const logFilePath = path.join(__dirname, '../src/config', `${siteKey}_urls.json`)
+    const logFilePath = path.join(__dirname, '../src/app_data', `${siteKey}_urls.json`)
     
     if (!existsSync(logFilePath)) {
       return { success: true, data: [] }
@@ -228,7 +228,7 @@ ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
 // IPC handlers for config file access
 ipcMain.handle('get-config-files', async () => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const files = await import('fs/promises')
     const filesList = await files.readdir(configDir)
     return filesList.filter(file => file.endsWith('_urls.json'))
@@ -240,7 +240,7 @@ ipcMain.handle('get-config-files', async () => {
 
 ipcMain.handle('read-config-file', async (_event, fileName: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const filePath = path.join(configDir, fileName)
     
     if (!existsSync(filePath)) {
@@ -257,7 +257,7 @@ ipcMain.handle('read-config-file', async (_event, fileName: string) => {
 
 ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const fs = await import('fs/promises')
     const files = await fs.readdir(configDir)
     const matchingFile = files.find(file => file.includes(appKey) && file.endsWith('_urls.json'))
@@ -430,7 +430,7 @@ app.whenReady().then(() => {
             originalSiteKey = webviewSiteMap.get(webContents.id);
             
             if (originalSiteKey) {
-              const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+              const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
               const sitesContent = readFileSync(availableSitesPath, 'utf8')
               const sites = JSON.parse(sitesContent)
               
@@ -468,7 +468,7 @@ app.whenReady().then(() => {
         // Try to determine the site key for this webview if we don't have it yet
         if (!webviewSiteMap.has(webContents.id)) {
           try {
-            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
             const sitesContent = readFileSync(availableSitesPath, 'utf8')
             const sites = JSON.parse(sitesContent)
             
@@ -653,7 +653,7 @@ app.whenReady().then(() => {
             const currentDomain = new URL(currentUrl).hostname;
             
             // Find the site by matching domain
-            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
             const sitesContent = readFileSync(availableSitesPath, 'utf8')
             const sites = JSON.parse(sitesContent)
             
@@ -676,7 +676,7 @@ app.whenReady().then(() => {
           
           if (siteKey) {
             // Get the site configuration to check if logging is enabled
-            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
             const sitesContent = readFileSync(availableSitesPath, 'utf8')
             const sites = JSON.parse(sitesContent)
             
@@ -693,7 +693,7 @@ app.whenReady().then(() => {
               
               // Log the URL
               try {
-                const configDir = path.join(__dirname, '../src/config')
+                const configDir = path.join(__dirname, '../src/app_data')
                 const logFilePath = path.join(configDir, `${site.key}_urls.json`)
                 
                 // Create config directory if it doesn't exist

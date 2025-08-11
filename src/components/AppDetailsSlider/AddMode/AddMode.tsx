@@ -40,7 +40,7 @@ export const AddMode: React.FC<AddModeProps> = ({ onClose, onSave }) => {
           svgContent: currentSvgContent, // Include the SVG content for local saving
         };
 
-        // Add to availableSites.json file
+        // Add to app.json file
         const result = await addNewSite(newApp);
 
         if (result.success) {
