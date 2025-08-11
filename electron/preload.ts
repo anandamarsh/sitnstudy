@@ -25,13 +25,9 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   },
 
   // URL logging methods
-  toggleUrlLogging(siteKey: string, enabled: boolean) {
-    return ipcRenderer.invoke('toggle-url-logging', siteKey, enabled)
-  },
-
-  getUrlLog(siteKey: string) {
-    return ipcRenderer.invoke('get-url-log', siteKey)
-  },
+  toggleUrlLogging: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-url-logging', siteKey, enabled),
+  getUrlLog: (siteKey: string) => ipcRenderer.invoke('get-url-log', siteKey),
+  toggleExternalNavigation: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-external-navigation', siteKey, enabled),
 
   // Config file access methods
   getConfigFiles() {

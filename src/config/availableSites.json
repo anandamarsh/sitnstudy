@@ -9,7 +9,8 @@
       "size": 20,
       "color": "inherit"
     },
-    "description": "Browse and manage your applications"
+    "description": "Browse and manage your applications",
+    "allowExternalNavigation": true
   },
   {
     "key": "ixl",
@@ -18,7 +19,8 @@
     "iconPath": "/icons/ixl.svg",
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
-    "urlLogging": true
+    "urlLogging": true,
+    "allowExternalNavigation": true
   },
   {
     "key": "netflix",
@@ -26,7 +28,8 @@
     "url": "https://www.netflix.com/",
     "iconPath": "/icons/netflix.svg",
     "iconType": "svg",
-    "description": "Streaming service for movies, TV shows, documentaries, and educational content"
+    "description": "Streaming service for movies, TV shows, documentaries, and educational content",
+    "allowExternalNavigation": true
   },
   {
     "key": "chatgpt",
@@ -39,7 +42,8 @@
       "color": "#10A37F"
     },
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
-    "urlLogging": true
+    "urlLogging": true,
+    "allowExternalNavigation": true
   },
   {
     "key": "youtube_me5n1bxf",
@@ -48,7 +52,8 @@
     "iconPath": "/icons/youtube.svg",
     "iconType": "svg",
     "description": "Access www.youtube.com - a web application for productivity and learning.",
-    "urlLogging": false
+    "urlLogging": false,
+    "allowExternalNavigation": true
   },
   {
     "key": "abc_me5qdkfz",
@@ -57,7 +62,8 @@
     "iconPath": "https://www.abc.net.au/favicon.ico",
     "iconType": "svg",
     "description": "Access www.abc.net.au - a web application for productivity and learning.",
-    "urlLogging": false
+    "urlLogging": false,
+    "allowExternalNavigation": true
   },
   {
     "key": "google_me5r6cfr",
@@ -65,6 +71,7 @@
     "url": "https://www.google.com/",
     "iconPath": "/icons/google.svg",
     "iconType": "svg",
-    "description": "Search engine and web services platform"
+    "description": "Search engine and web services platform",
+    "allowExternalNavigation": true
   }
 ]

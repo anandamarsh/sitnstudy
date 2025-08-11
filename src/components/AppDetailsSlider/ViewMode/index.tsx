@@ -31,7 +31,11 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [urlLoggingEnabled, setUrlLoggingEnabled] = useState(
     app.urlLogging || false
   );
+  const [allowExternalNavigation, setAllowExternalNavigation] = useState(
+    app.allowExternalNavigation !== false // Default to true if not set
+  );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
+  const [isTogglingNavigation, setIsTogglingNavigation] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
 
   const handleRemoveClick = () => {
@@ -104,17 +108,33 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
       );
       if (result.success) {
         setUrlLoggingEnabled(enabled);
-        // Update the app object locally
-        app.urlLogging = enabled;
-        // Increment refresh trigger to refresh access history
-        setRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger(prev => prev + 1); // Trigger refresh of access history
       } else {
-        console.error("Failed to toggle URL logging:", result.message);
+        console.error("Failed to toggle URL logging:", result.error);
       }
     } catch (error) {
       console.error("Error toggling URL logging:", error);
     } finally {
       setIsTogglingLogging(false);
+    }
+  };
+
+  const toggleExternalNavigation = async (enabled: boolean) => {
+    setIsTogglingNavigation(true);
+    try {
+      const result = await (window as any).ipcRenderer.toggleExternalNavigation(
+        app.key,
+        enabled
+      );
+      if (result.success) {
+        setAllowExternalNavigation(enabled);
+      } else {
+        console.error("Failed to toggle external navigation:", result.error);
+      }
+    } catch (error) {
+      console.error("Error toggling external navigation:", error);
+    } finally {
+      setIsTogglingNavigation(false);
     }
   };
 
@@ -212,6 +232,51 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
               <AccessHistory
                 appKey={app.key}
                 refreshTrigger={refreshTrigger}
+                externalNavigationSwitch={
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      p: 2,
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      mb: 2,
+                    }}
+                  >
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={allowExternalNavigation}
+                          onChange={(e) =>
+                            toggleExternalNavigation(e.target.checked)
+                          }
+                          disabled={isTogglingNavigation}
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Typography variant="body2" fontWeight="medium">
+                            {isTogglingNavigation ? "Updating..." : "Allow External Navigation"}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                    {allowExternalNavigation && (
+                      <Chip
+                        label="Enabled"
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                      />
+                    )}
+                  </Box>
+                }
                 urlLoggingSwitch={
                   <Box
                     sx={{

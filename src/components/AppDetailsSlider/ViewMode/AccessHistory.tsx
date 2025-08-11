@@ -17,12 +17,14 @@ interface UrlLogEntry {
 interface AccessHistoryProps {
   appKey: string;
   refreshTrigger?: number; // Add refresh trigger prop
+  externalNavigationSwitch?: React.ReactNode; // Add external navigation switch prop
   urlLoggingSwitch?: React.ReactNode; // Add URL logging switch prop
 }
 
 const AccessHistory: React.FC<AccessHistoryProps> = ({
   appKey,
   refreshTrigger,
+  externalNavigationSwitch,
   urlLoggingSwitch,
 }) => {
   const [accessHistory, setAccessHistory] = useState<UrlLogEntry[]>([]);
@@ -93,13 +95,16 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
 
   return (
     <Box sx={{ height: "100%" }}>
+      {/* External Navigation Switch */}
+      {externalNavigationSwitch && <Box sx={{ mb: 2 }}>{externalNavigationSwitch}</Box>}
+
       {/* URL Logging Switch at the top */}
       {urlLoggingSwitch && <Box sx={{ mb: 2 }}>{urlLoggingSwitch}</Box>}
 
       {/* Content Container - No scrolling */}
       <Box
         sx={{
-          height: "calc(100% - 2rem)", // Full height minus URL logging switch margin (mb: 2 = 2rem)
+          height: "calc(100% - 4rem)", // Full height minus both switches margins (2 * mb: 2 = 4rem)
         }}
       >
         {loading ? (

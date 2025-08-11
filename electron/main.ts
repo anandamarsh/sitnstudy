@@ -2,6 +2,7 @@ import { app, BrowserWindow, nativeImage, Menu, session, ipcMain } from 'electro
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
+import { promises as fs } from 'fs'
 
 // DevTools are now enabled on-demand:
 // - Right-click → "Inspect Element" to inspect specific elements
@@ -108,25 +109,57 @@ ipcMain.handle('get-available-sites', async () => {
 // IPC handlers for URL logging
 ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
-    const currentContent = readFileSync(availableSitesPath, 'utf8')
-    const sites = JSON.parse(currentContent)
+    const configDir = path.join(__dirname, '..', 'src', 'config')
+    const availableSitesPath = path.join(configDir, 'availableSites.json')
     
-    const siteIndex = sites.findIndex((site: any) => site.key === siteKey)
-    if (siteIndex === -1) {
-      return { success: false, message: `Site with key "${siteKey}" not found.` }
+    // Read current availableSites.json
+    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
+    const availableSites = JSON.parse(currentContent)
+    
+    // Find and update the site
+    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
+    if (siteIndex !== -1) {
+      availableSites[siteIndex].urlLogging = enabled
+      
+      // Write back to file
+      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
+      console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
+      return { success: true }
+    } else {
+      console.error(`Site ${siteKey} not found in availableSites.json`)
+      return { success: false, error: 'Site not found' }
     }
-    
-    // Update the site's URL logging setting
-    sites[siteIndex].urlLogging = enabled
-    
-    // Write back to the file
-    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
-    
-    return { success: true, message: `URL logging ${enabled ? 'enabled' : 'disabled'} for ${sites[siteIndex].title}` }
   } catch (error) {
     console.error('Error toggling URL logging:', error)
-    return { success: false, message: 'Failed to toggle URL logging' }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
+ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, enabled: boolean) => {
+  try {
+    const configDir = path.join(__dirname, '..', 'src', 'config')
+    const availableSitesPath = path.join(configDir, 'availableSites.json')
+    
+    // Read current availableSites.json
+    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
+    const availableSites = JSON.parse(currentContent)
+    
+    // Find and update the site
+    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
+    if (siteIndex !== -1) {
+      availableSites[siteIndex].allowExternalNavigation = enabled
+      
+      // Write back to file
+      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
+      console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
+      return { success: true }
+    } else {
+      console.error(`Site ${siteKey} not found in availableSites.json`)
+      return { success: false, error: 'Site not found' }
+    }
+  } catch (error) {
+    console.error('Error toggling external navigation:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 })
 
@@ -384,12 +417,37 @@ app.whenReady().then(() => {
       });
 
       // Block navigation to external domains
-      webContents.on('will-navigate', (event, navigationUrl) => {
+      webContents.on('will-navigate', async (event, navigationUrl) => {
         const currentUrl = webContents.getURL();
         const currentDomain = new URL(currentUrl).hostname;
         const navigationDomain = new URL(navigationUrl).hostname;
         
         if (currentDomain !== navigationDomain) {
+          // Check if external navigation is allowed for this site
+          try {
+            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const sitesContent = readFileSync(availableSitesPath, 'utf8')
+            const sites = JSON.parse(sitesContent)
+            
+            const site = sites.find((s: any) => {
+              try {
+                const siteDomain = new URL(s.url).hostname
+                return siteDomain === currentDomain
+              } catch {
+                return false
+              }
+            })
+            
+            // If external navigation is allowed, don't block
+            if (site && site.allowExternalNavigation !== false) {
+              console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain}`);
+              return; // Allow the navigation
+            }
+          } catch (error) {
+            console.error('Error checking external navigation setting:', error)
+            // Default to blocking if there's an error
+          }
+          
           console.log(`Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
           event.preventDefault();
           
@@ -421,25 +479,18 @@ app.whenReady().then(() => {
                 try {
                   const url = new URL(target.href);
                   if (url.hostname !== currentDomain) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Send message to main process via console
-                    console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
-                      blockedUrl: target.href,
-                      currentDomain: currentDomain,
-                      targetDomain: url.hostname
+                    // For external navigation, we'll let the main process handle the check
+                    // This ensures we respect the allowExternalNavigation setting
+                    // The main process will either allow or block based on the setting
+                    return true; // Don't prevent default, let main process decide
+                  } else if (target.href.startsWith('http')) {
+                    // Log internal navigation immediately when link is clicked - only fully qualified URLs
+                    console.log('URL_CHANGE:' + JSON.stringify({
+                      url: target.href,
+                      previousUrl: window.location.href,
+                      currentDomain: currentDomain
                     }));
-                    
-                    return false;
-                                   } else if (target.href.startsWith('http')) {
-                     // Log internal navigation immediately when link is clicked - only fully qualified URLs
-                     console.log('URL_CHANGE:' + JSON.stringify({
-                       url: target.href,
-                       previousUrl: window.location.href,
-                       currentDomain: currentDomain
-                     }));
-                   }
+                  }
                 } catch (error) {
                   // Invalid URL, allow the click
                 }
@@ -453,25 +504,18 @@ app.whenReady().then(() => {
                 try {
                   const url = new URL(form.action);
                   if (url.hostname !== currentDomain) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Send message to main process via console
-                    console.log('NAVIGATION_BLOCKED:' + JSON.stringify({
-                      blockedUrl: form.action,
-                      currentDomain: currentDomain,
-                      targetDomain: url.hostname
+                    // For external navigation, we'll let the main process handle the check
+                    // This ensures we respect the allowExternalNavigation setting
+                    // The main process will either allow or block based on the setting
+                    return true; // Don't prevent default, let main process decide
+                  } else if (form.action.startsWith('http')) {
+                    // Log internal navigation immediately when form is submitted - only fully qualified URLs
+                    console.log('URL_CHANGE:' + JSON.stringify({
+                      url: form.action,
+                      previousUrl: window.location.href,
+                      currentDomain: currentDomain
                     }));
-                    
-                    return false;
-                                   } else if (form.action.startsWith('http')) {
-                     // Log internal navigation immediately when form is submitted - only fully qualified URLs
-                     console.log('URL_CHANGE:' + JSON.stringify({
-                       url: form.action,
-                       previousUrl: window.location.href,
-                       currentDomain: currentDomain
-                     }));
-                   }
+                  }
                 } catch (error) {
                   // Invalid URL, allow the submission
                 }
