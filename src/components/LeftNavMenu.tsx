@@ -77,6 +77,8 @@ const Drawer = styled(MuiDrawer, {
 
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
+  // Calculate spacing values to avoid concatenation issues
+  const closedDrawerSpacing = theme.spacing(8) + 50;
   const [open, setOpen] = React.useState(false);
   const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
@@ -465,19 +467,19 @@ export default function LeftNavMenu(): JSX.Element {
           minHeight: 0,
           overflow: "hidden",
           // Calculate width to account for drawer space
-          width: open 
-            ? `calc(100% - ${drawerWidth + 50}px)` 
-            : `calc(100% - ${theme.spacing(8) + 50}px)`,
+          width: open
+            ? `calc(100% - ${drawerWidth + 50}px)`
+            : `calc(100% - ${closedDrawerSpacing}px)`,
           position: "relative",
           // When drawer is open, content needs to be narrower to account for drawer width
           // When drawer is closed, content can take more width
           marginLeft: open
             ? `${drawerWidth + 50}px`
-            : `${theme.spacing(8) + 50}px`,
+            : `${closedDrawerSpacing}px`,
           // Ensure minimum width is also calculated
-          minWidth: open 
-            ? `calc(100% - ${drawerWidth + 50}px)` 
-            : `calc(100% - ${theme.spacing(8) + 50}px)`,
+          minWidth: open
+            ? `calc(100% - ${drawerWidth + 50}px)`
+            : `calc(100% - ${closedDrawerSpacing}px)`,
         }}
       >
         {showLandingPage ? (
