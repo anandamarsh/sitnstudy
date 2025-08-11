@@ -119,7 +119,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
       {/* Scrollable Content Container */}
       <Box
         sx={{
-          height: "400px", // Fixed height to prevent main slider from scrolling
+          height: "calc(100% - 4rem)", // Dynamic height: container height - 2rem (top + bottom)
           overflow: "auto",
           border: "1px solid",
           borderColor: "divider",

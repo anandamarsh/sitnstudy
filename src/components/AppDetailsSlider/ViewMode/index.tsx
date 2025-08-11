@@ -97,13 +97,13 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
       {/* Main Content */}
       <Box sx={{ flex: 1, position: "relative", padding: "2rem" }}>
         {/* Close button - absolute positioned */}
-        <IconButton 
-          onClick={onClose} 
+        <IconButton
+          onClick={onClose}
           size="small"
           sx={{
             position: "absolute",
-            top: "2rem",
-            right: "2rem",
+            top: "1rem",
+            right: "1rem",
             zIndex: 1,
           }}
         >
