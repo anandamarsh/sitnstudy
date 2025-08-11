@@ -34,37 +34,7 @@
     },
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
     "urlLogging": true,
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "abcya",
-    "title": "ABCya",
-    "url": "https://www.abcya.com/",
-    "iconType": "svg",
-    "iconPath": "https://www.abcya.com/favicon.ico",
-    "description": "Grade-organized educational games—lots of content appropriate for Year 5.",
-    "urlLogging": false,
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "commonlit",
-    "title": "CommonLit",
-    "url": "https://www.commonlit.org/",
-    "iconType": "svg",
-    "iconPath": "https://www.commonlit.org/favicon.ico",
-    "description": "Free reading passages and comprehension questions for upper primary.",
-    "urlLogging": false,
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "science_journal_kids",
-    "title": "Science Journal for Kids",
-    "url": "https://sciencejournalforkids.org/",
-    "iconType": "svg",
-    "iconPath": "https://sciencejournalforkids.org/favicon.ico",
-    "description": "Simplified scientific articles—excellent for Year 5 science inquiry.",
-    "urlLogging": false,
-    "allowExternalNavigation": false
+    "allowExternalNavigation": true
   },
   {
     "key": "youtube",
