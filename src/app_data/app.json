@@ -22,7 +22,7 @@
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": false,
     "allowExternalNavigation": true,
-    "showAddressBar": false
+    "showAddressBar": true
   },
   {
     "key": "chatgpt",
