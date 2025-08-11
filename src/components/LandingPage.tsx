@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Container,
   Card,
   CardActionArea,
   Typography,
   Avatar,
 } from "@mui/material";
-import { MoveToInbox as InboxIcon } from "@mui/icons-material";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
 import { getAvailableSites } from "../utils/siteManager";

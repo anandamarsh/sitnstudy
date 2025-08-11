@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   List,
@@ -8,10 +8,8 @@ import {
   ListItemText,
   Divider,
   IconButton,
-  Typography,
   Avatar,
 } from "@mui/material";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
 import { getAvailableSites } from "../utils/siteManager";
@@ -77,8 +75,6 @@ const Drawer = styled(MuiDrawer, {
 
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
-  // Hardcode spacing values to avoid CSS concatenation issues
-  const closedDrawerSpacing = 64 + 50; // theme.spacing(8) = 64
   const [open, setOpen] = React.useState(false);
   const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
