@@ -1,37 +1,48 @@
-import { Box } from "@mui/material";
+import { Box, Avatar } from "@mui/material";
 import { Apps } from "@mui/icons-material";
 import { SiOpenai } from "react-icons/si";
 import { GiGamepad } from "react-icons/gi";
 import { SiteConfig } from "./types";
+import { useState } from "react";
 
-export const IconImg = ({ src, alt }: { src: string; alt: string }) => (
-  <Box
-    component="img"
-    src={src}
-    alt={alt}
-    sx={{
-      width: "100%",
-      height: "100%",
-      objectFit: "contain",
-    }}
-  />
-);
+export const IconImg = ({ src, alt }: { src: string; alt: string }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return (
+      <Avatar
+        sx={{
+          width: "100%",
+          height: "100%",
+          fontSize: "60%",
+          backgroundColor: "#f0f0f0",
+          color: "#666",
+        }}
+      >
+        {alt.charAt(0).toUpperCase()}
+      </Avatar>
+    );
+  }
+
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      sx={{
+        width: "100%",
+        height: "100%",
+        objectFit: "contain",
+      }}
+    />
+  );
+};
 
 export const getIconComponent = (site: SiteConfig) => {
   if (site.iconPath) {
     if (site.iconType === "svg") {
-      return (
-        <Box
-          component="img"
-          src={site.iconPath}
-          alt={site.title}
-          sx={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-          }}
-        />
-      );
+      return <IconImg src={site.iconPath} alt={site.title} />;
     }
   }
 
@@ -85,20 +96,18 @@ export const getIconComponent = (site: SiteConfig) => {
     }
   }
 
-  // Fallback to a default icon
+  // Fallback to MUI Avatar
   return (
-    <Box
+    <Avatar
       sx={{
         width: "100%",
         height: "100%",
+        fontSize: "60%",
         backgroundColor: "#f0f0f0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 1,
+        color: "#666",
       }}
     >
       {site.title.charAt(0).toUpperCase()}
-    </Box>
+    </Avatar>
   );
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   List,
@@ -8,6 +8,8 @@ import {
   ListItemText,
   Divider,
   IconButton,
+  Typography,
+  Avatar,
 } from "@mui/material";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import { SiOpenai } from "react-icons/si";
@@ -126,18 +128,39 @@ export default function LeftNavMenu(): JSX.Element {
     };
   }, []);
 
-  const IconImg = ({ src, alt }: { src: string; alt: string }) => (
-    <Box
-      component="img"
-      src={src}
-      alt={alt}
-      sx={{
-        width: 20,
-        height: 20,
-        objectFit: "contain",
-      }}
-    />
-  );
+  const IconImg = ({ src, alt }: { src: string; alt: string }) => {
+    const [hasError, setHasError] = useState(false);
+
+    if (hasError) {
+      return (
+        <Avatar
+          sx={{
+            width: 20,
+            height: 20,
+            fontSize: "0.8rem",
+            backgroundColor: "#f0f0f0",
+            color: "#666",
+          }}
+        >
+          {alt.charAt(0).toUpperCase()}
+        </Avatar>
+      );
+    }
+
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        onError={() => setHasError(true)}
+        sx={{
+          width: 20,
+          height: 20,
+          objectFit: "contain",
+        }}
+      />
+    );
+  };
 
   const getIconComponent = (site: SiteConfig) => {
     if (site.key === "landing") {
@@ -175,7 +198,19 @@ export default function LeftNavMenu(): JSX.Element {
         />
       );
     }
-    return <InboxIcon />;
+    return (
+      <Avatar
+        sx={{
+          width: 20,
+          height: 20,
+          fontSize: "0.8rem",
+          backgroundColor: "#f0f0f0",
+          color: "#666",
+        }}
+      >
+        {site.title.charAt(0).toUpperCase()}
+      </Avatar>
+    );
   };
 
   const openSite = (site: SiteTab): void => {

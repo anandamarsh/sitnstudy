@@ -1,77 +1,242 @@
 [
   {
-    "key": "landing",
-    "title": "App Store",
-    "url": "",
-    "iconType": "react-icon",
-    "iconName": "Apps",
-    "iconProps": {
-      "size": 20,
-      "color": "inherit"
-    },
-    "description": "Browse and manage your applications",
-    "allowExternalNavigation": false
-  },
-  {
     "key": "ixl",
     "title": "IXL",
-    "url": "https://ixl.com/",
-    "iconPath": "/icons/ixl.svg",
+    "url": "https://au.ixl.com/",
     "iconType": "svg",
-    "description": "Interactive learning platform for math, language arts, science, and social studies",
-    "urlLogging": true,
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "netflix",
-    "title": "Netflix",
-    "url": "https://www.netflix.com/",
-    "iconPath": "/icons/netflix.svg",
-    "iconType": "svg",
-    "description": "Streaming service for movies, TV shows, documentaries, and educational content",
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "chatgpt",
-    "title": "ChatGPT",
-    "url": "https://chatgpt.com/",
-    "iconType": "react-icon",
-    "iconName": "SiOpenai",
-    "iconProps": {
-      "size": 20,
-      "color": "#10A37F"
-    },
-    "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
-    "urlLogging": true,
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "youtube_me5n1bxf",
-    "title": "YouTube",
-    "url": "https://www.youtube.com/",
-    "iconPath": "/icons/youtube.svg",
-    "iconType": "svg",
-    "description": "Access www.youtube.com - a web application for productivity and learning.",
-    "urlLogging": true,
-    "allowExternalNavigation": false
-  },
-  {
-    "key": "abc_me5qdkfz",
-    "title": "ABC Kids",
-    "url": "https://www.abc.net.au/abckids",
-    "iconPath": "https://www.abc.net.au/favicon.ico",
-    "iconType": "svg",
-    "description": "Access www.abc.net.au - a web application for productivity and learning.",
+    "iconPath": "https://au.ixl.com/favicon.ico",
+    "description": "Adaptive maths and English practice aligned to the Australian Curriculum, Year 5 included.",
     "urlLogging": false,
     "allowExternalNavigation": false
   },
   {
-    "key": "google_me5r6cfr",
-    "title": "Google",
-    "url": "https://www.google.com/",
-    "iconPath": "/icons/google.svg",
+    "key": "mathletics",
+    "title": "Mathletics",
+    "url": "https://www.mathletics.com/",
     "iconType": "svg",
-    "description": "Search engine and web services platform",
+    "iconPath": "https://www.mathletics.com/favicon.ico",
+    "description": "Popular Australian maths platform with adaptive quizzes and Live Mathletics competitions.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "mathspace",
+    "title": "Mathspace",
+    "url": "https://www.mathspace.co/",
+    "iconType": "svg",
+    "iconPath": "https://www.mathspace.co/favicon.ico",
+    "description": "Sydney-based adaptive maths learning platform used widely in Australia.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "reading_eggs",
+    "title": "Reading Eggs",
+    "url": "https://readingeggs.com.au/",
+    "iconType": "svg",
+    "iconPath": "https://readingeggs.com.au/favicon.ico",
+    "description": "Australian literacy program teaching reading up to age 13, including Year 5.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "abc_education",
+    "title": "ABC Education",
+    "url": "https://education.abc.net.au/",
+    "iconType": "svg",
+    "iconPath": "https://education.abc.net.au/favicon.ico",
+    "description": "Free Australian curriculum-aligned videos, games and interactives across subjects.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "btn",
+    "title": "Behind the News (BTN)",
+    "url": "https://www.abc.net.au/btn",
+    "iconType": "svg",
+    "iconPath": "https://www.abc.net.au/favicon.ico",
+    "description": "Australian current-affairs news for kids aged 10–13, made by ABC.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "cool_australia",
+    "title": "Cool Australia",
+    "url": "https://www.coolaustralia.org/",
+    "iconType": "svg",
+    "iconPath": "https://www.coolaustralia.org/favicon.ico",
+    "description": "Free units of work and lesson plans aligned to the Australian curriculum.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "twinkl_year5_6",
+    "title": "Twinkl Year 5–6",
+    "url": "https://www.twinkl.com.au/resources/australian-resources/australian-resources-5---6",
+    "iconType": "svg",
+    "iconPath": "https://www.twinkl.com.au/favicon.ico",
+    "description": "Australia-specific curriculum resources for Year 5 and 6 across topics.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "teachstarter_year5",
+    "title": "Teach Starter Year 5",
+    "url": "https://www.teachstarter.com/au/year-level/year-5/",
+    "iconType": "svg",
+    "iconPath": "https://www.teachstarter.com/favicon.ico",
+    "description": "Worksheets and activities tailored for Year 5, aligned to Australian curriculum.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "tes_australia",
+    "title": "TES Australia",
+    "url": "http://www.tesaustralia.com/",
+    "iconType": "svg",
+    "iconPath": "http://www.tesaustralia.com/favicon.ico",
+    "description": "Huge collection of teacher resources aligned to Australian Curriculum.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "khan_academy",
+    "title": "Khan Academy",
+    "url": "https://www.khanacademy.org/",
+    "iconType": "svg",
+    "iconPath": "https://www.khanacademy.org/favicon.ico",
+    "description": "Free lessons and practice across subjects—excellent for supplementing learning.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "national_geo_kids",
+    "title": "National Geographic Kids",
+    "url": "https://kids.nationalgeographic.com/",
+    "iconType": "svg",
+    "iconPath": "https://kids.nationalgeographic.com/favicon.ico",
+    "description": "Articles, quizzes, videos about animals, geography and science—engaging and educational.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "funbrain",
+    "title": "Funbrain",
+    "url": "https://www.funbrain.com/",
+    "iconType": "svg",
+    "iconPath": "https://www.funbrain.com/favicon.ico",
+    "description": "Educational games and books by grade—great for Year 5 reading and math.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "scratch",
+    "title": "Scratch",
+    "url": "https://scratch.mit.edu/",
+    "iconType": "svg",
+    "iconPath": "https://scratch.mit.edu/favicon.ico",
+    "description": "Interactive storytelling and game coding—great for logical and creative thinking.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "code_org",
+    "title": "Code.org",
+    "url": "https://code.org/",
+    "iconType": "svg",
+    "iconPath": "https://code.org/favicon.ico",
+    "description": "Free coding lessons including block-based programming suitable for Year 5.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "abcya",
+    "title": "ABCya",
+    "url": "https://www.abcya.com/",
+    "iconType": "svg",
+    "iconPath": "https://www.abcya.com/favicon.ico",
+    "description": "Grade-organized educational games—lots of content appropriate for Year 5.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "toy_theater",
+    "title": "Toy Theater",
+    "url": "https://toytheater.com/",
+    "iconType": "svg",
+    "iconPath": "https://toytheater.com/favicon.ico",
+    "description": "Interactive math, reading, art, and music games—great for cross-curriculum play.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "storyline_online",
+    "title": "Storyline Online",
+    "url": "https://www.storylineonline.net/",
+    "iconType": "svg",
+    "iconPath": "https://www.storylineonline.net/favicon.ico",
+    "description": "Actors read kids’ books out loud with visually engaging illustrations.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "math_games",
+    "title": "MathGames.com",
+    "url": "https://www.mathgames.com/",
+    "iconType": "svg",
+    "iconPath": "https://www.mathgames.com/favicon.ico",
+    "description": "Grade-based interactive math practice—great for building Year 5 skills.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "prodigy_math",
+    "title": "Prodigy Math Game",
+    "url": "https://www.prodigygame.com/",
+    "iconType": "svg",
+    "iconPath": "https://www.prodigygame.com/favicon.ico",
+    "description": "Game-based maths practice adaptable for Australian Year 5 standards.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "desmos",
+    "title": "Desmos",
+    "url": "https://www.desmos.com/",
+    "iconType": "svg",
+    "iconPath": "https://www.desmos.com/favicon.ico",
+    "description": "Interactive graphing calculator—great for visual maths exploration.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "commonlit",
+    "title": "CommonLit",
+    "url": "https://www.commonlit.org/",
+    "iconType": "svg",
+    "iconPath": "https://www.commonlit.org/favicon.ico",
+    "description": "Free reading passages and comprehension questions for upper primary.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "science_journal_kids",
+    "title": "Science Journal for Kids",
+    "url": "https://sciencejournalforkids.org/",
+    "iconType": "svg",
+    "iconPath": "https://sciencejournalforkids.org/favicon.ico",
+    "description": "Simplified scientific articles—excellent for Year 5 science inquiry.",
+    "urlLogging": false,
+    "allowExternalNavigation": false
+  },
+  {
+    "key": "curiosity_show",
+    "title": "The Curiosity Show (YouTube)",
+    "url": "https://www.youtube.com/user/CuriosityShow",
+    "iconType": "svg",
+    "iconPath": "https://www.youtube.com/favicon.ico",
+    "description": "Classic Australian science series featuring experiments and explanations.",
+    "urlLogging": false,
     "allowExternalNavigation": false
   }
 ]

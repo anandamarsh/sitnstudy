@@ -5,12 +5,14 @@ import {
   Card,
   CardActionArea,
   Typography,
+  Button,
+  Avatar,
 } from "@mui/material";
 import { MoveToInbox as InboxIcon, Add } from "@mui/icons-material";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
-import AppDetailsSlider from "./AppDetailsSlider";
 import { getAvailableSites } from "../utils/siteManager";
+import AppDetailsSlider from "./AppDetailsSlider";
 
 interface AppStoreProps {
   onAppSelect: (app: SiteConfig) => void;
@@ -37,18 +39,39 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
     }
   };
 
-  const IconImg = ({ src, alt }: { src: string; alt: string }) => (
-    <Box
-      component="img"
-      src={src}
-      alt={alt}
-      sx={{
-        width: 64,
-        height: 64,
-        objectFit: "contain",
-      }}
-    />
-  );
+  const IconImg = ({ src, alt }: { src: string; alt: string }) => {
+    const [hasError, setHasError] = useState(false);
+
+    if (hasError) {
+      return (
+        <Avatar
+          sx={{
+            width: 64,
+            height: 64,
+            fontSize: "2rem",
+            backgroundColor: "#f0f0f0",
+            color: "#666",
+          }}
+        >
+          {alt.charAt(0).toUpperCase()}
+        </Avatar>
+      );
+    }
+
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        onError={() => setHasError(true)}
+        sx={{
+          width: 64,
+          height: 64,
+          objectFit: "contain",
+        }}
+      />
+    );
+  };
 
   const getIconComponent = (site: SiteConfig) => {
     if (site.key === "landing") return null; // Skip the landing page itself
@@ -70,7 +93,19 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
         </Box>
       );
     }
-    return <InboxIcon />;
+    return (
+      <Avatar
+        sx={{
+          width: 64,
+          height: 64,
+          fontSize: "2rem",
+          backgroundColor: "#f0f0f0",
+          color: "#666",
+        }}
+      >
+        {site.title.charAt(0).toUpperCase()}
+      </Avatar>
+    );
   };
 
   const handleAppClick = (app: SiteConfig) => {
