@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  IconButton,
   Chip,
   Dialog,
   DialogTitle,
@@ -14,7 +13,6 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import {
-  Close as CloseIcon,
   Delete as DeleteIcon,
   History as HistoryIcon,
 } from "@mui/icons-material";
@@ -96,19 +94,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Main Content */}
       <Box sx={{ flex: 1, position: "relative", padding: "2rem" }}>
-        {/* Close button - fixed positioned so it never scrolls */}
-        <IconButton
-          onClick={onClose}
-          size="small"
-          sx={{
-            position: "fixed",
-            top: "1rem",
-            right: "1rem",
-            zIndex: 1001,
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
+
 
         <Box
           sx={{
