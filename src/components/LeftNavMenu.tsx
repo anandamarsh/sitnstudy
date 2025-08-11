@@ -347,7 +347,7 @@ export default function LeftNavMenu(): JSX.Element {
       }}
     >
       <Drawer
-        variant="permanent"
+        variant={open ? "permanent" : "temporary"}
         open={open}
         sx={{
           width: drawerWidth,
