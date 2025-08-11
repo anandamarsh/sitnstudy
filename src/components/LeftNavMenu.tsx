@@ -468,7 +468,7 @@ export default function LeftNavMenu(): JSX.Element {
           position: "relative",
           // When drawer is open, content needs to be narrower to account for drawer width
           // When drawer is closed, content can take more width
-          marginLeft: open ? `${drawerWidth}px` : `${theme.spacing(8)}px`,
+          marginLeft: open ? `${drawerWidth + 50}px` : `${theme.spacing(8) + 50}px`,
           // Force full width regardless of drawer state
           minWidth: "100%",
         }}
