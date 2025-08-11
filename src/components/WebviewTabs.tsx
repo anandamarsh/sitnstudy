@@ -290,7 +290,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                   sx={{
                     width: "100%",
                     height: 32,
-                    padding: "0 12px",
+                    padding: "0",
                     border: "none",
                     outline: "none",
                     backgroundColor: "transparent",
@@ -357,6 +357,34 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                 }
               }}
             />
+            {/* Link Preview Bar - shown at bottom of this webview when hovering over links */}
+            {linkPreview && idx === activeIndex && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 32,
+                  backgroundColor: "background.paper",
+                  borderTop: "1px solid",
+                  borderColor: "divider",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 12px",
+                  zIndex: 1002,
+                  fontSize: "12px",
+                  color: "text.secondary",
+                  fontFamily: "monospace",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {linkPreview}
+              </Box>
+            )}
+
             {idx === activeIndex && loadingStates[t.key] && (
               <Box
                 sx={{
@@ -384,34 +412,6 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
           </Box>
         ))}
       </Box>
-
-      {/* Link Preview Bar - shown at bottom when hovering over links */}
-      {linkPreview && (
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 32,
-            backgroundColor: "background.paper",
-            borderTop: "1px solid",
-            borderColor: "divider",
-            display: "flex",
-            alignItems: "center",
-            padding: "0 12px",
-            zIndex: 1002,
-            fontSize: "12px",
-            color: "text.secondary",
-            fontFamily: "monospace",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {linkPreview}
-        </Box>
-      )}
     </Box>
   );
 }
