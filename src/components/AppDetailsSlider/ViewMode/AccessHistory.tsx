@@ -19,9 +19,14 @@ interface UrlLogEntry {
 interface AccessHistoryProps {
   appKey: string;
   refreshTrigger?: number; // Add refresh trigger prop
+  urlLoggingSwitch?: React.ReactNode; // Add URL logging switch prop
 }
 
-const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey, refreshTrigger }) => {
+const AccessHistory: React.FC<AccessHistoryProps> = ({
+  appKey,
+  refreshTrigger,
+  urlLoggingSwitch,
+}) => {
   const [accessHistory, setAccessHistory] = useState<UrlLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +95,13 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey, refreshTrigger })
 
   return (
     <Box sx={{ height: "100%" }}>
+      {/* URL Logging Switch at the top */}
+      {urlLoggingSwitch && (
+        <Box sx={{ mb: 2 }}>
+          {urlLoggingSwitch}
+        </Box>
+      )}
+
       {/* Header */}
       <Box
         sx={{

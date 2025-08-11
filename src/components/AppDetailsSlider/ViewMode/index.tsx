@@ -107,7 +107,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
         // Update the app object locally
         app.urlLogging = enabled;
         // Increment refresh trigger to refresh access history
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         console.error("Failed to toggle URL logging:", result.message);
       }
@@ -176,36 +176,6 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 )}
               </Box>
 
-              {/* URL Logging Toggle */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={urlLoggingEnabled}
-                      onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
-                      disabled={isTogglingLogging}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <HistoryIcon fontSize="small" />
-                      <Typography variant="body2">
-                        {isTogglingLogging ? "Updating..." : "URL Logging"}
-                      </Typography>
-                    </Box>
-                  }
-                />
-                {urlLoggingEnabled && (
-                  <Chip
-                    label="Active"
-                    size="small"
-                    variant="outlined"
-                    color="success"
-                  />
-                )}
-              </Box>
-
               {/* Action Buttons */}
               <Box sx={{ display: "flex", gap: "2rem" }}>
                 <Button
@@ -239,7 +209,49 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
 
             {/* Right column: Access History in its own scrollable pane - 50% width */}
             <Box sx={{ width: "50%" }}>
-              <AccessHistory appKey={app.key} refreshTrigger={refreshTrigger} />
+              <AccessHistory 
+                appKey={app.key} 
+                refreshTrigger={refreshTrigger}
+                urlLoggingSwitch={
+                  <Box sx={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "space-between",
+                    p: 2,
+                    backgroundColor: "background.paper",
+                    borderRadius: 1,
+                    border: "1px solid",
+                    borderColor: "divider"
+                  }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={urlLoggingEnabled}
+                          onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
+                          disabled={isTogglingLogging}
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <HistoryIcon fontSize="small" />
+                          <Typography variant="body2" fontWeight="medium">
+                            {isTogglingLogging ? "Updating..." : "URL Logging"}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                    {urlLoggingEnabled && (
+                      <Chip
+                        label="Active"
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                      />
+                    )}
+                  </Box>
+                }
+              />
             </Box>
           </Box>
         </Box>
