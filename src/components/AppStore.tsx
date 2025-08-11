@@ -41,13 +41,23 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
-    
+
     // Kid-friendly color palette
     const KID_COLORS = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
-      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
     ];
-    
+
     // Generate a consistent color based on the alt text
     const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
     const backgroundColor = KID_COLORS[colorIndex];
@@ -62,7 +72,8 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
             backgroundColor: backgroundColor,
             color: "white",
             fontWeight: "bold",
-            fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            fontFamily:
+              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
             boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
             border: "3px solid white",
           }}
@@ -112,15 +123,25 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
         </Box>
       );
     }
-    
+
     // Fallback to MUI Avatar with kid-friendly styling
     const KID_COLORS = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
-      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
     ];
     const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
     const backgroundColor = KID_COLORS[colorIndex];
-    
+
     return (
       <Avatar
         sx={{
@@ -130,7 +151,8 @@ const AppStore: React.FC<AppStoreProps> = ({ onAppSelect }) => {
           backgroundColor: backgroundColor,
           color: "white",
           fontWeight: "bold",
-          fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
           boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
           border: "3px solid white",
         }}

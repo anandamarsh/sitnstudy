@@ -130,13 +130,23 @@ export default function LeftNavMenu(): JSX.Element {
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
-    
+
     // Kid-friendly color palette
     const KID_COLORS = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
-      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
     ];
-    
+
     // Generate a consistent color based on the alt text
     const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
     const backgroundColor = KID_COLORS[colorIndex];
@@ -151,7 +161,8 @@ export default function LeftNavMenu(): JSX.Element {
             backgroundColor: backgroundColor,
             color: "white",
             fontWeight: "bold",
-            fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            fontFamily:
+              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
             border: "2px solid white",
           }}
@@ -217,15 +228,25 @@ export default function LeftNavMenu(): JSX.Element {
         />
       );
     }
-    
+
     // Fallback to MUI Avatar with kid-friendly styling
     const KID_COLORS = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
-      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
     ];
     const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
     const backgroundColor = KID_COLORS[colorIndex];
-    
+
     return (
       <Avatar
         sx={{
@@ -235,7 +256,8 @@ export default function LeftNavMenu(): JSX.Element {
           backgroundColor: backgroundColor,
           color: "white",
           fontWeight: "bold",
-          fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           border: "2px solid white",
         }}

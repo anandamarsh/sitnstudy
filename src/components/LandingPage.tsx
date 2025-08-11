@@ -39,13 +39,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
-    
+
     // Kid-friendly color palette
     const KID_COLORS = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
-      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
     ];
-    
+
     // Generate a consistent color based on the alt text
     const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
     const backgroundColor = KID_COLORS[colorIndex];
@@ -60,7 +70,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
             backgroundColor: backgroundColor,
             color: "white",
             fontWeight: "bold",
-            fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            fontFamily:
+              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
             boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
             border: "3px solid white",
           }}
@@ -110,15 +121,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
         </Box>
       );
     }
-    
+
     // Fallback to MUI Avatar with kid-friendly styling
     const KID_COLORS = [
-      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
-      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
     ];
     const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
     const backgroundColor = KID_COLORS[colorIndex];
-    
+
     return (
       <Avatar
         sx={{
@@ -128,7 +149,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
           backgroundColor: backgroundColor,
           color: "white",
           fontWeight: "bold",
-          fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
           boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
           border: "3px solid white",
         }}
@@ -160,14 +182,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, height: "100vh", overflow: "auto", p: 3 }}>
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+    <Box sx={{ flexGrow: 1, height: "100vh", overflow: "auto", p: 1 }}>
+      <Container maxWidth="lg" sx={{ mt: 1, mb: 2 }}>
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: 3,
-            p: 2,
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 2,
+            p: 1,
           }}
         >
           {availableApps.map((app) => (
@@ -196,12 +218,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
               >
                 <Box
                   sx={{
-                    p: 3,
+                    p: 2,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: "1rem",
-                    minHeight: 120,
+                    gap: "0.75rem",
+                    minHeight: 100,
                   }}
                 >
                   {getIconComponent(app)}

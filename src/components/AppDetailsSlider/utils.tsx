@@ -23,7 +23,7 @@ const KID_COLORS = [
 
 export const IconImg = ({ src, alt }: { src: string; alt: string }) => {
   const [hasError, setHasError] = useState(false);
-  
+
   // Generate a consistent color based on the alt text
   const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
   const backgroundColor = KID_COLORS[colorIndex];
@@ -38,7 +38,8 @@ export const IconImg = ({ src, alt }: { src: string; alt: string }) => {
           backgroundColor: backgroundColor,
           color: "white",
           fontWeight: "bold",
-          fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
           boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
           border: "3px solid white",
         }}
@@ -134,7 +135,7 @@ export const getIconComponent = (site: SiteConfig) => {
   // Fallback to MUI Avatar with kid-friendly styling
   const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
   const backgroundColor = KID_COLORS[colorIndex];
-  
+
   return (
     <Avatar
       sx={{
@@ -144,7 +145,8 @@ export const getIconComponent = (site: SiteConfig) => {
         backgroundColor: backgroundColor,
         color: "white",
         fontWeight: "bold",
-        fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+        fontFamily:
+          "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
         boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
         border: "3px solid white",
       }}
