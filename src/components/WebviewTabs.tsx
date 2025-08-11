@@ -121,10 +121,66 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     });
   }, [activeIndex, tabs.length]);
 
+  // Preserve webview state by keeping them mounted but hidden
+  const preserveWebviewState = React.useCallback((tabKey: string) => {
+    const tabIndex = tabs.findIndex(t => t.key === tabKey);
+    if (tabIndex === -1) return;
+    
+    const webview = webviewRefs.current[tabIndex];
+    if (webview && typeof webview.executeJavaScript === "function") {
+      try {
+        // Store scroll position and other state
+        webview.executeJavaScript(`
+          if (window.webviewState) {
+            window.webviewState.scrollX = window.scrollX;
+            window.webviewState.scrollY = window.scrollY;
+            window.webviewState.url = window.location.href;
+          } else {
+            window.webviewState = {
+              scrollX: window.scrollX,
+              scrollY: window.scrollY,
+              url: window.location.href
+            };
+          }
+        `);
+      } catch {
+        // no-op
+      }
+    }
+  }, [tabs]);
+
+  // Restore webview state when tab becomes active
+  const restoreWebviewState = React.useCallback((tabKey: string) => {
+    const tabIndex = tabs.findIndex(t => t.key === tabKey);
+    if (tabIndex === -1) return;
+    
+    const webview = webviewRefs.current[tabIndex];
+    if (webview && typeof webview.executeJavaScript === "function") {
+      try {
+        // Restore scroll position and other state
+        webview.executeJavaScript(`
+          if (window.webviewState) {
+            setTimeout(() => {
+              window.scrollTo(window.webviewState.scrollX || 0, window.webviewState.scrollY || 0);
+            }, 100);
+          }
+        `);
+      } catch {
+        // no-op
+      }
+    }
+  }, [tabs]);
+
   // Resume media on the newly active webview (best-effort; may be blocked by site policy)
   React.useEffect(() => {
     const activeWv = webviewRefs.current[activeIndex];
     if (!activeWv) return;
+    
+    // Restore state for the newly active tab
+    if (tabs[activeIndex]) {
+      restoreWebviewState(tabs[activeIndex].key);
+    }
+    
     try {
       if (typeof activeWv.executeJavaScript === "function") {
         activeWv.executeJavaScript(
@@ -134,7 +190,15 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     } catch {
       // no-op
     }
-  }, [activeIndex]);
+  }, [activeIndex, tabs, restoreWebviewState]);
+
+  // Preserve state when switching away from a tab
+  React.useEffect(() => {
+    const previousActiveTab = tabs[activeIndex - 1] || tabs[activeIndex + 1];
+    if (previousActiveTab && previousActiveTab.key !== tabs[activeIndex]?.key) {
+      preserveWebviewState(previousActiveTab.key);
+    }
+  }, [activeIndex, tabs, preserveWebviewState]);
 
   return (
     <Box
@@ -161,14 +225,18 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
           <Box
             key={`panel-${t.key}-${idx}`}
             sx={{
-              display: idx === activeIndex ? "block" : "none",
+              position: "absolute",
+              top: 0,
+              left: 0,
               width: "100%",
               height: "100%",
-              minWidth: 0,
+              display: idx === activeIndex ? "block" : "none",
+              zIndex: idx === activeIndex ? 1 : 0,
             }}
           >
             {/* eslint-disable-next-line react/no-unknown-property */}
             <webview
+              key={`webview-${t.key}`}
               src={t.url}
               allowpopups
               webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
