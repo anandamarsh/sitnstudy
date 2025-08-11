@@ -1,6 +1,17 @@
 import React from "react";
 import { Box, LinearProgress } from "@mui/material";
 
+// Extend HTMLWebViewElement to include our custom properties
+declare global {
+  interface HTMLWebViewElement {
+    _listeners?: {
+      didNavigate: (e: any) => void;
+      didNavigateInPage: (e: any) => void;
+      domReady: () => void;
+    };
+  }
+}
+
 export interface SiteTab {
   key: string;
   title: string;
@@ -76,33 +87,33 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
 
   // Handle URL changes for address bar display
   const handleUrlChange = (tabKey: string, newUrl: string) => {
-    setCurrentUrls(prev => ({ ...prev, [tabKey]: newUrl }));
+    setCurrentUrls((prev) => ({ ...prev, [tabKey]: newUrl }));
   };
 
   // Handle link preview on hover
   const handleLinkHover = (url: string) => {
-    console.log('🔗 Link hover detected:', url);
+    console.log("🔗 Link hover detected:", url);
     setLinkPreview(url);
   };
 
   const handleLinkLeave = () => {
-    console.log('🔗 Link hover ended');
+    console.log("🔗 Link hover ended");
     setLinkPreview("");
   };
 
   // Listen for messages from webview for link hovers
   React.useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log('📨 Message received from webview:', event.data);
-      if (event.data && event.data.type === 'link-hover') {
+      console.log("📨 Message received from webview:", event.data);
+      if (event.data && event.data.type === "link-hover") {
         handleLinkHover(event.data.url);
-      } else if (event.data && event.data.type === 'link-leave') {
+      } else if (event.data && event.data.type === "link-leave") {
         handleLinkLeave();
       }
     };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [handleLinkHover, handleLinkLeave]);
 
   // Simulate loading progress for better UX
@@ -158,15 +169,16 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
   }, [activeIndex, tabs.length]);
 
   // Preserve webview state by keeping them mounted but hidden
-  const preserveWebviewState = React.useCallback((tabKey: string) => {
-    const tabIndex = tabs.findIndex(t => t.key === tabKey);
-    if (tabIndex === -1) return;
-    
-    const webview = webviewRefs.current[tabIndex];
-    if (webview && typeof webview.executeJavaScript === "function") {
-      try {
-        // Store scroll position and other state
-        webview.executeJavaScript(`
+  const preserveWebviewState = React.useCallback(
+    (tabKey: string) => {
+      const tabIndex = tabs.findIndex((t) => t.key === tabKey);
+      if (tabIndex === -1) return;
+
+      const webview = webviewRefs.current[tabIndex];
+      if (webview && typeof webview.executeJavaScript === "function") {
+        try {
+          // Store scroll position and other state
+          webview.executeJavaScript(`
           if (window.webviewState) {
             window.webviewState.scrollX = window.scrollX;
             window.webviewState.scrollY = window.scrollY;
@@ -179,44 +191,49 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
             };
           }
         `);
-      } catch {
-        // no-op
+        } catch {
+          // no-op
+        }
       }
-    }
-  }, [tabs]);
+    },
+    [tabs]
+  );
 
   // Restore webview state when tab becomes active
-  const restoreWebviewState = React.useCallback((tabKey: string) => {
-    const tabIndex = tabs.findIndex(t => t.key === tabKey);
-    if (tabIndex === -1) return;
-    
-    const webview = webviewRefs.current[tabIndex];
-    if (webview && typeof webview.executeJavaScript === "function") {
-      try {
-        // Restore scroll position and other state
-        webview.executeJavaScript(`
+  const restoreWebviewState = React.useCallback(
+    (tabKey: string) => {
+      const tabIndex = tabs.findIndex((t) => t.key === tabKey);
+      if (tabIndex === -1) return;
+
+      const webview = webviewRefs.current[tabIndex];
+      if (webview && typeof webview.executeJavaScript === "function") {
+        try {
+          // Restore scroll position and other state
+          webview.executeJavaScript(`
           if (window.webviewState) {
             setTimeout(() => {
               window.scrollTo(window.webviewState.scrollX || 0, window.webviewState.scrollY || 0);
             }, 100);
           }
         `);
-      } catch {
-        // no-op
+        } catch {
+          // no-op
+        }
       }
-    }
-  }, [tabs]);
+    },
+    [tabs]
+  );
 
   // Resume media on the newly active webview (best-effort; may be blocked by site policy)
   React.useEffect(() => {
     const activeWv = webviewRefs.current[activeIndex];
     if (!activeWv) return;
-    
+
     // Restore state for the newly active tab
     if (tabs[activeIndex]) {
       restoreWebviewState(tabs[activeIndex].key);
     }
-    
+
     try {
       if (typeof activeWv.executeJavaScript === "function") {
         activeWv.executeJavaScript(
@@ -323,46 +340,83 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                 border: "none",
                 marginTop: t.showAddressBar ? "40px" : "0",
               }}
-              ref={(el) => {
-                webviewRefs.current[idx] = el;
-                if (el) {
-                  // Add event listeners for URL changes and link hovers
-                  el.addEventListener('did-navigate', (e: any) => {
-                    handleUrlChange(t.key, e.url);
-                  });
-                  el.addEventListener('did-navigate-in-page', (e: any) => {
-                    handleUrlChange(t.key, e.url);
-                  });
-                  
-                  // Inject script to handle link hovers
-                  el.addEventListener('dom-ready', () => {
-                    if (el && typeof (el as any).executeJavaScript === "function") {
-                      (el as any).executeJavaScript(`
-                        console.log('🔗 Link hover script injected for webview');
-                        
-                        document.addEventListener('mouseover', function(e) {
-                          if (e.target.tagName === 'A' && e.target.href) {
-                            console.log('🔗 Link hover detected in webview:', e.target.href);
-                            window.parent.postMessage({
-                              type: 'link-hover',
-                              url: e.target.href
-                            }, '*');
-                          }
-                        });
-                        
-                        document.addEventListener('mouseout', function(e) {
-                          if (e.target.tagName === 'A') {
-                            console.log('🔗 Link hover ended in webview');
-                            window.parent.postMessage({
-                              type: 'link-leave'
-                            }, '*');
-                          }
-                        });
-                      `);
+                              ref={(el) => {
+                  webviewRefs.current[idx] = el;
+                  if (el) {
+                    // Remove any existing listeners first to prevent duplicates
+                    const existingListeners = el._listeners;
+                    if (existingListeners?.didNavigate) {
+                      el.removeEventListener('did-navigate', existingListeners.didNavigate);
                     }
-                  });
-                }
-              }}
+                    if (existingListeners?.didNavigateInPage) {
+                      el.removeEventListener('did-navigate-in-page', existingListeners.didNavigateInPage);
+                    }
+                    if (existingListeners?.domReady) {
+                      el.removeEventListener('dom-ready', existingListeners.domReady);
+                    }
+
+                    // Create new listener functions
+                    const didNavigateListener = (e: any) => {
+                      handleUrlChange(t.key, e.url);
+                    };
+                    const didNavigateInPageListener = (e: any) => {
+                      handleUrlChange(t.key, e.url);
+                    };
+                    const domReadyListener = () => {
+                      if (el && typeof (el as any).executeJavaScript === "function") {
+                        (el as any).executeJavaScript(`
+                          console.log('🔗 Link hover script injected for webview');
+                          
+                          // Remove existing listeners to prevent duplicates
+                          if (window._linkListenersAdded) {
+                            document.removeEventListener('mouseover', window._linkListenersAdded.mouseover);
+                            document.removeEventListener('mouseout', window._linkListenersAdded.mouseout);
+                          }
+                          
+                          const mouseoverListener = function(e) {
+                            if (e.target.tagName === 'A' && e.target.href) {
+                              console.log('🔗 Link hover detected in webview:', e.target.href);
+                              window.parent.postMessage({
+                                type: 'link-hover',
+                                url: e.target.href
+                              }, '*');
+                            }
+                          };
+                          
+                          const mouseoutListener = function(e) {
+                            if (e.target.tagName === 'A') {
+                              console.log('🔗 Link hover ended in webview');
+                              window.parent.postMessage({
+                                type: 'link-leave'
+                              }, '*');
+                            }
+                          };
+                          
+                          document.addEventListener('mouseover', mouseoverListener);
+                          document.addEventListener('mouseout', mouseoutListener);
+                          
+                          // Store references to prevent duplicates
+                          window._linkListenersAdded = {
+                            mouseover: mouseoverListener,
+                            mouseout: mouseoutListener
+                          };
+                        `);
+                      }
+                    };
+
+                    // Add new listeners
+                    el.addEventListener('did-navigate', didNavigateListener);
+                    el.addEventListener('did-navigate-in-page', didNavigateInPageListener);
+                    el.addEventListener('dom-ready', domReadyListener);
+
+                    // Store references for cleanup
+                    el._listeners = {
+                      didNavigate: didNavigateListener,
+                      didNavigateInPage: didNavigateInPageListener,
+                      domReady: domReadyListener
+                    };
+                  }
+                }}
             />
             {/* Link Preview Bar - shown at bottom of this webview when hovering over links */}
             {linkPreview && (
