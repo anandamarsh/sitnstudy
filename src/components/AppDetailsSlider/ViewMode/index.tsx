@@ -94,8 +94,6 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Main Content */}
       <Box sx={{ flex: 1, position: "relative", padding: "2rem" }}>
-
-
         <Box
           sx={{
             display: "flex",
@@ -196,6 +194,15 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 </Button>
               </Box>
             </Box>
+
+            {/* Divider between left and right columns */}
+            <Box
+              sx={{
+                width: "1px",
+                backgroundColor: "divider",
+                mx: 1,
+              }}
+            />
 
             {/* Right column: Access History in its own scrollable pane - 50% width */}
             <Box sx={{ width: "50%" }}>

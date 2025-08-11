@@ -120,11 +120,6 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
       <Box
         sx={{
           height: "calc(100% - 3rem)", // Full height minus header height (mb: 2 = 1rem + header content ~2rem)
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 1,
-          pl: 2,
-          pr: 1,
         }}
       >
         {loading ? (
