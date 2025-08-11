@@ -464,13 +464,20 @@ export default function LeftNavMenu(): JSX.Element {
           p: 0,
           minHeight: 0,
           overflow: "hidden",
-          width: "100%", // Full container width
+          // Calculate width to account for drawer space
+          width: open 
+            ? `calc(100% - ${drawerWidth + 50}px)` 
+            : `calc(100% - ${theme.spacing(8) + 50}px)`,
           position: "relative",
           // When drawer is open, content needs to be narrower to account for drawer width
           // When drawer is closed, content can take more width
-          marginLeft: open ? `${drawerWidth + 50}px` : `${theme.spacing(8) + 50}px`,
-          // Force full width regardless of drawer state
-          minWidth: "100%",
+          marginLeft: open
+            ? `${drawerWidth + 50}px`
+            : `${theme.spacing(8) + 50}px`,
+          // Ensure minimum width is also calculated
+          minWidth: open 
+            ? `calc(100% - ${drawerWidth + 50}px)` 
+            : `calc(100% - ${theme.spacing(8) + 50}px)`,
         }}
       >
         {showLandingPage ? (
