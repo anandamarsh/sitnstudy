@@ -81,16 +81,19 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
 
   // Handle link preview on hover
   const handleLinkHover = (url: string) => {
+    console.log('🔗 Link hover detected:', url);
     setLinkPreview(url);
   };
 
   const handleLinkLeave = () => {
+    console.log('🔗 Link hover ended');
     setLinkPreview("");
   };
 
   // Listen for messages from webview for link hovers
   React.useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log('📨 Message received from webview:', event.data);
       if (event.data && event.data.type === 'link-hover') {
         handleLinkHover(event.data.url);
       } else if (event.data && event.data.type === 'link-leave') {
@@ -100,7 +103,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [handleLinkHover, handleLinkLeave]);
 
   // Simulate loading progress for better UX
   React.useEffect(() => {
@@ -335,8 +338,11 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                   el.addEventListener('dom-ready', () => {
                     if (el && typeof (el as any).executeJavaScript === "function") {
                       (el as any).executeJavaScript(`
+                        console.log('🔗 Link hover script injected for webview');
+                        
                         document.addEventListener('mouseover', function(e) {
                           if (e.target.tagName === 'A' && e.target.href) {
+                            console.log('🔗 Link hover detected in webview:', e.target.href);
                             window.parent.postMessage({
                               type: 'link-hover',
                               url: e.target.href
@@ -346,6 +352,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                         
                         document.addEventListener('mouseout', function(e) {
                           if (e.target.tagName === 'A') {
+                            console.log('🔗 Link hover ended in webview');
                             window.parent.postMessage({
                               type: 'link-leave'
                             }, '*');
@@ -358,7 +365,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
               }}
             />
             {/* Link Preview Bar - shown at bottom of this webview when hovering over links */}
-            {linkPreview && idx === activeIndex && (
+            {linkPreview && (
               <Box
                 sx={{
                   position: "absolute",
