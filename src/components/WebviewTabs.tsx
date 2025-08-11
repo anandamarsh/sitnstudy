@@ -6,6 +6,7 @@ export interface SiteTab {
   title: string;
   url: string;
   icon?: React.ReactElement;
+  showAddressBar?: boolean;
 }
 
 interface WebviewTabsProps {
@@ -26,6 +27,10 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
   const [loadedTabs, setLoadedTabs] = React.useState<{
     [key: string]: boolean;
   }>({});
+  const [currentUrls, setCurrentUrls] = React.useState<{
+    [key: string]: string;
+  }>({});
+  const [linkPreview, setLinkPreview] = React.useState<string>("");
 
   // Function to pause all webviews (can be called from parent)
   const pauseAllWebviews = () => {
@@ -67,6 +72,34 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     return () => {
       delete (window as any).pauseAllWebviews;
     };
+  }, []);
+
+  // Handle URL changes for address bar display
+  const handleUrlChange = (tabKey: string, newUrl: string) => {
+    setCurrentUrls(prev => ({ ...prev, [tabKey]: newUrl }));
+  };
+
+  // Handle link preview on hover
+  const handleLinkHover = (url: string) => {
+    setLinkPreview(url);
+  };
+
+  const handleLinkLeave = () => {
+    setLinkPreview("");
+  };
+
+  // Listen for messages from webview for link hovers
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'link-hover') {
+        handleLinkHover(event.data.url);
+      } else if (event.data && event.data.type === 'link-leave') {
+        handleLinkLeave();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   // Simulate loading progress for better UX
@@ -234,6 +267,49 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
               zIndex: idx === activeIndex ? 1 : 0,
             }}
           >
+            {/* Address Bar - shown when enabled for this tab */}
+            {t.showAddressBar && idx === activeIndex && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 40,
+                  backgroundColor: "background.paper",
+                  borderBottom: "1px solid",
+                  borderColor: "divider",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 12px",
+                  zIndex: 1001,
+                }}
+              >
+                <Box
+                  component="input"
+                  value={currentUrls[t.key] || t.url}
+                  readOnly
+                  disabled
+                  sx={{
+                    width: "100%",
+                    height: 32,
+                    padding: "0 12px",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    backgroundColor: "background.default",
+                    color: "text.primary",
+                    fontSize: "14px",
+                    fontFamily: "monospace",
+                    cursor: "default",
+                    "&:disabled": {
+                      opacity: 0.7,
+                    },
+                  }}
+                />
+              </Box>
+            )}
+
             {/* eslint-disable-next-line react/no-unknown-property */}
             <webview
               key={`webview-${t.key}`}
@@ -246,9 +322,43 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                 width: "100%",
                 height: "100%",
                 border: "none",
+                marginTop: t.showAddressBar ? "40px" : "0",
               }}
               ref={(el) => {
                 webviewRefs.current[idx] = el;
+                if (el) {
+                  // Add event listeners for URL changes and link hovers
+                  el.addEventListener('did-navigate', (e: any) => {
+                    handleUrlChange(t.key, e.url);
+                  });
+                  el.addEventListener('did-navigate-in-page', (e: any) => {
+                    handleUrlChange(t.key, e.url);
+                  });
+                  
+                  // Inject script to handle link hovers
+                  el.addEventListener('dom-ready', () => {
+                    if (el && typeof (el as any).executeJavaScript === "function") {
+                      (el as any).executeJavaScript(`
+                        document.addEventListener('mouseover', function(e) {
+                          if (e.target.tagName === 'A' && e.target.href) {
+                            window.parent.postMessage({
+                              type: 'link-hover',
+                              url: e.target.href
+                            }, '*');
+                          }
+                        });
+                        
+                        document.addEventListener('mouseout', function(e) {
+                          if (e.target.tagName === 'A') {
+                            window.parent.postMessage({
+                              type: 'link-leave'
+                            }, '*');
+                          }
+                        });
+                      `);
+                    }
+                  });
+                }
               }}
             />
             {idx === activeIndex && loadingStates[t.key] && (
@@ -278,6 +388,34 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
           </Box>
         ))}
       </Box>
+
+      {/* Link Preview Bar - shown at bottom when hovering over links */}
+      {linkPreview && (
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 32,
+            backgroundColor: "background.paper",
+            borderTop: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            padding: "0 12px",
+            zIndex: 1002,
+            fontSize: "12px",
+            color: "text.secondary",
+            fontFamily: "monospace",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {linkPreview}
+        </Box>
+      )}
     </Box>
   );
 }

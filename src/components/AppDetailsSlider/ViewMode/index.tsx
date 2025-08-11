@@ -34,8 +34,12 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [allowExternalNavigation, setAllowExternalNavigation] = useState(
     app.allowExternalNavigation || false // Default to false if not set
   );
+  const [showAddressBar, setShowAddressBar] = useState(
+    app.showAddressBar || false // Default to false if not set
+  );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
   const [isTogglingNavigation, setIsTogglingNavigation] = useState(false);
+  const [isTogglingAddressBar, setIsTogglingAddressBar] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
 
   const handleRemoveClick = () => {
@@ -135,6 +139,25 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
       console.error("Error toggling external navigation:", error);
     } finally {
       setIsTogglingNavigation(false);
+    }
+  };
+
+  const toggleAddressBar = async (enabled: boolean) => {
+    setIsTogglingAddressBar(true);
+    try {
+      const result = await (window as any).ipcRenderer.toggleAddressBar(
+        app.key,
+        enabled
+      );
+      if (result.success) {
+        setShowAddressBar(enabled);
+      } else {
+        console.error("Failed to toggle address bar:", result.error);
+      }
+    } catch (error) {
+      console.error("Error toggling address bar:", error);
+    } finally {
+      setIsTogglingAddressBar(false);
     }
   };
 
@@ -254,6 +277,52 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   }
                 />
                 {allowExternalNavigation && (
+                  <Chip
+                    label="Enabled"
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                  />
+                )}
+              </Box>
+
+              {/* Address Bar Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={showAddressBar}
+                      onChange={(e) =>
+                        toggleAddressBar(e.target.checked)
+                      }
+                      disabled={isTogglingAddressBar}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    >
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingAddressBar
+                          ? "Updating..."
+                          : "Show Address Bar"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {showAddressBar && (
                   <Chip
                     label="Enabled"
                     size="small"

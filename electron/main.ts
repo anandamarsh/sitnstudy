@@ -166,6 +166,34 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
   }
 })
 
+ipcMain.handle('toggle-address-bar', async (_event, siteKey: string, enabled: boolean) => {
+  try {
+    const configDir = path.join(__dirname, '..', 'src', 'app_data')
+    const availableSitesPath = path.join(configDir, 'app.json')
+    
+    // Read current app.json
+    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
+    const availableSites = JSON.parse(currentContent)
+    
+    // Find and update the site
+    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
+    if (siteIndex !== -1) {
+      availableSites[siteIndex].showAddressBar = enabled
+      
+      // Write back to file
+      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
+      console.log(`Updated address bar for ${siteKey} to ${enabled}`)
+      return { success: true }
+    } else {
+      console.error(`Site ${siteKey} not found in app.json`)
+      return { success: false, error: 'Site not found' }
+    }
+  } catch (error) {
+    console.error('Error toggling address bar:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
 ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: string) => {
   try {
     const configDir = path.join(__dirname, '../src/app_data')

@@ -92,6 +92,7 @@ export default function LeftNavMenu(): JSX.Element {
           title: site.title,
           url: site.url,
           icon: getIconComponent(site),
+          showAddressBar: site.showAddressBar || false,
         }));
         setAvailableSites(siteTabs);
       } catch (error) {
@@ -111,6 +112,7 @@ export default function LeftNavMenu(): JSX.Element {
         title: site.title,
         url: site.url,
         icon: getIconComponent(site),
+        showAddressBar: site.showAddressBar || false,
       }));
       setAvailableSites(siteTabs);
     } catch (error) {
@@ -325,6 +327,7 @@ export default function LeftNavMenu(): JSX.Element {
       title: site.title,
       url: site.url,
       icon: getIconComponent(site),
+      showAddressBar: site.showAddressBar || false,
     };
     openSite(siteTab);
   };
