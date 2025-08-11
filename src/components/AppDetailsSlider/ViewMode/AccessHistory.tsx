@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Chip,
   List,
   ListItem,
   ListItemText,
   ListItemButton,
   CircularProgress,
 } from "@mui/material";
-import { History as HistoryIcon } from "@mui/icons-material";
 
 interface UrlLogEntry {
   url: string;
@@ -96,39 +94,12 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
   return (
     <Box sx={{ height: "100%" }}>
       {/* URL Logging Switch at the top */}
-      {urlLoggingSwitch && (
-        <Box sx={{ mb: 2 }}>
-          {urlLoggingSwitch}
-        </Box>
-      )}
-
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          mb: 2,
-        }}
-      >
-        <HistoryIcon fontSize="small" color="action" />
-        <Typography variant="body2" color="text.secondary">
-          Access History
-        </Typography>
-        {hasAccessHistory && (
-          <Chip
-            label={accessHistory.length}
-            size="small"
-            variant="outlined"
-            color="primary"
-          />
-        )}
-      </Box>
+      {urlLoggingSwitch && <Box sx={{ mb: 2 }}>{urlLoggingSwitch}</Box>}
 
       {/* Content Container - No scrolling */}
       <Box
         sx={{
-          height: "calc(100% - 3rem)", // Full height minus header height (mb: 2 = 1rem + header content ~2rem)
+          height: "calc(100% - 2rem)", // Full height minus URL logging switch margin (mb: 2 = 2rem)
         }}
       >
         {loading ? (

@@ -209,31 +209,37 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
 
             {/* Right column: Access History in its own scrollable pane - 50% width */}
             <Box sx={{ width: "50%" }}>
-              <AccessHistory 
-                appKey={app.key} 
+              <AccessHistory
+                appKey={app.key}
                 refreshTrigger={refreshTrigger}
                 urlLoggingSwitch={
-                  <Box sx={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "space-between",
-                    p: 2,
-                    backgroundColor: "background.paper",
-                    borderRadius: 1,
-                    border: "1px solid",
-                    borderColor: "divider"
-                  }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      p: 2,
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
                     <FormControlLabel
                       control={
                         <Switch
                           checked={urlLoggingEnabled}
-                          onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
+                          onChange={(e) =>
+                            handleUrlLoggingToggle(e.target.checked)
+                          }
                           disabled={isTogglingLogging}
                           color="primary"
                         />
                       }
                       label={
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <HistoryIcon fontSize="small" />
                           <Typography variant="body2" fontWeight="medium">
                             {isTogglingLogging ? "Updating..." : "URL Logging"}
