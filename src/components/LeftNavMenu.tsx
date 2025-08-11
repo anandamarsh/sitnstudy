@@ -347,14 +347,15 @@ export default function LeftNavMenu(): JSX.Element {
       }}
     >
       <Drawer
-        variant={open ? "permanent" : "temporary"}
+        variant="permanent"
         open={open}
         sx={{
-          width: drawerWidth,
+          width: open ? drawerWidth : theme.spacing(8),
           flexShrink: 0,
           "& .MuiDrawer-paper": {
-            width: drawerWidth,
+            width: open ? drawerWidth : theme.spacing(8),
             boxSizing: "border-box",
+            overflowX: "hidden",
           },
         }}
       >
