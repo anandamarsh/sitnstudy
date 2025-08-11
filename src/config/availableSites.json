@@ -1,5 +1,18 @@
 [
   {
+    "key": "landing",
+    "title": "App Store",
+    "url": "",
+    "iconType": "react-icon",
+    "iconName": "Apps",
+    "iconProps": {
+      "size": 20,
+      "color": "#FF6B6B"
+    },
+    "description": "Browse and manage your educational applications",
+    "allowExternalNavigation": false
+  },
+  {
     "key": "ixl",
     "title": "IXL",
     "url": "https://au.ixl.com/",

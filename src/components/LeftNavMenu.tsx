@@ -130,6 +130,16 @@ export default function LeftNavMenu(): JSX.Element {
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
+    
+    // Kid-friendly color palette
+    const KID_COLORS = [
+      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
+      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+    ];
+    
+    // Generate a consistent color based on the alt text
+    const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
+    const backgroundColor = KID_COLORS[colorIndex];
 
     if (hasError) {
       return (
@@ -138,8 +148,12 @@ export default function LeftNavMenu(): JSX.Element {
             width: 20,
             height: 20,
             fontSize: "0.8rem",
-            backgroundColor: "#f0f0f0",
-            color: "#666",
+            backgroundColor: backgroundColor,
+            color: "white",
+            fontWeight: "bold",
+            fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            border: "2px solid white",
           }}
         >
           {alt.charAt(0).toUpperCase()}
@@ -157,6 +171,8 @@ export default function LeftNavMenu(): JSX.Element {
           width: 20,
           height: 20,
           objectFit: "contain",
+          borderRadius: "6px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
         }}
       />
     );
@@ -168,7 +184,7 @@ export default function LeftNavMenu(): JSX.Element {
         <Apps
           sx={{
             fontSize: site.iconProps?.size || 20,
-            color: site.iconProps?.color || "inherit",
+            color: site.iconProps?.color || "#FF6B6B",
           }}
         />
       );
@@ -183,6 +199,9 @@ export default function LeftNavMenu(): JSX.Element {
             alignItems: "center",
             width: 20,
             height: 20,
+            backgroundColor: "#E5F7F0",
+            borderRadius: "8px",
+            border: "2px solid #10A37F",
           }}
         >
           <SiOpenai size={20} color="#10A37F" />
@@ -193,19 +212,32 @@ export default function LeftNavMenu(): JSX.Element {
         <Apps
           sx={{
             fontSize: site.iconProps?.size || 20,
-            color: site.iconProps?.color || "inherit",
+            color: site.iconProps?.color || "#FF6B6B",
           }}
         />
       );
     }
+    
+    // Fallback to MUI Avatar with kid-friendly styling
+    const KID_COLORS = [
+      "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD",
+      "#98D8C8", "#F7DC6F", "#BB8FCE", "#85C1E9", "#F8C471", "#82E0AA"
+    ];
+    const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
+    const backgroundColor = KID_COLORS[colorIndex];
+    
     return (
       <Avatar
         sx={{
           width: 20,
           height: 20,
           fontSize: "0.8rem",
-          backgroundColor: "#f0f0f0",
-          color: "#666",
+          backgroundColor: backgroundColor,
+          color: "white",
+          fontWeight: "bold",
+          fontFamily: "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          border: "2px solid white",
         }}
       >
         {site.title.charAt(0).toUpperCase()}
