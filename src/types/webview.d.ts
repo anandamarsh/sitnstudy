@@ -8,6 +8,7 @@ declare global {
         allowpopups?: string
         webpreferences?: string
         partition?: string
+        name?: string
         useragent?: string
         onDidFailLoad?: (event: any) => void
         onDidFinishLoad?: (event: any) => void

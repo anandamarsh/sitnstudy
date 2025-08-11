@@ -12,6 +12,9 @@ import { promises as fs } from 'fs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Map to track which site each webview belongs to
+const webviewSiteMap = new Map<number, string>()
+
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
@@ -424,35 +427,19 @@ app.whenReady().then(() => {
         
         if (currentDomain !== navigationDomain) {
           // Check if external navigation is allowed for the ORIGINAL site that created this webview
-          // We'll determine this by looking at the initial URL of the webview
+          // We'll determine this by looking up the site key in our webviewSiteMap
           let originalSiteKey: string | undefined;
           
           try {
-            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
-            const sitesContent = readFileSync(availableSitesPath, 'utf8')
-            const sites = JSON.parse(sitesContent)
+            // Get the site key from our webview mapping
+            originalSiteKey = webviewSiteMap.get(webContents.id);
             
-            // Find the site by matching the initial URL of this webview
-            // This is more reliable than trying to track site keys
-            const initialUrl = webContents.getURL();
-            if (initialUrl && initialUrl !== 'about:blank') {
-              const initialDomain = new URL(initialUrl).hostname;
-              const originalSite = sites.find((s: any) => {
-                try {
-                  const siteDomain = new URL(s.url).hostname
-                  return siteDomain === initialDomain
-                } catch {
-                  return false
-                }
-              })
-              
-              if (originalSite) {
-                originalSiteKey = originalSite.key;
-              }
-            }
-            
-            // If external navigation is allowed for the original site, don't block
             if (originalSiteKey) {
+              const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+              const sitesContent = readFileSync(availableSitesPath, 'utf8')
+              const sites = JSON.parse(sitesContent)
+              
+              // If external navigation is allowed for the original site, don't block
               const originalSite = sites.find((s: any) => s.key === originalSiteKey)
               if (originalSite && originalSite.allowExternalNavigation !== false) {
                 console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
@@ -482,6 +469,32 @@ app.whenReady().then(() => {
       webContents.on('did-finish-load', () => {
         const currentUrl = webContents.getURL();
         const currentDomain = new URL(currentUrl).hostname;
+        
+        // Try to determine the site key for this webview if we don't have it yet
+        if (!webviewSiteMap.has(webContents.id)) {
+          try {
+            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const sitesContent = readFileSync(availableSitesPath, 'utf8')
+            const sites = JSON.parse(sitesContent)
+            
+            // Find the site by matching the current URL domain
+            const site = sites.find((s: any) => {
+              try {
+                const siteDomain = new URL(s.url).hostname
+                return siteDomain === currentDomain
+              } catch {
+                return false
+              }
+            })
+            
+            if (site) {
+              webviewSiteMap.set(webContents.id, site.key)
+              console.log(`Mapped webview ${webContents.id} to site: ${site.key} (domain: ${currentDomain})`)
+            }
+          } catch (error) {
+            console.error('Error mapping webview to site:', error)
+          }
+        }
         
         // Inject script to intercept link clicks, form submissions, and client-side navigation
         webContents.executeJavaScript(`
