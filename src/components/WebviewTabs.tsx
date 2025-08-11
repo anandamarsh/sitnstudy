@@ -50,24 +50,45 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       try {
         if (typeof wv.executeJavaScript === "function") {
           wv.executeJavaScript(`
-            // Pause all audio and video
-            Array.from(document.querySelectorAll('video,audio')).forEach(m => {
-              try { m.pause(); m.muted = true; } catch {}
-            });
-            
-            // Stop any running game loops or animations
-            if (window.requestAnimationFrame) {
-              // Cancel any pending animation frames
-              for (let i = 1; i <= 1000; i++) {
-                window.cancelAnimationFrame(i);
+            try {
+              // Pause all audio and video
+              Array.from(document.querySelectorAll('video,audio')).forEach(m => {
+                try { 
+                  m.pause(); 
+                  m.muted = true; 
+                } catch(e) {
+                  // Ignore errors
+                }
+              });
+              
+              // Stop any running game loops or animations
+              if (window.requestAnimationFrame) {
+                // Cancel any pending animation frames
+                for (let i = 1; i <= 1000; i++) {
+                  try {
+                    window.cancelAnimationFrame(i);
+                  } catch(e) {
+                    // Ignore errors
+                  }
+                }
               }
-            }
-            
-            // Pause any running intervals or timeouts that might be game loops
-            const highestId = setTimeout(() => {}, 0);
-            for (let i = 1; i <= highestId; i++) {
-              clearTimeout(i);
-              clearInterval(i);
+              
+              // Pause any running intervals or timeouts that might be game loops
+              try {
+                const highestId = setTimeout(() => {}, 0);
+                for (let i = 1; i <= highestId; i++) {
+                  try {
+                    clearTimeout(i);
+                    clearInterval(i);
+                  } catch(e) {
+                    // Ignore errors
+                  }
+                }
+              } catch(e) {
+                // Ignore errors
+              }
+            } catch(e) {
+              // Ignore errors
             }
           `);
         }
@@ -158,9 +179,20 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       if (!wv || idx === activeIndex) return;
       try {
         if (typeof wv.executeJavaScript === "function") {
-          wv.executeJavaScript(
-            "Array.from(document.querySelectorAll('video,audio')).forEach(m=>{try{m.pause();m.muted=true;}catch{}})"
-          );
+          wv.executeJavaScript(`
+            try {
+              Array.from(document.querySelectorAll('video,audio')).forEach(m => {
+                try { 
+                  m.pause(); 
+                  m.muted = true; 
+                } catch(e) {
+                  // Ignore errors
+                }
+              });
+            } catch(e) {
+              // Ignore errors
+            }
+          `);
         }
       } catch {
         // no-op
@@ -177,20 +209,22 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       const webview = webviewRefs.current[tabIndex];
       if (webview && typeof webview.executeJavaScript === "function") {
         try {
-          // Store scroll position and other state
+          // Store only simple, serializable values
           webview.executeJavaScript(`
-          if (window.webviewState) {
-            window.webviewState.scrollX = window.scrollX;
-            window.webviewState.scrollY = window.scrollY;
-            window.webviewState.url = window.location.href;
-          } else {
-            window.webviewState = {
-              scrollX: window.scrollX,
-              scrollY: window.scrollY,
-              url: window.location.href
-            };
-          }
-        `);
+            try {
+              if (window.webviewState) {
+                window.webviewState.scrollX = window.scrollX || 0;
+                window.webviewState.scrollY = window.scrollY || 0;
+              } else {
+                window.webviewState = {
+                  scrollX: window.scrollX || 0,
+                  scrollY: window.scrollY || 0
+                };
+              }
+            } catch(e) {
+              // Ignore errors
+            }
+          `);
         } catch {
           // no-op
         }
@@ -208,14 +242,18 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       const webview = webviewRefs.current[tabIndex];
       if (webview && typeof webview.executeJavaScript === "function") {
         try {
-          // Restore scroll position and other state
+          // Restore scroll position safely
           webview.executeJavaScript(`
-          if (window.webviewState) {
-            setTimeout(() => {
-              window.scrollTo(window.webviewState.scrollX || 0, window.webviewState.scrollY || 0);
-            }, 100);
-          }
-        `);
+            try {
+              if (window.webviewState && typeof window.webviewState.scrollX === 'number' && typeof window.webviewState.scrollY === 'number') {
+                setTimeout(() => {
+                  window.scrollTo(window.webviewState.scrollX, window.webviewState.scrollY);
+                }, 100);
+              }
+            } catch(e) {
+              // Ignore errors
+            }
+          `);
         } catch {
           // no-op
         }
@@ -340,31 +378,43 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                 border: "none",
                 marginTop: t.showAddressBar ? "40px" : "0",
               }}
-                              ref={(el) => {
-                  webviewRefs.current[idx] = el;
-                  if (el) {
-                    // Remove any existing listeners first to prevent duplicates
-                    const existingListeners = el._listeners;
-                    if (existingListeners?.didNavigate) {
-                      el.removeEventListener('did-navigate', existingListeners.didNavigate);
-                    }
-                    if (existingListeners?.didNavigateInPage) {
-                      el.removeEventListener('did-navigate-in-page', existingListeners.didNavigateInPage);
-                    }
-                    if (existingListeners?.domReady) {
-                      el.removeEventListener('dom-ready', existingListeners.domReady);
-                    }
+              ref={(el) => {
+                webviewRefs.current[idx] = el;
+                if (el) {
+                  // Remove any existing listeners first to prevent duplicates
+                  const existingListeners = el._listeners;
+                  if (existingListeners?.didNavigate) {
+                    el.removeEventListener(
+                      "did-navigate",
+                      existingListeners.didNavigate
+                    );
+                  }
+                  if (existingListeners?.didNavigateInPage) {
+                    el.removeEventListener(
+                      "did-navigate-in-page",
+                      existingListeners.didNavigateInPage
+                    );
+                  }
+                  if (existingListeners?.domReady) {
+                    el.removeEventListener(
+                      "dom-ready",
+                      existingListeners.domReady
+                    );
+                  }
 
-                    // Create new listener functions
-                    const didNavigateListener = (e: any) => {
-                      handleUrlChange(t.key, e.url);
-                    };
-                    const didNavigateInPageListener = (e: any) => {
-                      handleUrlChange(t.key, e.url);
-                    };
-                    const domReadyListener = () => {
-                      if (el && typeof (el as any).executeJavaScript === "function") {
-                        (el as any).executeJavaScript(`
+                  // Create new listener functions
+                  const didNavigateListener = (e: any) => {
+                    handleUrlChange(t.key, e.url);
+                  };
+                  const didNavigateInPageListener = (e: any) => {
+                    handleUrlChange(t.key, e.url);
+                  };
+                  const domReadyListener = () => {
+                    if (
+                      el &&
+                      typeof (el as any).executeJavaScript === "function"
+                    ) {
+                      (el as any).executeJavaScript(`
                           console.log('🔗 Link hover script injected for webview');
                           
                           // Remove existing listeners to prevent duplicates
@@ -401,22 +451,25 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                             mouseout: mouseoutListener
                           };
                         `);
-                      }
-                    };
+                    }
+                  };
 
-                    // Add new listeners
-                    el.addEventListener('did-navigate', didNavigateListener);
-                    el.addEventListener('did-navigate-in-page', didNavigateInPageListener);
-                    el.addEventListener('dom-ready', domReadyListener);
+                  // Add new listeners
+                  el.addEventListener("did-navigate", didNavigateListener);
+                  el.addEventListener(
+                    "did-navigate-in-page",
+                    didNavigateInPageListener
+                  );
+                  el.addEventListener("dom-ready", domReadyListener);
 
-                    // Store references for cleanup
-                    el._listeners = {
-                      didNavigate: didNavigateListener,
-                      didNavigateInPage: didNavigateInPageListener,
-                      domReady: domReadyListener
-                    };
-                  }
-                }}
+                  // Store references for cleanup
+                  el._listeners = {
+                    didNavigate: didNavigateListener,
+                    didNavigateInPage: didNavigateInPageListener,
+                    domReady: domReadyListener,
+                  };
+                }
+              }}
             />
             {/* Link Preview Bar - shown at bottom of this webview when hovering over links */}
             {linkPreview && (
