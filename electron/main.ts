@@ -476,7 +476,8 @@ app.whenReady().then(() => {
             const site = sites.find((s: any) => {
               try {
                 const siteDomain = new URL(s.url).hostname
-                return siteDomain === currentDomain
+                // Check if current domain matches the site domain or is a subdomain
+                return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain)
               } catch {
                 return false
               }
@@ -485,6 +486,10 @@ app.whenReady().then(() => {
             if (site) {
               webviewSiteMap.set(webContents.id, site.key)
               console.log(`Mapped webview ${webContents.id} to site: ${site.key} (domain: ${currentDomain})`)
+            } else {
+              console.log(`Could not map webview ${webContents.id} to any site. Current domain: ${currentDomain}`)
+              // Log available sites for debugging
+              console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
             }
           } catch (error) {
             console.error('Error mapping webview to site:', error)
@@ -639,77 +644,100 @@ app.whenReady().then(() => {
       // Log URL navigation when logging is enabled for this site
       const logUrlNavigation = async (url: string) => {
         try {
-          // Get the current site key from the webview partition or URL
-          const currentUrl = webContents.getURL();
-          const currentDomain = new URL(currentUrl).hostname;
+          // First try to get the site key from our webview mapping
+          let siteKey = webviewSiteMap.get(webContents.id);
           
-          // Find the site by matching domain (this is a simple approach)
-          // In a more robust implementation, you might want to store the site key in the webview
-          const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
-          const sitesContent = readFileSync(availableSitesPath, 'utf8')
-          const sites = JSON.parse(sitesContent)
-          
-          const site = sites.find((s: any) => {
-            try {
-              const siteDomain = new URL(s.url).hostname
-              return siteDomain === currentDomain
-            } catch {
-              return false
-            }
-          })
-          
-          if (site && site.urlLogging) {
-            // Get page title if available
-            let pageTitle = ''
-            try {
-              pageTitle = await webContents.executeJavaScript('document.title')
-            } catch (error) {
-              // Title might not be available yet
-            }
+          if (!siteKey) {
+            // Fallback: Get the current site key from the webview URL
+            const currentUrl = webContents.getURL();
+            const currentDomain = new URL(currentUrl).hostname;
             
-            // Log the URL - we need to call the handler function directly
-            // Since we can't call ipcMain handlers directly, we'll implement the logging logic here
-            try {
-              const configDir = path.join(__dirname, '../src/config')
-              const logFilePath = path.join(configDir, `${site.key}_urls.json`)
-              
-              // Create config directory if it doesn't exist
-              if (!existsSync(configDir)) {
-                mkdirSync(configDir, { recursive: true })
+            // Find the site by matching domain
+            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const sitesContent = readFileSync(availableSitesPath, 'utf8')
+            const sites = JSON.parse(sitesContent)
+            
+            const site = sites.find((s: any) => {
+              try {
+                const siteDomain = new URL(s.url).hostname
+                // Check if current domain matches the site domain or is a subdomain
+                return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain)
+              } catch {
+                return false
+              }
+            })
+            
+            if (site) {
+              siteKey = site.key;
+              // Store this mapping for future use
+              webviewSiteMap.set(webContents.id, site.key);
+            }
+          }
+          
+          if (siteKey) {
+            // Get the site configuration to check if logging is enabled
+            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+            const sitesContent = readFileSync(availableSitesPath, 'utf8')
+            const sites = JSON.parse(sitesContent)
+            
+            const site = sites.find((s: any) => s.key === siteKey);
+            
+            if (site && site.urlLogging) {
+              // Get page title if available
+              let pageTitle = ''
+              try {
+                pageTitle = await webContents.executeJavaScript('document.title')
+              } catch (error) {
+                // Title might not be available yet
               }
               
-              // Read existing log or create new one
-              let urlLog: any[] = []
-              if (existsSync(logFilePath)) {
-                try {
-                  const content = readFileSync(logFilePath, 'utf8')
-                  urlLog = JSON.parse(content)
-                } catch (parseError) {
-                  console.error('Error parsing existing URL log:', parseError)
-                  urlLog = []
-                }
-              }
-              
-              // Check if URL already exists in the log
-              const existingEntry = urlLog.find(entry => entry.url === url);
-              
-              if (!existingEntry) {
-                // Add new entry only if it's unique
-                const newEntry = {
-                  url: url,
-                  title: pageTitle || ''
+              // Log the URL
+              try {
+                const configDir = path.join(__dirname, '../src/config')
+                const logFilePath = path.join(configDir, `${site.key}_urls.json`)
+                
+                // Create config directory if it doesn't exist
+                if (!existsSync(configDir)) {
+                  mkdirSync(configDir, { recursive: true })
                 }
                 
-                urlLog.push(newEntry)
+                // Read existing log or create new one
+                let urlLog: any[] = []
+                if (existsSync(logFilePath)) {
+                  try {
+                    const content = readFileSync(logFilePath, 'utf8')
+                    urlLog = JSON.parse(content)
+                  } catch (parseError) {
+                    console.error('Error parsing existing URL log:', parseError)
+                    urlLog = []
+                  }
+                }
+                
+                // Check if URL already exists in the log
+                const existingEntry = urlLog.find(entry => entry.url === url);
+                
+                if (!existingEntry) {
+                  // Add new entry only if it's unique
+                  const newEntry = {
+                    url: url,
+                    title: pageTitle || ''
+                  }
+                  
+                  urlLog.push(newEntry)
+                }
+                
+                // Write back to file
+                writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
+                
+                console.log(`URL logged for ${site.key}: ${url}`)
+              } catch (logError) {
+                console.error('Error logging URL:', logError)
               }
-              
-              // Write back to file
-              writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
-              
-              console.log(`URL logged for ${site.key}: ${url}`)
-            } catch (logError) {
-              console.error('Error logging URL:', logError)
+            } else {
+              console.log(`URL logging not enabled for site: ${siteKey}`)
             }
+          } else {
+            console.log(`Could not determine site key for webview ${webContents.id}. URL: ${url}`)
           }
         } catch (error) {
           console.error('Error logging URL navigation:', error)
@@ -718,11 +746,13 @@ app.whenReady().then(() => {
 
       // Listen for full page navigations
       webContents.on('did-navigate', async (_event, navigationUrl) => {
+        console.log(`Navigation detected for webview ${webContents.id}: ${navigationUrl}`);
         await logUrlNavigation(navigationUrl);
       });
 
       // Listen for in-page navigations (SPA routing, hash changes, etc.)
       webContents.on('did-navigate-in-page', async (_event, navigationUrl) => {
+        console.log(`In-page navigation detected for webview ${webContents.id}: ${navigationUrl}`);
         await logUrlNavigation(navigationUrl);
       });
     });
