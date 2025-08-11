@@ -348,15 +348,15 @@ export default function LeftNavMenu(): JSX.Element {
         variant="permanent"
         open={open}
         sx={{
-          // When open, make it overlay the content
+          // Always overlay the content
           "& .MuiDrawer-paper": {
-            position: open ? "fixed" : "relative",
-            zIndex: open ? 1200 : "auto",
+            position: "fixed",
+            zIndex: 1200,
             // Remove shadow
             boxShadow: "none",
-            // Ensure drawer doesn't affect layout when open
-            left: open ? 0 : "auto",
-            top: open ? 0 : "auto",
+            // Always overlay from the left
+            left: 0,
+            top: 0,
             height: "100vh",
           },
         }}
@@ -466,9 +466,8 @@ export default function LeftNavMenu(): JSX.Element {
           overflow: "hidden",
           width: "100%", // Full container width
           position: "relative",
-          // When drawer is closed, account for its width
-          // When drawer is open, it overlays so content takes full width
-          marginLeft: open ? 0 : `calc(${theme.spacing(8)} + 1px)`,
+          // Content always takes full width since drawer overlays
+          marginLeft: 0,
           // Force full width regardless of drawer state
           minWidth: "100%",
         }}
