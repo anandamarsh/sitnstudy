@@ -328,13 +328,8 @@ app.whenReady().then(() => {
   
   // Configure session storage and cookies to persist
   sharedSession.setPreloads([])
-  sharedSession.clearStorageData({
-    storages: ['cookies', 'filesystem', 'indexdb', 'localstorage', 'shadercache', 'websql', 'serviceworkers', 'cachestorage']
-  }).then(() => {
-    console.log('Shared session storage cleared and ready for use')
-  }).catch((error) => {
-    console.log('Shared session storage already clean:', error)
-  })
+  // Don't clear storage data - this was causing cookies to be lost on app restart
+  console.log('Shared session ready for use - cookies and storage will persist')
 
   let win: BrowserWindow | null
 
