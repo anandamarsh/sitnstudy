@@ -116,51 +116,51 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             display: "flex",
             flexDirection: "column",
             gap: 3,
-            maxWidth: 800,
             mx: "auto",
             height: "100%",
+            padding: "0 2rem 0 2rem",
           }}
         >
           {/* Two-column layout: Left for app info + controls, Right for access history */}
-          <Box sx={{ display: "flex", gap: 4, mt: 2, width: "100%" }}>
-            {/* Left column: App Icon, Details, and all Controls - flexible width */}
+          <Box sx={{ display: "flex", gap: 4, width: "100%", py: "2rem" }}>
+            {/* Left column: App Icon, Details, and all Controls - 50% width */}
             <Box
               sx={{
-                minWidth: "280px",
+                width: "50%",
                 display: "flex",
                 flexDirection: "column",
-                gap: 3,
+                gap: "2rem",
               }}
             >
-              {/* App Icon */}
-              <Box
-                sx={{
-                  width: 120,
-                  height: 120,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                {getIconComponent(app)}
-              </Box>
+                                                {/* App Icon */}
+                 <Box
+                   sx={{
+                     width: 120,
+                     height: 120,
+                     display: "flex",
+                     alignItems: "center",
+                     justifyContent: "center",
+                     flexShrink: 0,
+                   }}
+                 >
+                   {getIconComponent(app)}
+                 </Box>
 
-              {/* App Details */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
-                  {app.url}
-                </Typography>
+                 {/* App Details */}
+                 <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                   <Typography variant="body1" sx={{ wordBreak: "break-all" }}>
+                     {app.url}
+                   </Typography>
 
-                {app.description && (
-                  <Typography variant="body2" color="text.secondary">
-                    {app.description}
-                  </Typography>
-                )}
-              </Box>
+                   {app.description && (
+                     <Typography variant="body2" color="text.secondary">
+                       {app.description}
+                     </Typography>
+                   )}
+                 </Box>
 
-              {/* URL Logging Toggle */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                 {/* URL Logging Toggle */}
+                 <Box sx={{ display: "flex", alignItems: "center", gap: "2rem" }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -189,8 +189,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 )}
               </Box>
 
-              {/* Action Buttons */}
-              <Box sx={{ display: "flex", gap: 2 }}>
+                 {/* Action Buttons */}
+                 <Box sx={{ display: "flex", gap: "2rem" }}>
                 <Button
                   variant="contained"
                   onClick={() => onOpenApp(app)}
@@ -211,8 +211,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
               </Box>
             </Box>
 
-            {/* Right column: Access History in its own scrollable pane - takes remaining space */}
-            <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Right column: Access History in its own scrollable pane - 50% width */}
+            <Box sx={{ width: "50%" }}>
               <AccessHistory appKey={app.key} />
             </Box>
           </Box>
