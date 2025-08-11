@@ -8,6 +8,13 @@ export interface SiteConfig {
   iconProps?: Record<string, any>;
   description?: string;
   svgContent?: string; // Temporary property for SVG content during creation
+  urlLogging?: boolean; // Enable/disable URL logging for this app
+  allowExternalNavigation?: boolean; // Enable/disable external navigation for this app
+}
+
+export interface UrlLogEntry {
+  url: string;
+  title?: string;
 }
 
 export interface AppDetailsSliderProps {

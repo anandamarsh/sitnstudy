@@ -6,7 +6,9 @@ declare global {
       webview: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         src?: string
         allowpopups?: string
+        webpreferences?: string
         partition?: string
+        name?: string
         useragent?: string
         onDidFailLoad?: (event: any) => void
         onDidFinishLoad?: (event: any) => void

@@ -19,6 +19,29 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     return ipcRenderer.invoke(channel, ...omit)
   },
 
+  // Expose navigation-blocked event listener
+  onNavigationBlocked(callback: (data: { blockedUrl: string; currentDomain: string; targetDomain: string }) => void) {
+    return ipcRenderer.on('navigation-blocked', (_event, data) => callback(data))
+  },
+
+  // URL logging methods
+  toggleUrlLogging: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-url-logging', siteKey, enabled),
+  getUrlLog: (siteKey: string) => ipcRenderer.invoke('get-url-log', siteKey),
+  toggleExternalNavigation: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-external-navigation', siteKey, enabled),
+
+  // Config file access methods
+  getConfigFiles() {
+    return ipcRenderer.invoke('get-config-files')
+  },
+
+        readConfigFile(fileName: string) {
+        return ipcRenderer.invoke('read-config-file', fileName)
+      },
+
+      removeUrlLogFile(appKey: string) {
+        return ipcRenderer.invoke('remove-url-log-file', appKey)
+      },
+
   // You can expose other APTs you need here.
   // ...
 })

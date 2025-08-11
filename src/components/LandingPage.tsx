@@ -5,17 +5,13 @@ import {
   Card,
   CardActionArea,
   Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Avatar,
 } from "@mui/material";
 import { MoveToInbox as InboxIcon } from "@mui/icons-material";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
-import AppDetailsSlider from "./AppDetailsSlider";
 import { getAvailableSites } from "../utils/siteManager";
+import AppDetailsSlider from "./AppDetailsSlider";
 
 interface LandingPageProps {
   onAppSelect: (app: SiteConfig) => void;
@@ -41,18 +37,66 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
     }
   };
 
-  const IconImg = ({ src, alt }: { src: string; alt: string }) => (
-    <Box
-      component="img"
-      src={src}
-      alt={alt}
-      sx={{
-        width: 64,
-        height: 64,
-        objectFit: "contain",
-      }}
-    />
-  );
+  const IconImg = ({ src, alt }: { src: string; alt: string }) => {
+    const [hasError, setHasError] = useState(false);
+
+    // Kid-friendly color palette
+    const KID_COLORS = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
+    ];
+
+    // Generate a consistent color based on the alt text
+    const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
+    const backgroundColor = KID_COLORS[colorIndex];
+
+    if (hasError) {
+      return (
+        <Avatar
+          sx={{
+            width: 64,
+            height: 64,
+            fontSize: "2rem",
+            backgroundColor: backgroundColor,
+            color: "white",
+            fontWeight: "bold",
+            fontFamily:
+              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+            border: "3px solid white",
+          }}
+        >
+          {alt.charAt(0).toUpperCase()}
+        </Avatar>
+      );
+    }
+
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        onError={() => setHasError(true)}
+        sx={{
+          width: 64,
+          height: 64,
+          objectFit: "contain",
+          borderRadius: "12px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+        }}
+      />
+    );
+  };
 
   const getIconComponent = (site: SiteConfig) => {
     if (site.key === "landing") return null; // Skip the landing page itself
@@ -68,13 +112,52 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
             alignItems: "center",
             width: 64,
             height: 64,
+            backgroundColor: "#E5F7F0",
+            borderRadius: "16px",
+            border: "3px solid #10A37F",
           }}
         >
           <SiOpenai size={64} color="#10A37F" />
         </Box>
       );
     }
-    return <InboxIcon />;
+
+    // Fallback to MUI Avatar with kid-friendly styling
+    const KID_COLORS = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
+    ];
+    const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
+    const backgroundColor = KID_COLORS[colorIndex];
+
+    return (
+      <Avatar
+        sx={{
+          width: 64,
+          height: 64,
+          fontSize: "2rem",
+          backgroundColor: backgroundColor,
+          color: "white",
+          fontWeight: "bold",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          border: "3px solid white",
+        }}
+      >
+        {site.title.charAt(0).toUpperCase()}
+      </Avatar>
+    );
   };
 
   const handleAppClick = (app: SiteConfig) => {
@@ -99,14 +182,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, height: "100vh", overflow: "auto", p: 3 }}>
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+    <Box sx={{ flexGrow: 1, height: "100vh", overflow: "auto", p: 1 }}>
+      <Box sx={{ mt: 1, mb: 2, width: "100%" }}>
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: 3,
-            p: 2,
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 2,
+            p: 1,
           }}
         >
           {availableApps.map((app) => (
@@ -135,12 +218,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
               >
                 <Box
                   sx={{
-                    p: 3,
+                    p: 2,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: "1rem",
-                    minHeight: 120,
+                    gap: "0.75rem",
+                    minHeight: 100,
                   }}
                 >
                   {getIconComponent(app)}
@@ -152,7 +235,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
             </Card>
           ))}
         </Box>
-      </Container>
+      </Box>
 
       {/* App Details Slider */}
       <AppDetailsSlider

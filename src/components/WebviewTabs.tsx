@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 
 export interface SiteTab {
   key: string;
@@ -11,11 +11,21 @@ export interface SiteTab {
 interface WebviewTabsProps {
   tabs: SiteTab[];
   activeIndex: number;
+  onCloseTab?: (tabKey: string) => void;
 }
 
 export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
   const { tabs, activeIndex } = props;
   const webviewRefs = React.useRef<any[]>([]);
+  const [loadingStates, setLoadingStates] = React.useState<{
+    [key: string]: boolean;
+  }>({});
+  const [loadingProgress, setLoadingProgress] = React.useState<{
+    [key: string]: number;
+  }>({});
+  const [loadedTabs, setLoadedTabs] = React.useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Function to pause all webviews (can be called from parent)
   const pauseAllWebviews = () => {
@@ -59,6 +69,42 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
     };
   }, []);
 
+  // Simulate loading progress for better UX
+  React.useEffect(() => {
+    const currentTab = tabs[activeIndex];
+    if (!currentTab) return;
+
+    // Only show loading if this tab hasn't been loaded before
+    if (!loadedTabs[currentTab.key]) {
+      // Start loading when tab changes
+      setLoadingStates((prev) => ({ ...prev, [currentTab.key]: true }));
+      setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 0 }));
+
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          const current = prev[currentTab.key] || 0;
+          if (current < 90) {
+            return { ...prev, [currentTab.key]: current + Math.random() * 20 };
+          }
+          return prev;
+        });
+      }, 200);
+
+      // Complete loading after a delay
+      const completeTimeout = setTimeout(() => {
+        setLoadingStates((prev) => ({ ...prev, [currentTab.key]: false }));
+        setLoadingProgress((prev) => ({ ...prev, [currentTab.key]: 100 }));
+        setLoadedTabs((prev) => ({ ...prev, [currentTab.key]: true }));
+      }, 1500);
+
+      return () => {
+        clearInterval(progressInterval);
+        clearTimeout(completeTimeout);
+      };
+    }
+  }, [activeIndex, tabs, loadedTabs]);
+
   // Pause media in any background (inactive) webviews when switching tabs
   React.useEffect(() => {
     webviewRefs.current.forEach((wv, idx) => {
@@ -98,6 +144,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
         height: "100%",
         overflow: "hidden",
         minWidth: 0,
+        position: "relative",
       }}
     >
       <Box
@@ -124,7 +171,9 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
             <webview
               src={t.url}
               allowpopups
-              partition={`persist:sitnstudy-${t.key}`}
+              webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
+              partition="persist:sitnstudy-shared"
+              {...({ name: t.key } as any)}
               style={{
                 width: "100%",
                 height: "100%",
@@ -134,6 +183,30 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                 webviewRefs.current[idx] = el;
               }}
             />
+            {idx === activeIndex && loadingStates[t.key] && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: "100%",
+                  zIndex: 1000,
+                }}
+              >
+                <LinearProgress
+                  variant="determinate"
+                  value={loadingProgress[t.key] || 0}
+                  sx={{
+                    height: 4,
+                    borderRadius: 0,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                    "& .MuiLinearProgress-bar": {
+                      borderRadius: 0,
+                    },
+                  }}
+                />
+              </Box>
+            )}
           </Box>
         ))}
       </Box>

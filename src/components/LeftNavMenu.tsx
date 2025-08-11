@@ -7,9 +7,9 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  Typography,
-  Tooltip,
   IconButton,
+  Typography,
+  Avatar,
 } from "@mui/material";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import { SiOpenai } from "react-icons/si";
@@ -21,10 +21,11 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Apps } from "@mui/icons-material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import WebviewTabs, { SiteTab } from "./WebviewTabs";
 import AppStore from "./AppStore";
 
-const drawerWidth = 240;
+const drawerWidth = 320;
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
@@ -76,7 +77,9 @@ const Drawer = styled(MuiDrawer, {
 
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(true);
+  // Hardcode spacing values to avoid CSS concatenation issues
+  const closedDrawerSpacing = 64 + 50; // theme.spacing(8) = 64
+  const [open, setOpen] = React.useState(false);
   const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
   const [activeIndex, setActiveIndex] = React.useState(0);
@@ -127,18 +130,66 @@ export default function LeftNavMenu(): JSX.Element {
     };
   }, []);
 
-  const IconImg = ({ src, alt }: { src: string; alt: string }) => (
-    <Box
-      component="img"
-      src={src}
-      alt={alt}
-      sx={{
-        width: 20,
-        height: 20,
-        objectFit: "contain",
-      }}
-    />
-  );
+  const IconImg = ({ src, alt }: { src: string; alt: string }) => {
+    const [hasError, setHasError] = useState(false);
+
+    // Kid-friendly color palette
+    const KID_COLORS = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
+    ];
+
+    // Generate a consistent color based on the alt text
+    const colorIndex = alt.charCodeAt(0) % KID_COLORS.length;
+    const backgroundColor = KID_COLORS[colorIndex];
+
+    if (hasError) {
+      return (
+        <Avatar
+          sx={{
+            width: 20,
+            height: 20,
+            fontSize: "0.8rem",
+            backgroundColor: backgroundColor,
+            color: "white",
+            fontWeight: "bold",
+            fontFamily:
+              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            border: "2px solid white",
+          }}
+        >
+          {alt.charAt(0).toUpperCase()}
+        </Avatar>
+      );
+    }
+
+    return (
+      <Box
+        component="img"
+        src={src}
+        alt={alt}
+        onError={() => setHasError(true)}
+        sx={{
+          width: 20,
+          height: 20,
+          objectFit: "contain",
+          borderRadius: "6px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        }}
+      />
+    );
+  };
 
   const getIconComponent = (site: SiteConfig) => {
     if (site.key === "landing") {
@@ -146,7 +197,7 @@ export default function LeftNavMenu(): JSX.Element {
         <Apps
           sx={{
             fontSize: site.iconProps?.size || 20,
-            color: site.iconProps?.color || "inherit",
+            color: site.iconProps?.color || "#FF6B6B",
           }}
         />
       );
@@ -161,6 +212,9 @@ export default function LeftNavMenu(): JSX.Element {
             alignItems: "center",
             width: 20,
             height: 20,
+            backgroundColor: "#E5F7F0",
+            borderRadius: "8px",
+            border: "2px solid #10A37F",
           }}
         >
           <SiOpenai size={20} color="#10A37F" />
@@ -171,12 +225,48 @@ export default function LeftNavMenu(): JSX.Element {
         <Apps
           sx={{
             fontSize: site.iconProps?.size || 20,
-            color: site.iconProps?.color || "inherit",
+            color: site.iconProps?.color || "#FF6B6B",
           }}
         />
       );
     }
-    return <InboxIcon />;
+
+    // Fallback to MUI Avatar with kid-friendly styling
+    const KID_COLORS = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#DDA0DD",
+      "#98D8C8",
+      "#F7DC6F",
+      "#BB8FCE",
+      "#85C1E9",
+      "#F8C471",
+      "#82E0AA",
+    ];
+    const colorIndex = site.title.charCodeAt(0) % KID_COLORS.length;
+    const backgroundColor = KID_COLORS[colorIndex];
+
+    return (
+      <Avatar
+        sx={{
+          width: 20,
+          height: 20,
+          fontSize: "0.8rem",
+          backgroundColor: backgroundColor,
+          color: "white",
+          fontWeight: "bold",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          border: "2px solid white",
+        }}
+      >
+        {site.title.charAt(0).toUpperCase()}
+      </Avatar>
+    );
   };
 
   const openSite = (site: SiteTab): void => {
@@ -205,6 +295,34 @@ export default function LeftNavMenu(): JSX.Element {
     }
   };
 
+  const closeTab = (tabKey: string): void => {
+    const tabIndex = tabs.findIndex((t) => t.key === tabKey);
+    if (tabIndex === -1) return;
+
+    // Remove the tab
+    const newTabs = tabs.filter((t) => t.key !== tabKey);
+    setTabs(newTabs);
+
+    // If we're closing the currently active tab, switch to another tab or landing page
+    if (tabIndex === activeIndex) {
+      if (newTabs.length === 0) {
+        // No more tabs, show landing page
+        setShowLandingPage(true);
+        setSelectedSiteKey("landing");
+        setActiveIndex(0);
+      } else {
+        // Switch to the next available tab, or the previous one if we're at the end
+        const newActiveIndex =
+          tabIndex >= newTabs.length ? tabIndex - 1 : tabIndex;
+        setActiveIndex(newActiveIndex);
+        setSelectedSiteKey(newTabs[newActiveIndex].key);
+      }
+    } else if (tabIndex < activeIndex) {
+      // If we closed a tab before the active one, adjust the active index
+      setActiveIndex(activeIndex - 1);
+    }
+  };
+
   const handleAppSelect = (site: SiteConfig): void => {
     const siteTab: SiteTab = {
       key: site.key,
@@ -225,11 +343,34 @@ export default function LeftNavMenu(): JSX.Element {
         width: "100%",
         overflow: "hidden",
         minWidth: 0,
+        position: "relative",
       }}
     >
-      <Drawer variant="permanent" open={open}>
+      <Drawer
+        variant="permanent"
+        open={open}
+        sx={{
+          width: open ? drawerWidth : theme.spacing(8),
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: open ? drawerWidth : theme.spacing(8),
+            boxSizing: "border-box",
+            overflowX: "hidden",
+          },
+        }}
+      >
         <DrawerHeader>
-          <IconButton onClick={() => setOpen((o) => !o)}>
+          <IconButton
+            onClick={() => setOpen((o) => !o)}
+            sx={{
+              "&:focus": {
+                outline: "none",
+              },
+              "&:focus-visible": {
+                outline: "none",
+              },
+            }}
+          >
             {open ? (
               theme.direction === "rtl" ? (
                 <ChevronRightIcon />
@@ -253,6 +394,13 @@ export default function LeftNavMenu(): JSX.Element {
                     minHeight: 48,
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
+                    position: "relative",
+                    "&:focus": {
+                      outline: "none",
+                    },
+                    "&:focus-visible": {
+                      outline: "none",
+                    },
                   }}
                 >
                   <ListItemIcon
@@ -268,6 +416,35 @@ export default function LeftNavMenu(): JSX.Element {
                     primary={site.title}
                     sx={{ opacity: open ? 1 : 0 }}
                   />
+                  {/* Close button for open webviews */}
+                  {open && tabs.some((tab) => tab.key === site.key) && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeTab(site.key);
+                        setOpen(false); // Close the drawer after closing the webview
+                      }}
+                      sx={{
+                        position: "absolute",
+                        right: 8,
+                        color: "error.main",
+                        opacity: 0.7,
+                        transition: "opacity 0.2s ease",
+                        "&:hover": {
+                          opacity: 1,
+                        },
+                        "&:focus": {
+                          outline: "none",
+                        },
+                        "&:focus-visible": {
+                          outline: "none",
+                        },
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  )}
                 </ListItemButton>
               </ListItem>
               {/* Add divider after the App Store (landing) item */}
@@ -284,15 +461,17 @@ export default function LeftNavMenu(): JSX.Element {
           flexGrow: 1,
           p: 0,
           minHeight: 0,
-          minWidth: 0,
           overflow: "hidden",
-          width: "100%",
         }}
       >
         {showLandingPage ? (
           <AppStore onAppSelect={handleAppSelect} />
         ) : (
-          <WebviewTabs tabs={tabs} activeIndex={activeIndex} />
+          <WebviewTabs
+            tabs={tabs}
+            activeIndex={activeIndex}
+            onCloseTab={closeTab}
+          />
         )}
       </Box>
     </Box>
