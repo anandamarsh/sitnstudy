@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   toggleUrlLogging: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-url-logging', siteKey, enabled),
   getUrlLog: (siteKey: string) => ipcRenderer.invoke('get-url-log', siteKey),
   toggleExternalNavigation: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-external-navigation', siteKey, enabled),
+  toggleAddressBar: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-address-bar', siteKey, enabled),
 
   // Config file access methods
   getConfigFiles() {

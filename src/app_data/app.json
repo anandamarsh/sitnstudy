@@ -20,7 +20,7 @@
     "iconPath": "/icons/ixl.svg",
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
-    "urlLogging": true,
+    "urlLogging": false,
     "allowExternalNavigation": true,
     "showAddressBar": false
   },
