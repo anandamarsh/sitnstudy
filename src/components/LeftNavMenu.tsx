@@ -459,29 +459,23 @@ export default function LeftNavMenu(): JSX.Element {
         <Divider />
         <List />
       </Drawer>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 0,
-          minHeight: 0,
-          overflow: "hidden",
-          // Calculate width to account for drawer space
-          width: open
-            ? `calc(100% - ${drawerWidth + 50}px)`
-            : `calc(100% - ${closedDrawerSpacing}px)`,
-          position: "relative",
-          // When drawer is open, content needs to be narrower to account for drawer width
-          // When drawer is closed, content can take more width
-          marginLeft: open
-            ? `${drawerWidth + 50}px`
-            : `${closedDrawerSpacing}px`,
-          // Ensure minimum width is also calculated
-          minWidth: open
-            ? `calc(100% - ${drawerWidth + 50}px)`
-            : `calc(100% - ${closedDrawerSpacing}px)`,
-        }}
-      >
+              <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 0,
+            minHeight: 0,
+            overflow: "hidden",
+            // When drawer is open, content takes remaining width
+            // When drawer is closed, content takes full width
+            width: open ? `calc(100% - ${drawerWidth}px)` : "100%",
+            position: "relative",
+            // No left margin needed - drawer overlays content
+            marginLeft: 0,
+            // Ensure minimum width matches
+            minWidth: open ? `calc(100% - ${drawerWidth}px)` : "100%",
+          }}
+        >
         {showLandingPage ? (
           <AppStore onAppSelect={handleAppSelect} />
         ) : (
