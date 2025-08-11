@@ -34,5 +34,53 @@
   {
     "url": "https://au.ixl.com/maths/foundation",
     "title": "IXL | Maths and English Practice"
+  },
+  {
+    "url": "https://au.ixl.com/maths/year-5/fractions-review",
+    "title": "IXL - Year 5 maths practice"
+  },
+  {
+    "url": "https://au.ixl.com/maths/year-5/understanding-probability",
+    "title": "IXL - Year 5 maths practice"
+  },
+  {
+    "url": "https://au.ixl.com/recommendations/",
+    "title": "IXL - Understanding probability (Year 5 maths practice)"
+  },
+  {
+    "url": "https://au.ixl.com/recommendations",
+    "title": "IXL | Personalised skill recommendations"
+  },
+  {
+    "url": "https://au.ixl.com/maths/year-5/games",
+    "title": "IXL - Year 5 maths practice"
+  },
+  {
+    "url": "https://au.ixl.com/games/adventure_man_dash_numbers?fromLevel=year-5",
+    "title": "IXL | Year 5 maths games"
+  },
+  {
+    "url": "https://www.abcya.com/gameproxy/adventure_man_dash_numbers?variant=default&content-language=en-AU",
+    "title": "IXL | Adventure Man Dungeon Dash - Numbers"
+  },
+  {
+    "url": "https://au.ixl.com/games/mean-median-mode-range?fromLevel=year-5",
+    "title": "IXL | Adventure Man Dungeon Dash - Numbers"
+  },
+  {
+    "url": "https://www.abcya.com/gameproxy/mean-median-mode-range?content-language=en-AU&variant=default",
+    "title": "IXL | It's Glow Time - Mean, Median, Mode & Range"
+  },
+  {
+    "url": "https://au.ixl.com/games/zero_sum?fromLevel=year-5",
+    "title": "IXL | It's Glow Time - Mean, Median, Mode & Range"
+  },
+  {
+    "url": "https://www.abcya.com/gameproxy/zero_sum?content-language=en-AU&variant=default",
+    "title": "IXL | Zero Sum"
+  },
+  {
+    "url": "https://au.ixl.com/math/year-5",
+    "title": "IXL | Zero Sum"
   }
 ]

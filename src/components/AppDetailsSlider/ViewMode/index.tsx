@@ -216,6 +216,52 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   {isRemoving ? "REMOVING..." : "REMOVE"}
                 </Button>
               </Box>
+
+              {/* External Navigation Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={allowExternalNavigation}
+                      onChange={(e) =>
+                        toggleExternalNavigation(e.target.checked)
+                      }
+                      disabled={isTogglingNavigation}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                    >
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingNavigation
+                          ? "Updating..."
+                          : "Allow External Navigation"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {allowExternalNavigation && (
+                  <Chip
+                    label="Enabled"
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                  />
+                )}
+              </Box>
             </Box>
 
             {/* Divider between left and right columns */}
@@ -232,53 +278,6 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
               <AccessHistory
                 appKey={app.key}
                 refreshTrigger={refreshTrigger}
-                externalNavigationSwitch={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 2,
-                      backgroundColor: "background.paper",
-                      borderRadius: 1,
-                      border: "1px solid",
-                      borderColor: "divider",
-                      mb: 2,
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={allowExternalNavigation}
-                          onChange={(e) =>
-                            toggleExternalNavigation(e.target.checked)
-                          }
-                          disabled={isTogglingNavigation}
-                          color="primary"
-                        />
-                      }
-                      label={
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <Typography variant="body2" fontWeight="medium">
-                            {isTogglingNavigation
-                              ? "Updating..."
-                              : "Allow External Navigation"}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    {allowExternalNavigation && (
-                      <Chip
-                        label="Enabled"
-                        size="small"
-                        variant="outlined"
-                        color="success"
-                      />
-                    )}
-                  </Box>
-                }
                 urlLoggingSwitch={
                   <Box
                     sx={{
