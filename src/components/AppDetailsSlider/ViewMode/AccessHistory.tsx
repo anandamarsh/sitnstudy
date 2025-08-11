@@ -9,9 +9,7 @@ import {
   ListItemButton,
   CircularProgress,
 } from "@mui/material";
-import {
-  History as HistoryIcon,
-} from "@mui/icons-material";
+import { History as HistoryIcon } from "@mui/icons-material";
 
 interface UrlLogEntry {
   url: string;
@@ -20,9 +18,10 @@ interface UrlLogEntry {
 
 interface AccessHistoryProps {
   appKey: string;
+  refreshTrigger?: number; // Add refresh trigger prop
 }
 
-const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
+const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey, refreshTrigger }) => {
   const [accessHistory, setAccessHistory] = useState<UrlLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,10 +74,10 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
     }
   };
 
-  // Load access history when component mounts or appKey changes
+  // Load access history when component mounts, appKey changes, or refreshTrigger changes
   useEffect(() => {
     loadAccessHistory();
-  }, [appKey]);
+  }, [appKey, refreshTrigger]);
 
   const handleUrlClick = (url: string) => {
     // Open URL in default browser or handle as needed
@@ -178,7 +177,6 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({ appKey }) => {
                       </Typography>
                     }
                   />
-
                 </ListItemButton>
               </ListItem>
             ))}

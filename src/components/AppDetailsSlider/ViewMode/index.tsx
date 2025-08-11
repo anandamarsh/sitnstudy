@@ -32,6 +32,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     app.urlLogging || false
   );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
 
   const handleRemoveClick = () => {
     setShowRemoveConfirm(true);
@@ -64,10 +65,12 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const handleUrlLoggingConfirm = async () => {
     setShowUrlLoggingConfirm(false);
     await toggleUrlLogging(false);
-    
+
     // Remove the history file when turning off URL logging
     try {
-      const result = await (window as any).ipcRenderer.removeUrlLogFile(app.key);
+      const result = await (window as any).ipcRenderer.removeUrlLogFile(
+        app.key
+      );
       if (result.success) {
         console.log("URL log file removed successfully");
       } else {
@@ -88,7 +91,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
       setShowUrlLoggingConfirm(true);
       return;
     }
-    
+
     await toggleUrlLogging(enabled);
   };
 
@@ -103,6 +106,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
         setUrlLoggingEnabled(enabled);
         // Update the app object locally
         app.urlLogging = enabled;
+        // Increment refresh trigger to refresh access history
+        setRefreshTrigger(prev => prev + 1);
       } else {
         console.error("Failed to toggle URL logging:", result.message);
       }
@@ -234,7 +239,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
 
             {/* Right column: Access History in its own scrollable pane - 50% width */}
             <Box sx={{ width: "50%" }}>
-              <AccessHistory appKey={app.key} />
+              <AccessHistory appKey={app.key} refreshTrigger={refreshTrigger} />
             </Box>
           </Box>
         </Box>
