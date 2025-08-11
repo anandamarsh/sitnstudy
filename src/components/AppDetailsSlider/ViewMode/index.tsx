@@ -108,7 +108,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
       );
       if (result.success) {
         setUrlLoggingEnabled(enabled);
-        setRefreshTrigger(prev => prev + 1); // Trigger refresh of access history
+        setRefreshTrigger((prev) => prev + 1); // Trigger refresh of access history
       } else {
         console.error("Failed to toggle URL logging:", result.error);
       }
@@ -262,7 +262,9 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
                           <Typography variant="body2" fontWeight="medium">
-                            {isTogglingNavigation ? "Updating..." : "Allow External Navigation"}
+                            {isTogglingNavigation
+                              ? "Updating..."
+                              : "Allow External Navigation"}
                           </Typography>
                         </Box>
                       }

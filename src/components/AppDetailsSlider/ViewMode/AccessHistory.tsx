@@ -96,7 +96,9 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
   return (
     <Box sx={{ height: "100%" }}>
       {/* External Navigation Switch */}
-      {externalNavigationSwitch && <Box sx={{ mb: 2 }}>{externalNavigationSwitch}</Box>}
+      {externalNavigationSwitch && (
+        <Box sx={{ mb: 2 }}>{externalNavigationSwitch}</Box>
+      )}
 
       {/* URL Logging Switch at the top */}
       {urlLoggingSwitch && <Box sx={{ mb: 2 }}>{urlLoggingSwitch}</Box>}

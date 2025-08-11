@@ -423,25 +423,41 @@ app.whenReady().then(() => {
         const navigationDomain = new URL(navigationUrl).hostname;
         
         if (currentDomain !== navigationDomain) {
-          // Check if external navigation is allowed for this site
+          // Check if external navigation is allowed for the ORIGINAL site that created this webview
+          // We'll determine this by looking at the initial URL of the webview
+          let originalSiteKey: string | undefined;
+          
           try {
             const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
             const sitesContent = readFileSync(availableSitesPath, 'utf8')
             const sites = JSON.parse(sitesContent)
             
-            const site = sites.find((s: any) => {
-              try {
-                const siteDomain = new URL(s.url).hostname
-                return siteDomain === currentDomain
-              } catch {
-                return false
+            // Find the site by matching the initial URL of this webview
+            // This is more reliable than trying to track site keys
+            const initialUrl = webContents.getURL();
+            if (initialUrl && initialUrl !== 'about:blank') {
+              const initialDomain = new URL(initialUrl).hostname;
+              const originalSite = sites.find((s: any) => {
+                try {
+                  const siteDomain = new URL(s.url).hostname
+                  return siteDomain === initialDomain
+                } catch {
+                  return false
+                }
+              })
+              
+              if (originalSite) {
+                originalSiteKey = originalSite.key;
               }
-            })
+            }
             
-            // If external navigation is allowed, don't block
-            if (site && site.allowExternalNavigation !== false) {
-              console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain}`);
-              return; // Allow the navigation
+            // If external navigation is allowed for the original site, don't block
+            if (originalSiteKey) {
+              const originalSite = sites.find((s: any) => s.key === originalSiteKey)
+              if (originalSite && originalSite.allowExternalNavigation !== false) {
+                console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
+                return; // Allow the navigation
+              }
             }
           } catch (error) {
             console.error('Error checking external navigation setting:', error)
