@@ -20,7 +20,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Apps } from "@mui/icons-material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import WebviewTabs, { SiteTab } from "./WebviewTabs";
+import Webview, { SiteTab } from "./Webview";
 import AppStore from "./AppStore";
 
 const drawerWidth = 320;
@@ -466,7 +466,7 @@ export default function LeftNavMenu(): JSX.Element {
         {showLandingPage ? (
           <AppStore onAppSelect={handleAppSelect} />
         ) : (
-          <WebviewTabs
+          <Webview
             tabs={tabs}
             activeIndex={activeIndex}
             onCloseTab={closeTab}
