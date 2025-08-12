@@ -2,15 +2,7 @@ import { app, BrowserWindow } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-// TODO: Import from extracted modules
-// import { setupIpcHandlers } from './ipc-handlers'
-// import { setupSessionManagement } from './session-management'
-// import { setupWindowManagement } from './window-management'
-// import { setupWebviewHandlers } from './webview-handlers'
-// import { setupDevToolsConfig } from './devtools-config'
-// import { setupMenuConfig } from './menu-config'
-// import { setupAppLifecycle } from './app-lifecycle'
-// import { APP_CONSTANTS } from './constants'
+
 
 // DevTools are now enabled on-demand:
 // - Right-click → "Inspect Element" to inspect specific elements
@@ -20,16 +12,16 @@ import path from 'node:path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Note: webviewSiteMap moved to webview-handlers module
 
-// Import IPC handlers from ipc-handlers module
+
+// Import IPC handlers
 import './ipc-handlers'
 
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
   app.setName('Sit-N-Study')
 }
-// Revert to Electron default UA; per-site webviews use their own persisted partitions
+
 
 // The built directory structure
 //
@@ -42,7 +34,7 @@ if (process.platform === 'darwin') {
 // │
 process.env.APP_ROOT = path.join(__dirname, '..')
 
-// 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
+// Use ['ENV_NAME'] to avoid vite:define plugin - Vite@2.x
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
