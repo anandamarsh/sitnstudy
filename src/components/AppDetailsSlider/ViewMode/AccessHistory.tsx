@@ -37,7 +37,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
       // Look for JSON files that match the app key pattern
       const files = await (window as any).ipcRenderer.getConfigFiles();
       const matchingFile = files.find(
-        (file: string) => file.includes(appKey) && file.endsWith("_urls.json")
+        (file: string) => file.includes(appKey) && file.endsWith(".json")
       );
 
       if (matchingFile) {

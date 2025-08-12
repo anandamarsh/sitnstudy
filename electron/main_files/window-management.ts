@@ -282,7 +282,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
             // Log the URL
             try {
               const configDir = path.join(__dirname, '../app_data')
-              const logFilePath = path.join(configDir, `${site.key}_urls.json`)
+              const logFilePath = path.join(__dirname, '../url_history', `${site.key}.json`)
               
               // Create config directory if it doesn't exist
               if (!existsSync(configDir)) {
