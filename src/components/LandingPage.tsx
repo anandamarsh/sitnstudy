@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Card,
-  CardActionArea,
-  Typography,
-  Avatar,
-} from "@mui/material";
+import React, { useState } from "react";
+import { Box, Card, CardActionArea, Typography, Avatar } from "@mui/material";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
-import { getAvailableSites } from "../utils/siteManager";
+import { useSites } from "../hooks/useSites";
 import AppDetailsSlider from "./AppDetailsSlider";
 
 interface LandingPageProps {
@@ -18,22 +12,8 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   const [selectedApp, setSelectedApp] = useState<SiteConfig | null>(null);
   const [sliderOpen, setSliderOpen] = useState(false);
-  const [availableApps, setAvailableApps] = useState<SiteConfig[]>([]);
-
-  // Load available apps on component mount and after changes
-  useEffect(() => {
-    loadAvailableApps();
-  }, []);
-
-  const loadAvailableApps = async () => {
-    try {
-      const sites = await getAvailableSites();
-      const filteredSites = sites.filter((site) => site.key !== "landing");
-      setAvailableApps(filteredSites);
-    } catch (error) {
-      console.error("Error loading available sites:", error);
-    }
-  };
+  const { sites } = useSites();
+  const availableApps = sites.filter((site) => site.key !== "landing");
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
@@ -62,9 +42,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
       return (
         <Avatar
           sx={{
-            width: 64,
-            height: 64,
-            fontSize: "2rem",
+            width: 80,
+            height: 80,
+            fontSize: "2.5rem",
             backgroundColor: backgroundColor,
             color: "white",
             fontWeight: "bold",
@@ -86,8 +66,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
         alt={alt}
         onError={() => setHasError(true)}
         sx={{
-          width: 64,
-          height: 64,
+          width: 80,
+          height: 80,
           objectFit: "contain",
           borderRadius: "12px",
           boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
@@ -108,14 +88,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            width: 64,
-            height: 64,
+            width: 80,
+            height: 80,
             backgroundColor: "#E5F7F0",
             borderRadius: "16px",
             border: "3px solid #10A37F",
           }}
         >
-          <SiOpenai size={64} color="#10A37F" />
+          <SiOpenai size={80} color="#10A37F" />
         </Box>
       );
     }
@@ -141,9 +121,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
     return (
       <Avatar
         sx={{
-          width: 64,
-          height: 64,
-          fontSize: "2rem",
+          width: 80,
+          height: 80,
+          fontSize: "2.5rem",
           backgroundColor: backgroundColor,
           color: "white",
           fontWeight: "bold",
@@ -171,8 +151,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   const handleCloseSlider = async () => {
     setSliderOpen(false);
     setSelectedApp(null);
-    // Refresh available apps when slider closes in case an app was removed
-    await loadAvailableApps();
     // Also refresh the left navigation menu
     if ((window as any).refreshLeftMenu) {
       (window as any).refreshLeftMenu();
@@ -185,16 +163,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, 200px)",
             gap: 2,
-            p: 1,
+            justifyContent: "center",
+            p: 2,
           }}
         >
           {availableApps.map((app) => (
             <Card
               key={app.key}
               sx={{
-                height: "100%",
+                width: 200,
+                height: 200,
                 display: "flex",
                 flexDirection: "column",
                 cursor: "pointer",
@@ -211,7 +191,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "stretch",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <Box
@@ -220,11 +201,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: "0.75rem",
-                    minHeight: 100,
+                    justifyContent: "center",
+                    gap: "1rem",
+                    width: "100%",
+                    height: "100%",
                   }}
                 >
-                  {getIconComponent(app)}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: 80,
+                      height: 80,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {getIconComponent(app)}
+                  </Box>
                   <Typography variant="h6" component="h2" align="center">
                     {app.title}
                   </Typography>

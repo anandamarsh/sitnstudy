@@ -21,7 +21,7 @@
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": true,
-    "allowExternalNavigation": true,
+    "allowExternalNavigation": false,
     "showAddressBar": true
   },
   {

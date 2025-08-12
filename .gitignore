@@ -12,7 +12,7 @@ dist
 dist-ssr
 release
 dist-electron
-build-icons
+app_data
 *.local
 
 # Editor directories and files

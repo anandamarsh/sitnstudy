@@ -37,7 +37,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
       // Look for JSON files that match the app key pattern
       const files = await (window as any).ipcRenderer.getConfigFiles();
       const matchingFile = files.find(
-        (file: string) => file.includes(appKey) && file.endsWith("_urls.json")
+        (file: string) => file.includes(appKey) && file.endsWith(".json")
       );
 
       if (matchingFile) {
@@ -89,6 +89,15 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
     if (url) {
       window.open(url, "_blank");
     }
+  };
+
+  // Function to truncate URL to first line with ellipsis
+  const truncateUrl = (url: string) => {
+    const firstLine = url.split("\n")[0];
+    if (firstLine.length > 100) {
+      return firstLine.substring(0, 100) + "...";
+    }
+    return firstLine;
   };
 
   const hasAccessHistory = accessHistory.length > 0;
@@ -163,7 +172,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
                           mt: 0.5,
                         }}
                       >
-                        {entry.url}
+                        {truncateUrl(entry.url)}
                       </Typography>
                     }
                   />
