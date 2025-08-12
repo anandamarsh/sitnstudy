@@ -65,6 +65,19 @@ class ConfigManager {
 
   private notifyListeners() {
     this.listeners.forEach(listener => listener([...this.sites]))
+    
+    // Also broadcast to all renderer processes
+    try {
+      const { BrowserWindow } = require('electron')
+      const windows = BrowserWindow.getAllWindows()
+      windows.forEach((window: any) => {
+        if (!window.isDestroyed()) {
+          window.webContents.send('sites-updated', [...this.sites])
+        }
+      })
+    } catch (error) {
+      console.error('Error broadcasting to renderer processes:', error)
+    }
   }
 
   // Get all sites

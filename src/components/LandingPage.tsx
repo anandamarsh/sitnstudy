@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Card,
@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
-import { getAvailableSites } from "../utils/siteManager";
+import { useSites } from "../hooks/useSites";
 import AppDetailsSlider from "./AppDetailsSlider";
 
 interface LandingPageProps {
@@ -18,22 +18,8 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   const [selectedApp, setSelectedApp] = useState<SiteConfig | null>(null);
   const [sliderOpen, setSliderOpen] = useState(false);
-  const [availableApps, setAvailableApps] = useState<SiteConfig[]>([]);
-
-  // Load available apps on component mount and after changes
-  useEffect(() => {
-    loadAvailableApps();
-  }, []);
-
-  const loadAvailableApps = async () => {
-    try {
-      const sites = await getAvailableSites();
-      const filteredSites = sites.filter((site) => site.key !== "landing");
-      setAvailableApps(filteredSites);
-    } catch (error) {
-      console.error("Error loading available sites:", error);
-    }
-  };
+  const { sites } = useSites();
+  const availableApps = sites.filter((site) => site.key !== "landing");
 
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
@@ -171,8 +157,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
   const handleCloseSlider = async () => {
     setSliderOpen(false);
     setSelectedApp(null);
-    // Refresh available apps when slider closes in case an app was removed
-    await loadAvailableApps();
     // Also refresh the left navigation menu
     if ((window as any).refreshLeftMenu) {
       (window as any).refreshLeftMenu();
