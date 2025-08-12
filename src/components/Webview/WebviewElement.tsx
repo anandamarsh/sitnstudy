@@ -37,29 +37,8 @@ export default function WebviewElement(
         };
         const domReadyListener = () => {
           if (el && typeof (el as any).executeJavaScript === "function") {
-            // Inject interceptor.js script into the webview
-            try {
-              // First inject the interceptor.js script
-              (el as any).executeJavaScript(`
-              if (!window.interceptorScriptLoaded) {
-                // Load interceptor.js script
-                const script = document.createElement('script');
-                script.src = '/app_injections/interceptor.js';
-                script.onload = function() {
-                  console.log('🔗 Interceptor.js script loaded successfully');
-                  window.interceptorScriptLoaded = true;
-                };
-                script.onerror = function() {
-                  console.error('🔗 Failed to load interceptor.js script');
-                };
-                document.head.appendChild(script);
-              } else {
-                console.log('🔗 Interceptor.js script already loaded');
-              }
-            `);
-            } catch (error) {
-              console.error("Error injecting interceptor.js script:", error);
-            }
+            // Note: Script injection is handled by the main process in window-management.ts
+            // This ensures the script is properly loaded with the correct domain context
           }
         };
 

@@ -186,7 +186,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
         
       // Inject external script to intercept link clicks, form submissions, and client-side navigation
-              const interceptorScriptPath = path.join(__dirname, '../public/app_injections/interceptor.js');
+              const interceptorScriptPath = path.join(__dirname, '../app_injections/interceptor.js');
       try {
         const interceptorScript = readFileSync(interceptorScriptPath, 'utf8');
         // Replace the placeholder with the actual current domain
