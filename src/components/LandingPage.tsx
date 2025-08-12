@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Card,
-  CardActionArea,
-  Typography,
-  Avatar,
-} from "@mui/material";
+import { Box, Card, CardActionArea, Typography, Avatar } from "@mui/material";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
 import { useSites } from "../hooks/useSites";
@@ -89,20 +83,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
       return <IconImg src={site.iconPath} alt={site.title} />;
     } else if (site.iconType === "react-icon" && site.iconName === "SiOpenai") {
       return (
-                  <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              width: 80,
-              height: 80,
-              backgroundColor: "#E5F7F0",
-              borderRadius: "16px",
-              border: "3px solid #10A37F",
-            }}
-          >
-            <SiOpenai size={80} color="#10A37F" />
-          </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: 80,
+            height: 80,
+            backgroundColor: "#E5F7F0",
+            borderRadius: "16px",
+            border: "3px solid #10A37F",
+          }}
+        >
+          <SiOpenai size={80} color="#10A37F" />
+        </Box>
       );
     }
 
@@ -125,20 +119,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
     const backgroundColor = KID_COLORS[colorIndex];
 
     return (
-              <Avatar
-          sx={{
-            width: 80,
-            height: 80,
-            fontSize: "2.5rem",
-            backgroundColor: backgroundColor,
-            color: "white",
-            fontWeight: "bold",
-            fontFamily:
-              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-            border: "3px solid white",
-          }}
-        >
+      <Avatar
+        sx={{
+          width: 80,
+          height: 80,
+          fontSize: "2.5rem",
+          backgroundColor: backgroundColor,
+          color: "white",
+          fontWeight: "bold",
+          fontFamily:
+            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          border: "3px solid white",
+        }}
+      >
         {site.title.charAt(0).toUpperCase()}
       </Avatar>
     );
@@ -197,7 +191,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "stretch",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <Box
@@ -208,10 +203,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "1rem",
+                    width: "100%",
                     height: "100%",
                   }}
                 >
-                  {getIconComponent(app)}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: 80,
+                      height: 80,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {getIconComponent(app)}
+                  </Box>
                   <Typography variant="h6" component="h2" align="center">
                     {app.title}
                   </Typography>
