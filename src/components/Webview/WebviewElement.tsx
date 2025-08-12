@@ -8,37 +8,39 @@ interface WebviewElementProps {
   onUrlChange: (tabKey: string, url: string) => void;
 }
 
-export default function WebviewElement(props: WebviewElementProps): JSX.Element {
-  const {
-    tab,
-    webviewRef,
-    onUrlChange
-  } = props;
+export default function WebviewElement(
+  props: WebviewElementProps
+): JSX.Element {
+  const { tab, webviewRef, onUrlChange } = props;
 
-  const handleWebviewRef = React.useCallback((el: HTMLWebViewElement | null) => {
-    webviewRef(el);
-    
-    if (el) {
-      // Remove existing listeners to prevent duplicates
-      if (el._listeners) {
-        el.removeEventListener("did-navigate", el._listeners.didNavigate);
-        el.removeEventListener("did-navigate-in-page", el._listeners.didNavigateInPage);
-        el.removeEventListener("dom-ready", el._listeners.domReady);
-      }
+  const handleWebviewRef = React.useCallback(
+    (el: HTMLWebViewElement | null) => {
+      webviewRef(el);
 
-      // Create new listener functions
-      const didNavigateListener = (e: any) => {
-        onUrlChange(tab.key, e.url);
-      };
-      const didNavigateInPageListener = (e: any) => {
-        onUrlChange(tab.key, e.url);
-      };
-      const domReadyListener = () => {
-        if (el && typeof (el as any).executeJavaScript === "function") {
-          // Inject mole.js script into the webview
-          try {
-            // First inject the mole.js script
-            (el as any).executeJavaScript(`
+      if (el) {
+        // Remove existing listeners to prevent duplicates
+        if (el._listeners) {
+          el.removeEventListener("did-navigate", el._listeners.didNavigate);
+          el.removeEventListener(
+            "did-navigate-in-page",
+            el._listeners.didNavigateInPage
+          );
+          el.removeEventListener("dom-ready", el._listeners.domReady);
+        }
+
+        // Create new listener functions
+        const didNavigateListener = (e: any) => {
+          onUrlChange(tab.key, e.url);
+        };
+        const didNavigateInPageListener = (e: any) => {
+          onUrlChange(tab.key, e.url);
+        };
+        const domReadyListener = () => {
+          if (el && typeof (el as any).executeJavaScript === "function") {
+            // Inject mole.js script into the webview
+            try {
+              // First inject the mole.js script
+              (el as any).executeJavaScript(`
               if (!window.moleScriptLoaded) {
                 // Load mole.js script
                 const script = document.createElement('script');
@@ -55,32 +57,33 @@ export default function WebviewElement(props: WebviewElementProps): JSX.Element 
                 console.log('🔗 Mole.js script already loaded');
               }
             `);
-          } catch (error) {
-            console.error("Error injecting mole.js script:", error);
+            } catch (error) {
+              console.error("Error injecting mole.js script:", error);
+            }
           }
-        }
-      };
+        };
 
-      // Add new listeners
-      el.addEventListener("did-navigate", didNavigateListener);
-      el.addEventListener("did-navigate-in-page", didNavigateInPageListener);
-      el.addEventListener("dom-ready", domReadyListener);
+        // Add new listeners
+        el.addEventListener("did-navigate", didNavigateListener);
+        el.addEventListener("did-navigate-in-page", didNavigateInPageListener);
+        el.addEventListener("dom-ready", domReadyListener);
 
-      // Store references for cleanup
-      el._listeners = {
-        didNavigate: didNavigateListener,
-        didNavigateInPage: didNavigateInPageListener,
-        domReady: domReadyListener,
-      };
-    }
-  }, [webviewRef, tab.key, onUrlChange]);
+        // Store references for cleanup
+        el._listeners = {
+          didNavigate: didNavigateListener,
+          didNavigateInPage: didNavigateInPageListener,
+          domReady: domReadyListener,
+        };
+      }
+    },
+    [webviewRef, tab.key, onUrlChange]
+  );
 
   return (
     <Box
       sx={{
         width: "100%",
-        height: "100%",
-        marginTop: tab.showAddressBar ? 40 : 0,
+        height: tab.showAddressBar ? "calc(100% - 40px)" : "100%",
         position: "relative",
         display: "flex",
         flexDirection: "column",
@@ -94,7 +97,6 @@ export default function WebviewElement(props: WebviewElementProps): JSX.Element 
         style={{
           width: "100%",
           height: "100%",
-          display: "block",
           flex: 1,
         }}
         webpreferences="contextIsolation=yes, nodeIntegration=no, sandbox=yes"
