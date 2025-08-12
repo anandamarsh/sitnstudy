@@ -34,6 +34,7 @@ export interface WebviewTabProps {
   onLinkLeave: () => void;
   onPreserveState: (tabKey: string) => void;
   onRestoreState: (tabKey: string) => void;
+  onBackClick: (index: number) => void;
 }
 
 export interface WebviewState {

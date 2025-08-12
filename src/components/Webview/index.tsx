@@ -28,6 +28,13 @@ export default function Webview(props: WebviewProps): JSX.Element {
     restoreWebviewState
   } = useWebviewState(tabs);
 
+  const handleBackClick = (index: number) => {
+    const webview = webviewRefs.current[index];
+    if (webview && typeof webview.canGoBack === 'function' && webview.canGoBack()) {
+      webview.goBack();
+    }
+  };
+
   // Media control functions available for external use
   useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
 
@@ -57,6 +64,7 @@ export default function Webview(props: WebviewProps): JSX.Element {
           onLinkLeave={handleLinkLeave}
           onPreserveState={preserveWebviewState}
           onRestoreState={restoreWebviewState}
+          onBackClick={handleBackClick}
         />
       ))}
     </Box>

@@ -8,6 +8,7 @@ import LinkPreviewBar from "./LinkPreviewBar";
 export default function WebviewTab(props: WebviewTabProps): JSX.Element {
   const {
     tab,
+    index,
     isActive,
     webviewRef,
     loadingState,
@@ -15,7 +16,8 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
     isLoaded,
     currentUrl,
     linkPreview,
-    onUrlChange
+    onUrlChange,
+    onBackClick
   } = props;
 
   return (
@@ -32,7 +34,10 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
     >
       {/* Address Bar - shown when enabled for this tab */}
       {tab.showAddressBar && isActive && (
-        <AddressBar url={currentUrl || tab.url} />
+        <AddressBar 
+          url={currentUrl || tab.url} 
+          onBackClick={() => onBackClick(index)}
+        />
       )}
 
       {/* Loading Progress Bar */}
