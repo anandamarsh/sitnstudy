@@ -49,48 +49,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       if (!wv) return;
       try {
         if (typeof wv.executeJavaScript === "function") {
-          wv.executeJavaScript(`
-            try {
-              // Pause all audio and video
-              Array.from(document.querySelectorAll('video,audio')).forEach(m => {
-                try { 
-                  m.pause(); 
-                  m.muted = true; 
-                } catch(e) {
-                  // Ignore errors
-                }
-              });
-              
-              // Stop any running game loops or animations
-              if (window.requestAnimationFrame) {
-                // Cancel any pending animation frames
-                for (let i = 1; i <= 1000; i++) {
-                  try {
-                    window.cancelAnimationFrame(i);
-                  } catch(e) {
-                    // Ignore errors
-                  }
-                }
-              }
-              
-              // Pause any running intervals or timeouts that might be game loops
-              try {
-                const highestId = setTimeout(() => {}, 0);
-                for (let i = 1; i <= highestId; i++) {
-                  try {
-                    clearTimeout(i);
-                    clearInterval(i);
-                  } catch(e) {
-                    // Ignore errors
-                  }
-                }
-              } catch(e) {
-                // Ignore errors
-              }
-            } catch(e) {
-              // Ignore errors
-            }
-          `);
+          wv.executeJavaScript(`window.pauseAllMedia && window.pauseAllMedia();`);
         }
       } catch {
         // no-op
@@ -179,20 +138,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       if (!wv || idx === activeIndex) return;
       try {
         if (typeof wv.executeJavaScript === "function") {
-          wv.executeJavaScript(`
-            try {
-              Array.from(document.querySelectorAll('video,audio')).forEach(m => {
-                try { 
-                  m.pause(); 
-                  m.muted = true; 
-                } catch(e) {
-                  // Ignore errors
-                }
-              });
-            } catch(e) {
-              // Ignore errors
-            }
-          `);
+          wv.executeJavaScript(`window.pauseMediaOnly && window.pauseMediaOnly();`);
         }
       } catch {
         // no-op
@@ -210,21 +156,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       if (webview && typeof webview.executeJavaScript === "function") {
         try {
           // Store only simple, serializable values
-          webview.executeJavaScript(`
-            try {
-              if (window.webviewState) {
-                window.webviewState.scrollX = window.scrollX || 0;
-                window.webviewState.scrollY = window.scrollY || 0;
-              } else {
-                window.webviewState = {
-                  scrollX: window.scrollX || 0,
-                  scrollY: window.scrollY || 0
-                };
-              }
-            } catch(e) {
-              // Ignore errors
-            }
-          `);
+          webview.executeJavaScript(`window.preserveWebviewState && window.preserveWebviewState();`);
         } catch {
           // no-op
         }
@@ -243,17 +175,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
       if (webview && typeof webview.executeJavaScript === "function") {
         try {
           // Restore scroll position safely
-          webview.executeJavaScript(`
-            try {
-              if (window.webviewState && typeof window.webviewState.scrollX === 'number' && typeof window.webviewState.scrollY === 'number') {
-                setTimeout(() => {
-                  window.scrollTo(window.webviewState.scrollX, window.webviewState.scrollY);
-                }, 100);
-              }
-            } catch(e) {
-              // Ignore errors
-            }
-          `);
+          webview.executeJavaScript(`window.restoreWebviewState && window.restoreWebviewState();`);
         } catch {
           // no-op
         }
@@ -274,9 +196,7 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
 
     try {
       if (typeof activeWv.executeJavaScript === "function") {
-        activeWv.executeJavaScript(
-          "Array.from(document.querySelectorAll('video,audio')).forEach(m=>{try{m.muted=false;if(m.paused){m.play().catch(()=>{})}}catch{}})"
-        );
+        activeWv.executeJavaScript(`window.resumeMedia && window.resumeMedia();`);
       }
     } catch {
       // no-op
@@ -414,43 +334,29 @@ export default function WebviewTabs(props: WebviewTabsProps): JSX.Element {
                       el &&
                       typeof (el as any).executeJavaScript === "function"
                     ) {
-                      (el as any).executeJavaScript(`
-                          console.log('🔗 Link hover script injected for webview');
-                          
-                          // Remove existing listeners to prevent duplicates
-                          if (window._linkListenersAdded) {
-                            document.removeEventListener('mouseover', window._linkListenersAdded.mouseover);
-                            document.removeEventListener('mouseout', window._linkListenersAdded.mouseout);
+                      // Inject mole.js script into the webview
+                      try {
+                        // First inject the mole.js script
+                        (el as any).executeJavaScript(`
+                          if (!window.moleScriptLoaded) {
+                            // Load mole.js script
+                            const script = document.createElement('script');
+                            script.src = '/mole.js';
+                            script.onload = function() {
+                              console.log('🔗 Mole.js script loaded successfully');
+                              window.moleScriptLoaded = true;
+                            };
+                            script.onerror = function() {
+                              console.error('🔗 Failed to load mole.js script');
+                            };
+                            document.head.appendChild(script);
+                          } else {
+                            console.log('🔗 Mole.js script already loaded');
                           }
-                          
-                          const mouseoverListener = function(e) {
-                            if (e.target.tagName === 'A' && e.target.href) {
-                              console.log('🔗 Link hover detected in webview:', e.target.href);
-                              window.parent.postMessage({
-                                type: 'link-hover',
-                                url: e.target.href
-                              }, '*');
-                            }
-                          };
-                          
-                          const mouseoutListener = function(e) {
-                            if (e.target.tagName === 'A') {
-                              console.log('🔗 Link hover ended in webview');
-                              window.parent.postMessage({
-                                type: 'link-leave'
-                              }, '*');
-                            }
-                          };
-                          
-                          document.addEventListener('mouseover', mouseoverListener);
-                          document.addEventListener('mouseout', mouseoutListener);
-                          
-                          // Store references to prevent duplicates
-                          window._linkListenersAdded = {
-                            mouseover: mouseoverListener,
-                            mouseout: mouseoutListener
-                          };
                         `);
+                      } catch (error) {
+                        console.error('Error injecting mole.js script:', error);
+                      }
                     }
                   };
 

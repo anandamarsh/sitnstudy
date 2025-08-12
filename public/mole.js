@@ -120,10 +120,11 @@
         const url = new URL(target.href);
         // Send link hover event to parent window
         window.parent.postMessage({
-          type: 'LINK_HOVER',
+          type: 'link-hover',
           url: target.href,
           text: target.textContent || target.title || target.href
         }, '*');
+        console.log('🔗 Link hover detected in webview:', target.href);
       } catch (error) {
         // Invalid URL, ignore
       }
@@ -135,8 +136,116 @@
     if (target && target.href) {
       // Send link leave event to parent window
       window.parent.postMessage({
-        type: 'LINK_LEAVE'
+        type: 'link-leave'
       }, '*');
+      console.log('🔗 Link hover ended in webview');
     }
   });
+
+  // Media control functions
+  window.pauseAllMedia = function() {
+    try {
+      // Pause all audio and video
+      Array.from(document.querySelectorAll('video,audio')).forEach(m => {
+        try { 
+          m.pause(); 
+          m.muted = true; 
+        } catch(e) {
+          // Ignore errors
+        }
+      });
+      
+      // Stop any running game loops or animations
+      if (window.requestAnimationFrame) {
+        // Cancel any pending animation frames
+        for (let i = 1; i <= 1000; i++) {
+          try {
+            window.cancelAnimationFrame(i);
+          } catch(e) {
+            // Ignore errors
+          }
+        }
+      }
+      
+      // Pause any running intervals or timeouts that might be game loops
+      try {
+        const highestId = setTimeout(() => {}, 0);
+        for (let i = 1; i <= highestId; i++) {
+          try {
+            clearTimeout(i);
+            clearInterval(i);
+          } catch(e) {
+            // Ignore errors
+          }
+        }
+      } catch(e) {
+        // Ignore errors
+      }
+    } catch(e) {
+      // Ignore errors
+    }
+  };
+
+  window.pauseMediaOnly = function() {
+    try {
+      Array.from(document.querySelectorAll('video,audio')).forEach(m => {
+        try { 
+          m.pause(); 
+          m.muted = true; 
+        } catch(e) {
+          // Ignore errors
+        }
+      });
+    } catch(e) {
+      // Ignore errors
+    }
+  };
+
+  window.resumeMedia = function() {
+    try {
+      Array.from(document.querySelectorAll('video,audio')).forEach(m => {
+        try {
+          m.muted = false;
+          if (m.paused) {
+            m.play().catch(() => {});
+          }
+        } catch(e) {
+          // Ignore errors
+        }
+      });
+    } catch(e) {
+      // Ignore errors
+    }
+  };
+
+  // Webview state management
+  window.preserveWebviewState = function() {
+    try {
+      if (window.webviewState) {
+        window.webviewState.scrollX = window.scrollX || 0;
+        window.webviewState.scrollY = window.scrollY || 0;
+      } else {
+        window.webviewState = {
+          scrollX: window.scrollX || 0,
+          scrollY: window.scrollY || 0
+        };
+      }
+    } catch(e) {
+      // Ignore errors
+    }
+  };
+
+  window.restoreWebviewState = function() {
+    try {
+      if (window.webviewState && typeof window.webviewState.scrollX === 'number' && typeof window.webviewState.scrollY === 'number') {
+        setTimeout(() => {
+          window.scrollTo(window.webviewState.scrollX, window.webviewState.scrollY);
+        }, 100);
+      }
+    } catch(e) {
+      // Ignore errors
+    }
+  };
+
+  console.log('🔗 Mole.js script loaded successfully');
 })();
