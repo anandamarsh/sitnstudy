@@ -4,6 +4,16 @@ import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 import { promises as fs } from 'fs'
 
+// TODO: Import from extracted modules
+// import { setupIpcHandlers } from './ipc-handlers'
+// import { setupSessionManagement } from './session-management'
+// import { setupWindowManagement } from './window-management'
+// import { setupWebviewHandlers } from './webview-handlers'
+// import { setupDevToolsConfig } from './devtools-config'
+// import { setupMenuConfig } from './menu-config'
+// import { setupAppLifecycle } from './app-lifecycle'
+// import { APP_CONSTANTS } from './constants'
+
 // DevTools are now enabled on-demand:
 // - Right-click → "Inspect Element" to inspect specific elements
 // - Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to toggle DevTools
