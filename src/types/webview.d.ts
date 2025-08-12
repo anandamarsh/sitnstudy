@@ -5,7 +5,7 @@ declare global {
     interface IntrinsicElements {
       webview: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         src?: string
-        allowpopups?: string
+        allowpopups?: boolean | string
         webpreferences?: string
         partition?: string
         name?: string

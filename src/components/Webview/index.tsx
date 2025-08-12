@@ -62,11 +62,16 @@ export default function Webview(props: WebviewProps): JSX.Element {
       
       tabs.forEach((tab, index) => {
         const webview = webviewRefs.current[index];
-        if (webview) {
-          newStates[tab.key] = {
-            canGoBack: typeof webview.canGoBack === 'function' ? webview.canGoBack() : false,
-            canGoForward: typeof webview.canGoForward === 'function' ? webview.canGoForward() : false
-          };
+        if (webview && webview.getWebContentsId) {
+          try {
+            newStates[tab.key] = {
+              canGoBack: webview.canGoBack ? webview.canGoBack() : false,
+              canGoForward: webview.canGoForward ? webview.canGoForward() : false
+            };
+          } catch (error) {
+            // Webview not ready yet
+            newStates[tab.key] = { canGoBack: false, canGoForward: false };
+          }
         } else {
           newStates[tab.key] = { canGoBack: false, canGoForward: false };
         }
@@ -75,11 +80,8 @@ export default function Webview(props: WebviewProps): JSX.Element {
       setNavigationStates(newStates);
     };
 
-    // Update immediately and set up interval for periodic updates
+    // Only update when tabs change, not continuously
     updateNavigationState();
-    const interval = setInterval(updateNavigationState, 1000); // Check every second
-
-    return () => clearInterval(interval);
   }, [tabs, webviewRefs]);
 
   // Media control functions available for external use
