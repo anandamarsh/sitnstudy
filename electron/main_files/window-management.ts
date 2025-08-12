@@ -15,6 +15,7 @@ import { app, BrowserWindow, Menu, nativeImage } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
+import { configManager } from './config-manager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -115,27 +116,25 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         // We'll determine this by looking up the site key in our webviewSiteMap
         let originalSiteKey: string | undefined;
         
-        try {
-          // Get the site key from our webview mapping
-          const webviewId = String(webContents.id);
-          originalSiteKey = webviewSiteMap.get(webviewId);
-          
-          if (originalSiteKey) {
-            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
-            const sitesContent = readFileSync(availableSitesPath, 'utf8')
-            const sites = JSON.parse(sitesContent)
+                  try {
+            // Get the site key from our webview mapping
+            const webviewId = String(webContents.id);
+            originalSiteKey = webviewSiteMap.get(webviewId);
             
-            // If external navigation is allowed for the original site, don't block
-            const originalSite = sites.find((s: any) => s.key === originalSiteKey)
-            if (originalSite && originalSite.allowExternalNavigation === true) {
-              console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
-              return; // Allow the navigation
+            if (originalSiteKey) {
+              // Use config manager for real-time configuration access
+              const originalSite = configManager.getSite(originalSiteKey)
+              
+              // If external navigation is allowed for the original site, don't block
+              if (originalSite && originalSite.allowExternalNavigation === true) {
+                console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
+                return; // Allow the navigation
+              }
             }
+          } catch (error) {
+            console.error('Error checking external navigation setting:', error)
+            // Default to blocking if there's an error
           }
-        } catch (error) {
-          console.error('Error checking external navigation setting:', error)
-          // Default to blocking if there's an error
-        }
         
         console.log(`Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
         event.preventDefault();
@@ -160,9 +159,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       const webviewId = String(webContents.id); // Convert to string to ensure it's serializable
       if (!webviewSiteMap.has(webviewId)) {
         try {
-          const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
-          const sitesContent = readFileSync(availableSitesPath, 'utf8')
-          const sites = JSON.parse(sitesContent)
+          const sites = configManager.getSites()
           
           // Find the site by matching the current URL domain
           const site = sites.find((s: any) => {
@@ -250,9 +247,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           const currentDomain = new URL(currentUrl).hostname;
           
           // Find the site by matching domain
-          const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
-          const sitesContent = readFileSync(availableSitesPath, 'utf8')
-          const sites = JSON.parse(sitesContent)
+          const sites = configManager.getSites()
           
           const site = sites.find((s: any) => {
             try {
@@ -273,11 +268,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         
         if (siteKey) {
           // Get the site configuration to check if logging is enabled
-          const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
-          const sitesContent = readFileSync(availableSitesPath, 'utf8')
-          const sites = JSON.parse(sitesContent)
-          
-          const site = sites.find((s: any) => s.key === siteKey);
+          const site = configManager.getSite(siteKey);
           
           if (site && site.urlLogging) {
             // Get page title if available

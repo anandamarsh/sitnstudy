@@ -51,12 +51,13 @@
     "showAddressBar": false
   },
   {
-    "key": "github_me81xm10",
-    "title": "GitHub",
-    "url": "https://github.com/",
-    "iconPath": "https://github.com/favicon.ico",
+    "key": "google_me82aimf",
+    "title": "Google",
+    "url": "https://google.com",
+    "iconPath": "https://google.com/favicon.ico",
     "iconType": "svg",
-    "description": "Access github.com - a web application for productivity and learning.",
-    "showAddressBar": true
+    "description": "Access google.com - a web application for productivity and learning.",
+    "showAddressBar": true,
+    "allowExternalNavigation": false
   }
 ]

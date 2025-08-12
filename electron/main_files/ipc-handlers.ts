@@ -16,7 +16,8 @@ import { ipcMain } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
-import { promises as fs } from 'fs'
+
+import { configManager } from './config-manager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -105,9 +106,7 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
 
 ipcMain.handle('get-available-sites', async () => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
-    const content = readFileSync(availableSitesPath, 'utf8')
-    return JSON.parse(content)
+    return configManager.getSites()
   } catch (error) {
     console.error('Error reading app.json:', error)
     return []
@@ -117,21 +116,8 @@ ipcMain.handle('get-available-sites', async () => {
 // IPC handlers for URL logging
 ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'app_data')
-    const availableSitesPath = path.join(configDir, 'app.json')
-    
-    // Read current app.json
-    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
-    const availableSites = JSON.parse(currentContent)
-    
-    // Find and update the site
-    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
-    if (siteIndex !== -1) {
-      availableSites[siteIndex].urlLogging = enabled
-      
-      // Write back to file
-      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
-      console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
+    const success = await configManager.updateUrlLogging(siteKey, enabled)
+    if (success) {
       return { success: true }
     } else {
       console.error(`Site ${siteKey} not found in app.json`)
@@ -145,21 +131,8 @@ ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: bo
 
 ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'app_data')
-    const availableSitesPath = path.join(configDir, 'app.json')
-    
-    // Read current app.json
-    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
-    const availableSites = JSON.parse(currentContent)
-    
-    // Find and update the site
-    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
-    if (siteIndex !== -1) {
-      availableSites[siteIndex].allowExternalNavigation = enabled
-      
-      // Write back to file
-      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
-      console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
+    const success = await configManager.updateExternalNavigation(siteKey, enabled)
+    if (success) {
       return { success: true }
     } else {
       console.error(`Site ${siteKey} not found in app.json`)
@@ -173,21 +146,8 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
 
 ipcMain.handle('toggle-address-bar', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'app_data')
-    const availableSitesPath = path.join(configDir, 'app.json')
-    
-    // Read current app.json
-    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
-    const availableSites = JSON.parse(currentContent)
-    
-    // Find and update the site
-    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
-    if (siteIndex !== -1) {
-      availableSites[siteIndex].showAddressBar = enabled
-      
-      // Write back to file
-      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
-      console.log(`Updated address bar for ${siteKey} to ${enabled}`)
+    const success = await configManager.updateAddressBar(siteKey, enabled)
+    if (success) {
       return { success: true }
     } else {
       console.error(`Site ${siteKey} not found in app.json`)
