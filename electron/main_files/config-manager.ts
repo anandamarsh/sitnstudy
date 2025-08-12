@@ -36,7 +36,7 @@ class ConfigManager {
   private listeners: Array<(sites: Site[]) => void> = []
 
   constructor() {
-    this.configPath = path.join(__dirname, '../src/app_data/app.json')
+    this.configPath = path.join(__dirname, '../app_data/app.json')
     this.loadConfig()
   }
 

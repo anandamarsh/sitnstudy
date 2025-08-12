@@ -24,7 +24,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
+    const availableSitesPath = path.join(__dirname, '../app_data/app.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
     const sites = JSON.parse(currentContent)
     
@@ -74,7 +74,7 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
 
 ipcMain.handle('remove-site', async (_event, siteKey) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
+    const availableSitesPath = path.join(__dirname, '../app_data/app.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
     const sites = JSON.parse(currentContent)
     
@@ -161,7 +161,7 @@ ipcMain.handle('toggle-address-bar', async (_event, siteKey: string, enabled: bo
 
 ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/app_data')
+    const configDir = path.join(__dirname, '../app_data')
     const logFilePath = path.join(configDir, `${siteKey}_urls.json`)
     
     // Create config directory if it doesn't exist
@@ -202,7 +202,7 @@ ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: s
 
 ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
   try {
-    const logFilePath = path.join(__dirname, '../src/app_data', `${siteKey}_urls.json`)
+    const logFilePath = path.join(__dirname, '../app_data', `${siteKey}_urls.json`)
     
     if (!existsSync(logFilePath)) {
       return { success: true, data: [] }
@@ -221,7 +221,7 @@ ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
 // IPC handlers for config file access
 ipcMain.handle('get-config-files', async () => {
   try {
-    const configDir = path.join(__dirname, '../src/app_data')
+    const configDir = path.join(__dirname, '../app_data')
     const files = await import('fs/promises')
     const filesList = await files.readdir(configDir)
     return filesList.filter(file => file.endsWith('_urls.json'))
@@ -233,7 +233,7 @@ ipcMain.handle('get-config-files', async () => {
 
 ipcMain.handle('read-config-file', async (_event, fileName: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/app_data')
+    const configDir = path.join(__dirname, '../app_data')
     const filePath = path.join(configDir, fileName)
     
     if (!existsSync(filePath)) {
@@ -250,7 +250,7 @@ ipcMain.handle('read-config-file', async (_event, fileName: string) => {
 
 ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/app_data')
+    const configDir = path.join(__dirname, '../app_data')
     const fs = await import('fs/promises')
     const files = await fs.readdir(configDir)
     const matchingFile = files.find(file => file.includes(appKey) && file.endsWith('_urls.json'))
