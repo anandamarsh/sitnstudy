@@ -80,8 +80,29 @@ export default function Webview(props: WebviewProps): JSX.Element {
       setNavigationStates(newStates);
     };
 
-    // Only update when tabs change, not continuously
+    // Update when tabs change
     updateNavigationState();
+  }, [tabs, webviewRefs]);
+
+  // Update navigation state when a specific webview becomes ready
+  const updateWebviewNavigationState = React.useCallback((index: number) => {
+    const webview = webviewRefs.current[index];
+    if (webview && webview.getWebContentsId) {
+      try {
+        const tab = tabs[index];
+        if (tab) {
+          setNavigationStates(prev => ({
+            ...prev,
+            [tab.key]: {
+              canGoBack: webview.canGoBack ? webview.canGoBack() : false,
+              canGoForward: webview.canGoForward ? webview.canGoForward() : false
+            }
+          }));
+        }
+      } catch (error) {
+        // Webview not ready yet
+      }
+    }
   }, [tabs, webviewRefs]);
 
   // Media control functions available for external use
@@ -102,7 +123,13 @@ export default function Webview(props: WebviewProps): JSX.Element {
           tab={t}
           index={idx}
           isActive={idx === activeIndex}
-          webviewRef={(el) => (webviewRefs.current[idx] = el)}
+          webviewRef={(el) => {
+            webviewRefs.current[idx] = el;
+            if (el) {
+              // Update navigation state when webview is attached
+              setTimeout(() => updateWebviewNavigationState(idx), 100);
+            }
+          }}
           loadingState={loadingStates[t.key]}
           loadingProgress={loadingProgress[t.key]}
           isLoaded={loadedTabs[t.key]}
