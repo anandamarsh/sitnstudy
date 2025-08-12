@@ -13,6 +13,10 @@
 
 import { BrowserWindow, Menu, nativeImage } from 'electron'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 
 export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_URL: string | undefined, RENDERER_DIST: string) {
   let win: BrowserWindow | null
