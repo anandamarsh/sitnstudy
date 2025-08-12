@@ -14,7 +14,7 @@
 import { app, BrowserWindow, Menu, nativeImage } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
+import { writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { configManager } from './config-manager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -127,7 +127,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               
               // If external navigation is allowed for the original site, don't block
               if (originalSite && originalSite.allowExternalNavigation === true) {
-                console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
+                console.log(`[WM] Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
                 return; // Allow the navigation
               }
             }
@@ -136,7 +136,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
             // Default to blocking if there's an error
           }
         
-        console.log(`Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
+        console.log(`[WM] Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
         event.preventDefault();
         
         // Send message to renderer to show error snackbar
@@ -174,9 +174,9 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           
           if (site) {
             webviewSiteMap.set(webviewId, site.key)
-            console.log(`Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
+            console.log(`[WM] Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
           } else {
-            console.log(`Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
+            console.log(`[WM] Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
             // Log available sites for debugging
             console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
           }
@@ -185,15 +185,65 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         }
       }
         
-      // Inject external script to intercept link clicks, form submissions, and client-side navigation
-              const interceptorScriptPath = path.join(__dirname, '../app_injections/interceptor.js');
+      // Inject common script first
+      const commonScriptPath = path.join(__dirname, '../app_injections/common.js');
       try {
-        const interceptorScript = readFileSync(interceptorScriptPath, 'utf8');
+        const commonScript = readFileSync(commonScriptPath, 'utf8');
         // Replace the placeholder with the actual current domain
-        const scriptWithDomain = interceptorScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
+        const scriptWithDomain = commonScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
         webContents.executeJavaScript(scriptWithDomain);
+        
+        // Now inject site-specific scripts
+        const webviewId = String(webContents.id);
+        let siteKey = webviewSiteMap.get(webviewId);
+        
+        if (!siteKey) {
+          // Try to find site by current domain
+          const currentUrl = webContents.getURL();
+          const currentDomain = new URL(currentUrl).hostname;
+          
+          const sites = configManager.getSites();
+          const site = sites.find((s: any) => {
+            try {
+              const siteDomain = new URL(s.url).hostname;
+              return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain);
+            } catch {
+              return false;
+            }
+          });
+          
+          if (site) {
+            siteKey = site.key;
+            webviewSiteMap.set(webviewId, site.key);
+          }
+        }
+        
+        // Inject site-specific scripts if we found a site key
+        if (siteKey && siteKey !== 'landing') {
+          const siteScriptsDir = path.join(__dirname, '../app_injections', siteKey);
+          try {
+            if (existsSync(siteScriptsDir)) {
+              const files = readdirSync(siteScriptsDir);
+              const jsFiles = files.filter((file: string) => file.endsWith('.js'));
+              
+              for (const jsFile of jsFiles) {
+                try {
+                  const scriptPath = path.join(siteScriptsDir, jsFile);
+                  const scriptContent = readFileSync(scriptPath, 'utf8');
+                  console.log(`Injecting site-specific script: ${jsFile} for site: ${siteKey}`);
+                  webContents.executeJavaScript(scriptContent);
+                } catch (scriptError) {
+                  console.error(`Error injecting site-specific script ${jsFile}:`, scriptError);
+                }
+              }
+            }
+          } catch (dirError) {
+            console.error(`Error reading site scripts directory for ${siteKey}:`, dirError);
+          }
+        }
+        
       } catch (error) {
-        console.error('Error loading interceptor.js script:', error);
+        console.error('Error loading common.js script:', error);
         // Fallback to basic injection if file can't be loaded
         webContents.executeJavaScript(`
           console.log('URL_CHANGE:' + JSON.stringify({
@@ -317,15 +367,15 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               // Write back to file
               writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
               
-              console.log(`URL logged for ${site.key}: ${url}`)
+              console.log(`[WM] URL logged for ${site.key}: ${url}`)
             } catch (logError) {
               console.error('Error logging URL:', logError)
             }
           } else {
-            console.log(`URL logging not enabled for site: ${siteKey}`)
+            console.log(`[WM] URL logging not enabled for site: ${siteKey}`)
           }
         } else {
-          console.log(`Could not determine site key for webview ${webviewId}. URL: ${url}`)
+          console.log(`[WM] Could not determine site key for webview ${webviewId}. URL: ${url}`)
         }
       } catch (error) {
         console.error('Error logging URL navigation:', error)
@@ -335,14 +385,14 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
     // Listen for full page navigations
     webContents.on('did-navigate', async (_event, navigationUrl) => {
       const webviewId = String(webContents.id);
-      console.log(`Navigation detected for webview ${webviewId}: ${navigationUrl}`);
+      console.log(`[WM] Navigation detected for webview ${webviewId}: ${navigationUrl}`);
       await logUrlNavigation(navigationUrl);
     });
 
     // Listen for in-page navigations (SPA routing, hash changes, etc.)
     webContents.on('did-navigate-in-page', async (_event, navigationUrl) => {
       const webviewId = String(webContents.id);
-      console.log(`In-page navigation detected for webview ${webviewId}: ${navigationUrl}`);
+      console.log(`[WM] In-page navigation detected for webview ${webviewId}: ${navigationUrl}`);
       await logUrlNavigation(navigationUrl);
     });
   });
