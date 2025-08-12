@@ -34,44 +34,31 @@ export default function Webview(props: WebviewProps): JSX.Element {
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
+        width: "100%",
         height: "100%",
-        overflow: "hidden",
-        minWidth: 0,
         position: "relative",
+        overflow: "hidden",
       }}
     >
-      <Box
-        sx={{
-          position: "relative",
-          flex: 1,
-          minHeight: 0,
-          overflow: "hidden",
-          width: "100%",
-          minWidth: 0,
-        }}
-      >
-        {tabs.map((t, idx) => (
-          <WebviewTab
-            key={`panel-${t.key}-${idx}`}
-            tab={t}
-            index={idx}
-            isActive={idx === activeIndex}
-            webviewRef={(el) => (webviewRefs.current[idx] = el)}
-            loadingState={loadingStates[t.key]}
-            loadingProgress={loadingProgress[t.key]}
-            isLoaded={loadedTabs[t.key]}
-            currentUrl={currentUrls[t.key]}
-            linkPreview={linkPreview}
-            onUrlChange={handleUrlChange}
-            onLinkHover={handleLinkHover}
-            onLinkLeave={handleLinkLeave}
-            onPreserveState={preserveWebviewState}
-            onRestoreState={restoreWebviewState}
-          />
-        ))}
-      </Box>
+      {tabs.map((t, idx) => (
+        <WebviewTab
+          key={`panel-${t.key}-${idx}`}
+          tab={t}
+          index={idx}
+          isActive={idx === activeIndex}
+          webviewRef={(el) => (webviewRefs.current[idx] = el)}
+          loadingState={loadingStates[t.key]}
+          loadingProgress={loadingProgress[t.key]}
+          isLoaded={loadedTabs[t.key]}
+          currentUrl={currentUrls[t.key]}
+          linkPreview={linkPreview}
+          onUrlChange={handleUrlChange}
+          onLinkHover={handleLinkHover}
+          onLinkLeave={handleLinkLeave}
+          onPreserveState={preserveWebviewState}
+          onRestoreState={restoreWebviewState}
+        />
+      ))}
     </Box>
   );
 }

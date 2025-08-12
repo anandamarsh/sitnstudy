@@ -24,8 +24,8 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
         position: "absolute",
         top: 0,
         left: 0,
-        width: "100%",
-        height: "100%",
+        right: 0,
+        bottom: 0,
         display: isActive ? "block" : "none",
         zIndex: isActive ? 1 : 0,
       }}

@@ -82,6 +82,8 @@ export default function WebviewElement(props: WebviewElementProps): JSX.Element 
         height: "100%",
         marginTop: tab.showAddressBar ? 40 : 0,
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* eslint-disable-next-line react/no-unknown-property */}
@@ -93,10 +95,10 @@ export default function WebviewElement(props: WebviewElementProps): JSX.Element 
           width: "100%",
           height: "100%",
           display: "block",
+          flex: 1,
         }}
         webpreferences="contextIsolation=yes, nodeIntegration=no, sandbox=yes"
         allowpopups={true}
-
         partition={`persist:${tab.key}`}
       />
     </Box>
