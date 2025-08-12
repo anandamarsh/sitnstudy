@@ -161,8 +161,8 @@ ipcMain.handle('toggle-address-bar', async (_event, siteKey: string, enabled: bo
 
 ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: string) => {
   try {
-    const configDir = path.join(__dirname, '../url_history')
-    const logFilePath = path.join(__dirname, '../url_history', `${siteKey}.json`)
+    const configDir = path.join(__dirname, '../app_data/url_history')
+    const logFilePath = path.join(__dirname, '../app_data/url_history', `${siteKey}.json`)
     
     // Create config directory if it doesn't exist
     if (!existsSync(configDir)) {
@@ -202,7 +202,7 @@ ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: s
 
 ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
   try {
-    const logFilePath = path.join(__dirname, '../url_history', `${siteKey}.json`)
+    const logFilePath = path.join(__dirname, '../app_data/url_history', `${siteKey}.json`)
     
     if (!existsSync(logFilePath)) {
       return { success: true, data: [] }
@@ -221,7 +221,7 @@ ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
 // IPC handlers for config file access
 ipcMain.handle('get-config-files', async () => {
   try {
-    const configDir = path.join(__dirname, '../url_history')
+    const configDir = path.join(__dirname, '../app_data/url_history')
     const files = await import('fs/promises')
     const filesList = await files.readdir(configDir)
     return filesList.filter(file => file.endsWith('.json'))
@@ -233,7 +233,7 @@ ipcMain.handle('get-config-files', async () => {
 
 ipcMain.handle('read-config-file', async (_event, fileName: string) => {
   try {
-    const configDir = path.join(__dirname, '../url_history')
+    const configDir = path.join(__dirname, '../app_data/url_history')
     const filePath = path.join(configDir, fileName)
     
     if (!existsSync(filePath)) {
@@ -250,7 +250,7 @@ ipcMain.handle('read-config-file', async (_event, fileName: string) => {
 
 ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   try {
-    const configDir = path.join(__dirname, '../url_history')
+    const configDir = path.join(__dirname, '../app_data/url_history')
     const fs = await import('fs/promises')
     const files = await fs.readdir(configDir)
     const matchingFile = files.find(file => file.includes(appKey) && file.endsWith('.json'))
