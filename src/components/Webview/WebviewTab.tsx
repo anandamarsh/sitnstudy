@@ -19,7 +19,9 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
     onUrlChange,
     onBackClick,
     onForwardClick,
-    onRefreshClick
+    onRefreshClick,
+    canGoBack,
+    canGoForward
   } = props;
 
   return (
@@ -41,6 +43,8 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
           onBackClick={() => onBackClick(index)}
           onForwardClick={() => onForwardClick(index)}
           onRefreshClick={() => onRefreshClick(index)}
+          canGoBack={canGoBack}
+          canGoForward={canGoForward}
         />
       )}
 

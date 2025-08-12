@@ -37,6 +37,8 @@ export interface WebviewTabProps {
   onBackClick: (index: number) => void;
   onForwardClick: (index: number) => void;
   onRefreshClick: (index: number) => void;
+  canGoBack: boolean;
+  canGoForward: boolean;
 }
 
 export interface WebviewState {

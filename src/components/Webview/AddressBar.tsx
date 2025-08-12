@@ -6,9 +6,11 @@ interface AddressBarProps {
   onBackClick?: () => void;
   onForwardClick?: () => void;
   onRefreshClick?: () => void;
+  canGoBack: boolean;
+  canGoForward: boolean;
 }
 
-export default function AddressBar({ url, onBackClick, onForwardClick, onRefreshClick }: AddressBarProps): JSX.Element {
+export default function AddressBar({ url, onBackClick, onForwardClick, onRefreshClick, canGoBack, canGoForward }: AddressBarProps): JSX.Element {
   return (
     <Box
       sx={{
@@ -28,13 +30,17 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
       {/* Navigation Buttons */}
       <IconButton
         onClick={onBackClick}
+        disabled={!canGoBack}
         sx={{
           width: 32,
           height: 32,
           marginRight: 1,
-          color: "#666",
+          color: canGoBack ? "#666" : "#ccc",
           "&:hover": {
-            backgroundColor: "#e0e0e0",
+            backgroundColor: canGoBack ? "#e0e0e0" : "transparent",
+          },
+          "&.Mui-disabled": {
+            backgroundColor: "transparent",
           },
         }}
         title="Go back"
@@ -44,13 +50,17 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
 
       <IconButton
         onClick={onForwardClick}
+        disabled={!canGoForward}
         sx={{
           width: 32,
           height: 32,
           marginRight: 1,
-          color: "#666",
+          color: canGoForward ? "#666" : "#ccc",
           "&:hover": {
-            backgroundColor: "#e0e0e0",
+            backgroundColor: canGoForward ? "#e0e0e0" : "transparent",
+          },
+          "&.Mui-disabled": {
+            backgroundColor: "transparent",
           },
         }}
         title="Go forward"

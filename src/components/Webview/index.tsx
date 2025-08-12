@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Box } from "@mui/material";
 import WebviewTab from "./WebviewTab";
 import { SiteTab } from "./types";
@@ -28,6 +29,11 @@ export default function Webview(props: WebviewProps): JSX.Element {
     restoreWebviewState
   } = useWebviewState(tabs);
 
+  // Track navigation state for each webview
+  const [navigationStates, setNavigationStates] = React.useState<{
+    [key: string]: { canGoBack: boolean; canGoForward: boolean }
+  }>({});
+
   const handleBackClick = (index: number) => {
     const webview = webviewRefs.current[index];
     if (webview && typeof webview.canGoBack === 'function' && webview.canGoBack()) {
@@ -48,6 +54,33 @@ export default function Webview(props: WebviewProps): JSX.Element {
       webview.reload();
     }
   };
+
+  // Update navigation state when webview refs change
+  React.useEffect(() => {
+    const updateNavigationState = () => {
+      const newStates: { [key: string]: { canGoBack: boolean; canGoForward: boolean } } = {};
+      
+      tabs.forEach((tab, index) => {
+        const webview = webviewRefs.current[index];
+        if (webview) {
+          newStates[tab.key] = {
+            canGoBack: typeof webview.canGoBack === 'function' ? webview.canGoBack() : false,
+            canGoForward: typeof webview.canGoForward === 'function' ? webview.canGoForward() : false
+          };
+        } else {
+          newStates[tab.key] = { canGoBack: false, canGoForward: false };
+        }
+      });
+      
+      setNavigationStates(newStates);
+    };
+
+    // Update immediately and set up interval for periodic updates
+    updateNavigationState();
+    const interval = setInterval(updateNavigationState, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [tabs, webviewRefs]);
 
   // Media control functions available for external use
   useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
@@ -81,6 +114,8 @@ export default function Webview(props: WebviewProps): JSX.Element {
           onBackClick={handleBackClick}
           onForwardClick={handleForwardClick}
           onRefreshClick={handleRefreshClick}
+          canGoBack={navigationStates[t.key]?.canGoBack || false}
+          canGoForward={navigationStates[t.key]?.canGoForward || false}
         />
       ))}
     </Box>
