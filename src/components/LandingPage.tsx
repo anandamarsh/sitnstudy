@@ -48,9 +48,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
       return (
         <Avatar
           sx={{
-            width: 64,
-            height: 64,
-            fontSize: "2rem",
+            width: 80,
+            height: 80,
+            fontSize: "2.5rem",
             backgroundColor: backgroundColor,
             color: "white",
             fontWeight: "bold",
@@ -72,8 +72,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
         alt={alt}
         onError={() => setHasError(true)}
         sx={{
-          width: 64,
-          height: 64,
+          width: 80,
+          height: 80,
           objectFit: "contain",
           borderRadius: "12px",
           boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
@@ -89,20 +89,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
       return <IconImg src={site.iconPath} alt={site.title} />;
     } else if (site.iconType === "react-icon" && site.iconName === "SiOpenai") {
       return (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: 64,
-            height: 64,
-            backgroundColor: "#E5F7F0",
-            borderRadius: "16px",
-            border: "3px solid #10A37F",
-          }}
-        >
-          <SiOpenai size={64} color="#10A37F" />
-        </Box>
+                  <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: 80,
+              height: 80,
+              backgroundColor: "#E5F7F0",
+              borderRadius: "16px",
+              border: "3px solid #10A37F",
+            }}
+          >
+            <SiOpenai size={80} color="#10A37F" />
+          </Box>
       );
     }
 
@@ -125,20 +125,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
     const backgroundColor = KID_COLORS[colorIndex];
 
     return (
-      <Avatar
-        sx={{
-          width: 64,
-          height: 64,
-          fontSize: "2rem",
-          backgroundColor: backgroundColor,
-          color: "white",
-          fontWeight: "bold",
-          fontFamily:
-            "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
-          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-          border: "3px solid white",
-        }}
-      >
+              <Avatar
+          sx={{
+            width: 80,
+            height: 80,
+            fontSize: "2.5rem",
+            backgroundColor: backgroundColor,
+            color: "white",
+            fontWeight: "bold",
+            fontFamily:
+              "'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+            border: "3px solid white",
+          }}
+        >
         {site.title.charAt(0).toUpperCase()}
       </Avatar>
     );
@@ -169,16 +169,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, 200px)",
             gap: 2,
-            p: 1,
+            justifyContent: "center",
+            p: 2,
           }}
         >
           {availableApps.map((app) => (
             <Card
               key={app.key}
               sx={{
-                height: "100%",
+                width: 200,
+                height: 200,
                 display: "flex",
                 flexDirection: "column",
                 cursor: "pointer",
@@ -204,8 +206,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAppSelect }) => {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: "0.75rem",
-                    minHeight: 100,
+                    justifyContent: "center",
+                    gap: "1rem",
+                    height: "100%",
                   }}
                 >
                   {getIconComponent(app)}
