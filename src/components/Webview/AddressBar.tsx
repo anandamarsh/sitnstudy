@@ -31,7 +31,7 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
         sx={{
           width: 32,
           height: 32,
-          marginRight: 4,
+          marginRight: 1,
           color: "#666",
           "&:hover": {
             backgroundColor: "#e0e0e0",
@@ -47,7 +47,7 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
         sx={{
           width: 32,
           height: 32,
-          marginRight: 4,
+          marginRight: 1,
           color: "#666",
           "&:hover": {
             backgroundColor: "#e0e0e0",
@@ -63,7 +63,7 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
         sx={{
           width: 32,
           height: 32,
-          marginRight: 8,
+          marginRight: 2,
           color: "#666",
           "&:hover": {
             backgroundColor: "#e0e0e0",
