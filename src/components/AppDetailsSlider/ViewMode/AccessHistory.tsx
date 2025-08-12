@@ -91,6 +91,15 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
     }
   };
 
+  // Function to truncate URL to first line with ellipsis
+  const truncateUrl = (url: string) => {
+    const firstLine = url.split('\n')[0];
+    if (firstLine.length > 60) {
+      return firstLine.substring(0, 60) + '...';
+    }
+    return firstLine;
+  };
+
   const hasAccessHistory = accessHistory.length > 0;
 
   return (
@@ -163,7 +172,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
                           mt: 0.5,
                         }}
                       >
-                        {entry.url}
+                        {truncateUrl(entry.url)}
                       </Typography>
                     }
                   />

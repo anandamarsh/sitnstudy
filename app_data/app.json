@@ -58,6 +58,7 @@
     "iconType": "svg",
     "description": "Access google.com - a web application for productivity and learning.",
     "showAddressBar": true,
-    "allowExternalNavigation": true
+    "allowExternalNavigation": true,
+    "urlLogging": true
   }
 ]
