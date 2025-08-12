@@ -186,14 +186,14 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
         
       // Inject external script to intercept link clicks, form submissions, and client-side navigation
-      const moleScriptPath = path.join(__dirname, '../public/mole.js');
+              const interceptorScriptPath = path.join(__dirname, '../public/app_injections/interceptor.js');
       try {
-        const moleScript = readFileSync(moleScriptPath, 'utf8');
+        const interceptorScript = readFileSync(interceptorScriptPath, 'utf8');
         // Replace the placeholder with the actual current domain
-        const scriptWithDomain = moleScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
+        const scriptWithDomain = interceptorScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
         webContents.executeJavaScript(scriptWithDomain);
       } catch (error) {
-        console.error('Error loading mole.js script:', error);
+        console.error('Error loading interceptor.js script:', error);
         // Fallback to basic injection if file can't be loaded
         webContents.executeJavaScript(`
           console.log('URL_CHANGE:' + JSON.stringify({

@@ -37,28 +37,28 @@ export default function WebviewElement(
         };
         const domReadyListener = () => {
           if (el && typeof (el as any).executeJavaScript === "function") {
-            // Inject mole.js script into the webview
+            // Inject interceptor.js script into the webview
             try {
-              // First inject the mole.js script
+              // First inject the interceptor.js script
               (el as any).executeJavaScript(`
-              if (!window.moleScriptLoaded) {
-                // Load mole.js script
+              if (!window.interceptorScriptLoaded) {
+                // Load interceptor.js script
                 const script = document.createElement('script');
-                script.src = '/mole.js';
+                script.src = '/app_injections/interceptor.js';
                 script.onload = function() {
-                  console.log('🔗 Mole.js script loaded successfully');
-                  window.moleScriptLoaded = true;
+                  console.log('🔗 Interceptor.js script loaded successfully');
+                  window.interceptorScriptLoaded = true;
                 };
                 script.onerror = function() {
-                  console.error('🔗 Failed to load mole.js script');
+                  console.error('🔗 Failed to load interceptor.js script');
                 };
                 document.head.appendChild(script);
               } else {
-                console.log('🔗 Mole.js script already loaded');
+                console.log('🔗 Interceptor.js script already loaded');
               }
             `);
             } catch (error) {
-              console.error("Error injecting mole.js script:", error);
+              console.error("Error injecting interceptor.js script:", error);
             }
           }
         };

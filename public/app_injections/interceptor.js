@@ -247,5 +247,5 @@
     }
   };
 
-  console.log('🔗 Mole.js script loaded successfully');
+          console.log('🔗 Interceptor.js script loaded successfully');
 })();
