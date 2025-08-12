@@ -21,7 +21,7 @@
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": true,
-    "allowExternalNavigation": true,
+    "allowExternalNavigation": false,
     "showAddressBar": true
   },
   {
@@ -49,5 +49,14 @@
     "urlLogging": true,
     "allowExternalNavigation": true,
     "showAddressBar": false
+  },
+  {
+    "key": "github_me81xm10",
+    "title": "GitHub",
+    "url": "https://github.com/",
+    "iconPath": "https://github.com/favicon.ico",
+    "iconType": "svg",
+    "description": "Access github.com - a web application for productivity and learning.",
+    "showAddressBar": true
   }
 ]

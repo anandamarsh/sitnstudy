@@ -127,7 +127,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
             
             // If external navigation is allowed for the original site, don't block
             const originalSite = sites.find((s: any) => s.key === originalSiteKey)
-            if (originalSite && originalSite.allowExternalNavigation !== false) {
+            if (originalSite && originalSite.allowExternalNavigation === true) {
               console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
               return; // Allow the navigation
             }
