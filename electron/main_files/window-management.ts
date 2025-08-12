@@ -381,19 +381,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       ]
     },
     { role: 'windowMenu' },
-    {
-      label: 'Account',
-      submenu: [
-        {
-          label: 'Sign in to YouTube (secure window)',
-          click: () => openYoutubeLoginWindow(sharedSession),
-        },
-        {
-          label: 'Sign in to ChatGPT (secure window)',
-          click: () => openChatgptLoginWindow(sharedSession),
-        },
-      ],
-    },
   ]
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -401,37 +388,4 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
   return win
 }
 
-export function openChatgptLoginWindow(sharedSession: Electron.Session) {
-  const loginWin = new BrowserWindow({
-    width: 1100,
-    height: 800,
-    show: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      session: sharedSession,
-    },
-  })
-  loginWin.loadURL('https://chat.openai.com/auth/login')
-}
 
-export function openYoutubeLoginWindow(sharedSession: Electron.Session) {
-  const loginWin = new BrowserWindow({
-    width: 1100,
-    height: 800,
-    show: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      session: sharedSession,
-    },
-  })
-  loginWin.loadURL('https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/')
-  loginWin.webContents.on('did-navigate', (_event, url) => {
-    if (url.startsWith('https://www.youtube.com/')) {
-      setTimeout(() => loginWin.close(), 500)
-    }
-  })
-}
