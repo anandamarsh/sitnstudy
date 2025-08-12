@@ -49,7 +49,7 @@ export const getAvailableSites = async (): Promise<SiteConfig[]> => {
     const sites = await window.ipcRenderer.invoke('get-available-sites');
     return sites;
   } catch (error) {
-    console.error('Error reading availableSites.json:', error);
+    console.error('Error reading app.json:', error);
     return [];
   }
 };

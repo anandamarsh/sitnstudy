@@ -13,12 +13,12 @@ import { promises as fs } from 'fs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Map to track which site each webview belongs to
-const webviewSiteMap = new Map<number, string>()
+const webviewSiteMap = new Map<string, string>()
 
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
     const sites = JSON.parse(currentContent)
     
@@ -68,7 +68,7 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
 
 ipcMain.handle('remove-site', async (_event, siteKey) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
     const currentContent = readFileSync(availableSitesPath, 'utf8')
     const sites = JSON.parse(currentContent)
     
@@ -100,11 +100,11 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
 
 ipcMain.handle('get-available-sites', async () => {
   try {
-    const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+    const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
     const content = readFileSync(availableSitesPath, 'utf8')
     return JSON.parse(content)
   } catch (error) {
-    console.error('Error reading availableSites.json:', error)
+    console.error('Error reading app.json:', error)
     return []
   }
 })
@@ -112,10 +112,10 @@ ipcMain.handle('get-available-sites', async () => {
 // IPC handlers for URL logging
 ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'config')
-    const availableSitesPath = path.join(configDir, 'availableSites.json')
+    const configDir = path.join(__dirname, '..', 'src', 'app_data')
+    const availableSitesPath = path.join(configDir, 'app.json')
     
-    // Read current availableSites.json
+    // Read current app.json
     const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
     const availableSites = JSON.parse(currentContent)
     
@@ -129,7 +129,7 @@ ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: bo
       console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
       return { success: true }
     } else {
-      console.error(`Site ${siteKey} not found in availableSites.json`)
+      console.error(`Site ${siteKey} not found in app.json`)
       return { success: false, error: 'Site not found' }
     }
   } catch (error) {
@@ -140,10 +140,10 @@ ipcMain.handle('toggle-url-logging', async (_event, siteKey: string, enabled: bo
 
 ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, enabled: boolean) => {
   try {
-    const configDir = path.join(__dirname, '..', 'src', 'config')
-    const availableSitesPath = path.join(configDir, 'availableSites.json')
+    const configDir = path.join(__dirname, '..', 'src', 'app_data')
+    const availableSitesPath = path.join(configDir, 'app.json')
     
-    // Read current availableSites.json
+    // Read current app.json
     const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
     const availableSites = JSON.parse(currentContent)
     
@@ -157,7 +157,7 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
       console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
       return { success: true }
     } else {
-      console.error(`Site ${siteKey} not found in availableSites.json`)
+      console.error(`Site ${siteKey} not found in app.json`)
       return { success: false, error: 'Site not found' }
     }
   } catch (error) {
@@ -166,9 +166,37 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
   }
 })
 
+ipcMain.handle('toggle-address-bar', async (_event, siteKey: string, enabled: boolean) => {
+  try {
+    const configDir = path.join(__dirname, '..', 'src', 'app_data')
+    const availableSitesPath = path.join(configDir, 'app.json')
+    
+    // Read current app.json
+    const currentContent = await fs.readFile(availableSitesPath, 'utf-8')
+    const availableSites = JSON.parse(currentContent)
+    
+    // Find and update the site
+    const siteIndex = availableSites.findIndex((site: any) => site.key === siteKey)
+    if (siteIndex !== -1) {
+      availableSites[siteIndex].showAddressBar = enabled
+      
+      // Write back to file
+      await fs.writeFile(availableSitesPath, JSON.stringify(availableSites, null, 2))
+      console.log(`Updated address bar for ${siteKey} to ${enabled}`)
+      return { success: true }
+    } else {
+      console.error(`Site ${siteKey} not found in app.json`)
+      return { success: false, error: 'Site not found' }
+    }
+  } catch (error) {
+    console.error('Error toggling address bar:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
 ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const logFilePath = path.join(configDir, `${siteKey}_urls.json`)
     
     // Create config directory if it doesn't exist
@@ -209,7 +237,7 @@ ipcMain.handle('log-url', async (_event, siteKey: string, url: string, title?: s
 
 ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
   try {
-    const logFilePath = path.join(__dirname, '../src/config', `${siteKey}_urls.json`)
+    const logFilePath = path.join(__dirname, '../src/app_data', `${siteKey}_urls.json`)
     
     if (!existsSync(logFilePath)) {
       return { success: true, data: [] }
@@ -228,7 +256,7 @@ ipcMain.handle('get-url-log', async (_event, siteKey: string) => {
 // IPC handlers for config file access
 ipcMain.handle('get-config-files', async () => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const files = await import('fs/promises')
     const filesList = await files.readdir(configDir)
     return filesList.filter(file => file.endsWith('_urls.json'))
@@ -240,7 +268,7 @@ ipcMain.handle('get-config-files', async () => {
 
 ipcMain.handle('read-config-file', async (_event, fileName: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const filePath = path.join(configDir, fileName)
     
     if (!existsSync(filePath)) {
@@ -257,7 +285,7 @@ ipcMain.handle('read-config-file', async (_event, fileName: string) => {
 
 ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   try {
-    const configDir = path.join(__dirname, '../src/config')
+    const configDir = path.join(__dirname, '../src/app_data')
     const fs = await import('fs/promises')
     const files = await fs.readdir(configDir)
     const matchingFile = files.find(file => file.includes(appKey) && file.endsWith('_urls.json'))
@@ -427,10 +455,11 @@ app.whenReady().then(() => {
           
           try {
             // Get the site key from our webview mapping
-            originalSiteKey = webviewSiteMap.get(webContents.id);
+            const webviewId = String(webContents.id);
+            originalSiteKey = webviewSiteMap.get(webviewId);
             
             if (originalSiteKey) {
-              const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+              const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
               const sitesContent = readFileSync(availableSitesPath, 'utf8')
               const sites = JSON.parse(sitesContent)
               
@@ -465,251 +494,185 @@ app.whenReady().then(() => {
         const currentUrl = webContents.getURL();
         const currentDomain = new URL(currentUrl).hostname;
         
-        // Try to determine the site key for this webview if we don't have it yet
-        if (!webviewSiteMap.has(webContents.id)) {
-          try {
-            const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
+              // Try to determine the site key for this webview if we don't have it yet
+      const webviewId = String(webContents.id); // Convert to string to ensure it's serializable
+      if (!webviewSiteMap.has(webviewId)) {
+        try {
+          const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
+          const sitesContent = readFileSync(availableSitesPath, 'utf8')
+          const sites = JSON.parse(sitesContent)
+          
+          // Find the site by matching the current URL domain
+          const site = sites.find((s: any) => {
+            try {
+              const siteDomain = new URL(s.url).hostname
+              // Check if current domain matches the site domain or is a subdomain
+              return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain)
+            } catch {
+              return false
+            }
+          })
+          
+          if (site) {
+            webviewSiteMap.set(webviewId, site.key)
+            console.log(`Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
+          } else {
+            console.log(`Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
+            // Log available sites for debugging
+            console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
+          }
+        } catch (error) {
+          console.error('Error mapping webview to site:', error)
+        }
+      }
+        
+                // Inject external script to intercept link clicks, form submissions, and client-side navigation
+        const moleScriptPath = path.join(__dirname, '../public/mole.js');
+        try {
+          const moleScript = readFileSync(moleScriptPath, 'utf8');
+          // Replace the placeholder with the actual current domain
+          const scriptWithDomain = moleScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
+          webContents.executeJavaScript(scriptWithDomain);
+        } catch (error) {
+          console.error('Error loading mole.js script:', error);
+          // Fallback to basic injection if file can't be loaded
+          webContents.executeJavaScript(`
+            console.log('URL_CHANGE:' + JSON.stringify({
+              url: window.location.href,
+              previousUrl: window.location.href,
+              currentDomain: '${currentDomain}'
+            }));
+          `);
+        }
+       });
+       
+       // Listen for console messages from injected script
+       webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
+         if (message.startsWith('NAVIGATION_BLOCKED:')) {
+           try {
+             const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
+             if (win) {
+               // Only send serializable data to prevent cloning errors
+               win.webContents.send('navigation-blocked', {
+                 blockedUrl: data.blockedUrl || '',
+                 currentDomain: data.currentDomain || '',
+                 targetDomain: data.targetDomain || ''
+               });
+             }
+           } catch (error) {
+             console.error('Error parsing navigation blocked message:', error);
+           }
+         } else if (message.startsWith('URL_CHANGE:')) {
+           try {
+             const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
+             // Log URL changes for enabled sites - only fully qualified URLs
+             if (data.url && data.currentDomain && data.url.startsWith('http')) {
+               logUrlNavigation(data.url);
+             }
+           } catch (error) {
+             console.error('Error parsing URL change message:', error);
+           }
+         }
+       });
+
+       // Log URL navigation when logging is enabled for this site
+       const logUrlNavigation = async (url: string) => {
+        try {
+                  // First try to get the site key from our webview mapping
+        const webviewId = String(webContents.id);
+        let siteKey = webviewSiteMap.get(webviewId);
+          
+          if (!siteKey) {
+            // Fallback: Get the current site key from the webview URL
+            const currentUrl = webContents.getURL();
+            const currentDomain = new URL(currentUrl).hostname;
+            
+            // Find the site by matching domain
+            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
             const sitesContent = readFileSync(availableSitesPath, 'utf8')
             const sites = JSON.parse(sitesContent)
             
-            // Find the site by matching the current URL domain
             const site = sites.find((s: any) => {
               try {
                 const siteDomain = new URL(s.url).hostname
-                return siteDomain === currentDomain
+                // Check if current domain matches the site domain or is a subdomain
+                return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain)
               } catch {
                 return false
               }
             })
             
             if (site) {
-              webviewSiteMap.set(webContents.id, site.key)
-              console.log(`Mapped webview ${webContents.id} to site: ${site.key} (domain: ${currentDomain})`)
+              siteKey = site.key;
+              // Store this mapping for future use
+              webviewSiteMap.set(webviewId, site.key);
             }
-          } catch (error) {
-            console.error('Error mapping webview to site:', error)
           }
-        }
-        
-        // Inject script to intercept link clicks, form submissions, and client-side navigation
-        webContents.executeJavaScript(`
-          (function() {
-            const currentDomain = '${currentDomain}';
-            
-            // Intercept link clicks
-            document.addEventListener('click', function(e) {
-              const target = e.target.closest('a');
-              if (target && target.href) {
-                try {
-                  const url = new URL(target.href);
-                  if (url.hostname !== currentDomain) {
-                    // For external navigation, we'll let the main process handle the check
-                    // This ensures we respect the allowExternalNavigation setting
-                    // The main process will either allow or block based on the setting
-                    return true; // Don't prevent default, let main process decide
-                  } else if (target.href.startsWith('http')) {
-                    // Log internal navigation immediately when link is clicked - only fully qualified URLs
-                    console.log('URL_CHANGE:' + JSON.stringify({
-                      url: target.href,
-                      previousUrl: window.location.href,
-                      currentDomain: currentDomain
-                    }));
-                  }
-                } catch (error) {
-                  // Invalid URL, allow the click
-                }
-              }
-            }, true);
-            
-            // Intercept form submissions
-            document.addEventListener('submit', function(e) {
-              const form = e.target;
-              if (form.action) {
-                try {
-                  const url = new URL(form.action);
-                  if (url.hostname !== currentDomain) {
-                    // For external navigation, we'll let the main process handle the check
-                    // This ensures we respect the allowExternalNavigation setting
-                    // The main process will either allow or block based on the setting
-                    return true; // Don't prevent default, let main process decide
-                  } else if (form.action.startsWith('http')) {
-                    // Log internal navigation immediately when form is submitted - only fully qualified URLs
-                    console.log('URL_CHANGE:' + JSON.stringify({
-                      url: form.action,
-                      previousUrl: window.location.href,
-                      currentDomain: currentDomain
-                    }));
-                  }
-                } catch (error) {
-                  // Invalid URL, allow the submission
-                }
-              }
-            }, true);
-            
-            // Monitor client-side navigation changes (SPA routing, pushState, etc.)
-            let lastUrl = window.location.href;
-            
-            // Monitor pushState and replaceState
-            const originalPushState = history.pushState;
-            const originalReplaceState = history.replaceState;
-            
-                       history.pushState = function(...args) {
-               // Log the new URL immediately when pushState is called - only fully qualified URLs
-               const newUrl = args[2]; // The third argument is the URL
-               if (newUrl && newUrl.startsWith('http')) {
-                 console.log('URL_CHANGE:' + JSON.stringify({
-                   url: newUrl,
-                   previousUrl: lastUrl,
-                   currentDomain: currentDomain
-                 }));
-               }
-               
-               originalPushState.apply(this, args);
-               lastUrl = window.location.href;
-             };
-            
-                       history.replaceState = function(...args) {
-               // Log the new URL immediately when replaceState is called - only fully qualified URLs
-               const newUrl = args[2]; // The third argument is the URL
-               if (newUrl && newUrl.startsWith('http')) {
-                 console.log('URL_CHANGE:' + JSON.stringify({
-                   url: newUrl,
-                   previousUrl: lastUrl,
-                   currentDomain: currentDomain
-                 }));
-               }
-               
-               originalReplaceState.apply(this, args);
-               lastUrl = window.location.href;
-             };
-            
-            // Monitor popstate events
-            window.addEventListener('popstate', function() {
-              // Log immediately when popstate occurs
-              const currentUrl = window.location.href;
-              console.log('URL_CHANGE:' + JSON.stringify({
-                url: currentUrl,
-                previousUrl: lastUrl,
-                currentDomain: currentDomain
-              }));
-              lastUrl = currentUrl;
-            });
-            
-            // Monitor hash changes
-            window.addEventListener('hashchange', function() {
-              // Log immediately when hashchange occurs
-              const currentUrl = window.location.href;
-              console.log('URL_CHANGE:' + JSON.stringify({
-                url: currentUrl,
-                previousUrl: lastUrl,
-                currentDomain: currentDomain
-              }));
-              lastUrl = currentUrl;
-            });
-            
-
-          })();
-        `);
-      });
-      
-      // Listen for console messages from injected script
-      webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
-        if (message.startsWith('NAVIGATION_BLOCKED:')) {
-          try {
-            const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
-            if (win) {
-              win.webContents.send('navigation-blocked', data);
-            }
-          } catch (error) {
-            console.error('Error parsing navigation blocked message:', error);
-          }
-                 } else if (message.startsWith('URL_CHANGE:')) {
-             try {
-               const data = JSON.parse(message.substring(11)); // Remove 'URL_CHANGE:' prefix
-               // Log URL changes for enabled sites - only fully qualified URLs
-               if (data.url && data.currentDomain && data.url.startsWith('http')) {
-                 logUrlNavigation(data.url);
-               }
-             } catch (error) {
-               console.error('Error parsing URL change message:', error);
-             }
-           }
-      });
-
-      // Log URL navigation when logging is enabled for this site
-      const logUrlNavigation = async (url: string) => {
-        try {
-          // Get the current site key from the webview partition or URL
-          const currentUrl = webContents.getURL();
-          const currentDomain = new URL(currentUrl).hostname;
           
-          // Find the site by matching domain (this is a simple approach)
-          // In a more robust implementation, you might want to store the site key in the webview
-          const availableSitesPath = path.join(__dirname, '../src/config/availableSites.json')
-          const sitesContent = readFileSync(availableSitesPath, 'utf8')
-          const sites = JSON.parse(sitesContent)
-          
-          const site = sites.find((s: any) => {
-            try {
-              const siteDomain = new URL(s.url).hostname
-              return siteDomain === currentDomain
-            } catch {
-              return false
-            }
-          })
-          
-          if (site && site.urlLogging) {
-            // Get page title if available
-            let pageTitle = ''
-            try {
-              pageTitle = await webContents.executeJavaScript('document.title')
-            } catch (error) {
-              // Title might not be available yet
-            }
+          if (siteKey) {
+            // Get the site configuration to check if logging is enabled
+            const availableSitesPath = path.join(__dirname, '../src/app_data/app.json')
+            const sitesContent = readFileSync(availableSitesPath, 'utf8')
+            const sites = JSON.parse(sitesContent)
             
-            // Log the URL - we need to call the handler function directly
-            // Since we can't call ipcMain handlers directly, we'll implement the logging logic here
-            try {
-              const configDir = path.join(__dirname, '../src/config')
-              const logFilePath = path.join(configDir, `${site.key}_urls.json`)
-              
-              // Create config directory if it doesn't exist
-              if (!existsSync(configDir)) {
-                mkdirSync(configDir, { recursive: true })
+            const site = sites.find((s: any) => s.key === siteKey);
+            
+            if (site && site.urlLogging) {
+              // Get page title if available
+              let pageTitle = ''
+              try {
+                pageTitle = await webContents.executeJavaScript('document.title')
+              } catch (error) {
+                // Title might not be available yet
               }
               
-              // Read existing log or create new one
-              let urlLog: any[] = []
-              if (existsSync(logFilePath)) {
-                try {
-                  const content = readFileSync(logFilePath, 'utf8')
-                  urlLog = JSON.parse(content)
-                } catch (parseError) {
-                  console.error('Error parsing existing URL log:', parseError)
-                  urlLog = []
-                }
-              }
-              
-              // Check if URL already exists in the log
-              const existingEntry = urlLog.find(entry => entry.url === url);
-              
-              if (!existingEntry) {
-                // Add new entry only if it's unique
-                const newEntry = {
-                  url: url,
-                  title: pageTitle || ''
+              // Log the URL
+              try {
+                const configDir = path.join(__dirname, '../src/app_data')
+                const logFilePath = path.join(configDir, `${site.key}_urls.json`)
+                
+                // Create config directory if it doesn't exist
+                if (!existsSync(configDir)) {
+                  mkdirSync(configDir, { recursive: true })
                 }
                 
-                urlLog.push(newEntry)
+                // Read existing log or create new one
+                let urlLog: any[] = []
+                if (existsSync(logFilePath)) {
+                  try {
+                    const content = readFileSync(logFilePath, 'utf8')
+                    urlLog = JSON.parse(content)
+                  } catch (parseError) {
+                    console.error('Error parsing existing URL log:', parseError)
+                    urlLog = []
+                  }
+                }
+                
+                // Check if URL already exists in the log
+                const existingEntry = urlLog.find(entry => entry.url === url);
+                
+                if (!existingEntry) {
+                  // Add new entry only if it's unique
+                  const newEntry = {
+                    url: url,
+                    title: pageTitle || ''
+                  }
+                  
+                  urlLog.push(newEntry)
+                }
+                
+                // Write back to file
+                writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
+                
+                console.log(`URL logged for ${site.key}: ${url}`)
+              } catch (logError) {
+                console.error('Error logging URL:', logError)
               }
-              
-              // Write back to file
-              writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
-              
-              console.log(`URL logged for ${site.key}: ${url}`)
-            } catch (logError) {
-              console.error('Error logging URL:', logError)
+            } else {
+              console.log(`URL logging not enabled for site: ${siteKey}`)
             }
+          } else {
+            console.log(`Could not determine site key for webview ${webviewId}. URL: ${url}`)
           }
         } catch (error) {
           console.error('Error logging URL navigation:', error)
@@ -718,11 +681,15 @@ app.whenReady().then(() => {
 
       // Listen for full page navigations
       webContents.on('did-navigate', async (_event, navigationUrl) => {
+        const webviewId = String(webContents.id);
+        console.log(`Navigation detected for webview ${webviewId}: ${navigationUrl}`);
         await logUrlNavigation(navigationUrl);
       });
 
       // Listen for in-page navigations (SPA routing, hash changes, etc.)
       webContents.on('did-navigate-in-page', async (_event, navigationUrl) => {
+        const webviewId = String(webContents.id);
+        console.log(`In-page navigation detected for webview ${webviewId}: ${navigationUrl}`);
         await logUrlNavigation(navigationUrl);
       });
     });

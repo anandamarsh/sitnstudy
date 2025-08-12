@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   List,
@@ -8,10 +8,8 @@ import {
   ListItemText,
   Divider,
   IconButton,
-  Typography,
   Avatar,
 } from "@mui/material";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
 import { SiOpenai } from "react-icons/si";
 import { SiteConfig } from "./AppDetailsSlider/types";
 import { getAvailableSites } from "../utils/siteManager";
@@ -22,7 +20,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Apps } from "@mui/icons-material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import WebviewTabs, { SiteTab } from "./WebviewTabs";
+import Webview, { SiteTab } from "./Webview";
 import AppStore from "./AppStore";
 
 const drawerWidth = 320;
@@ -77,8 +75,6 @@ const Drawer = styled(MuiDrawer, {
 
 export default function LeftNavMenu(): JSX.Element {
   const theme = useTheme();
-  // Hardcode spacing values to avoid CSS concatenation issues
-  const closedDrawerSpacing = 64 + 50; // theme.spacing(8) = 64
   const [open, setOpen] = React.useState(false);
   const [availableSites, setAvailableSites] = React.useState<SiteTab[]>([]);
   const [tabs, setTabs] = React.useState<SiteTab[]>([]);
@@ -96,6 +92,7 @@ export default function LeftNavMenu(): JSX.Element {
           title: site.title,
           url: site.url,
           icon: getIconComponent(site),
+          showAddressBar: site.showAddressBar || false,
         }));
         setAvailableSites(siteTabs);
       } catch (error) {
@@ -115,6 +112,7 @@ export default function LeftNavMenu(): JSX.Element {
         title: site.title,
         url: site.url,
         icon: getIconComponent(site),
+        showAddressBar: site.showAddressBar || false,
       }));
       setAvailableSites(siteTabs);
     } catch (error) {
@@ -329,6 +327,7 @@ export default function LeftNavMenu(): JSX.Element {
       title: site.title,
       url: site.url,
       icon: getIconComponent(site),
+      showAddressBar: site.showAddressBar || false,
     };
     openSite(siteTab);
   };
@@ -467,7 +466,7 @@ export default function LeftNavMenu(): JSX.Element {
         {showLandingPage ? (
           <AppStore onAppSelect={handleAppSelect} />
         ) : (
-          <WebviewTabs
+          <Webview
             tabs={tabs}
             activeIndex={activeIndex}
             onCloseTab={closeTab}

@@ -25,6 +25,17 @@ export const FormFields: React.FC<FormFieldsProps> = ({
         sx={{ width: "100%" }}
       />
 
+      {/* Icon Field */}
+      <TextField
+        label="Icon"
+        value={formData.iconPath || ""}
+        onChange={(e) => onInputChange("iconPath", e.target.value)}
+        placeholder="Enter icon URL or path"
+        fullWidth
+        sx={{ width: "100%" }}
+        helperText="Icon URL will be auto-populated but you can change it"
+      />
+
       {/* Title Field */}
       <TextField
         label="Title"

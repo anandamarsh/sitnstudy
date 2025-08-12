@@ -10,7 +10,8 @@
       "color": "#FF6B6B"
     },
     "description": "Browse and manage your educational applications",
-    "allowExternalNavigation": false
+    "allowExternalNavigation": false,
+    "showAddressBar": false
   },
   {
     "key": "ixl",
@@ -20,7 +21,8 @@
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": true,
-    "allowExternalNavigation": true
+    "allowExternalNavigation": true,
+    "showAddressBar": true
   },
   {
     "key": "chatgpt",
@@ -34,7 +36,8 @@
     },
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
     "urlLogging": true,
-    "allowExternalNavigation": true
+    "allowExternalNavigation": true,
+    "showAddressBar": false
   },
   {
     "key": "youtube",
@@ -43,7 +46,8 @@
     "iconType": "svg",
     "iconPath": "/icons/youtube.svg",
     "description": "Watch educational videos and tutorials on a wide range of topics.",
-    "urlLogging": false,
-    "allowExternalNavigation": false
+    "urlLogging": true,
+    "allowExternalNavigation": true,
+    "showAddressBar": false
   }
 ]
