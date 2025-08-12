@@ -83,6 +83,7 @@ export default function WebviewElement(
     <Box
       sx={{
         width: "100%",
+        marginTop: tab.showAddressBar ? "40px" : 0,
         height: tab.showAddressBar ? "calc(100% - 40px)" : "100%",
         position: "relative",
         display: "flex",
@@ -99,9 +100,9 @@ export default function WebviewElement(
           height: "100%",
           flex: 1,
         }}
-        webpreferences="contextIsolation=yes, nodeIntegration=no, sandbox=yes"
+        webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
         allowpopups={true}
-        partition={`persist:${tab.key}`}
+        partition="persist:sitnstudy-shared"
       />
     </Box>
   );

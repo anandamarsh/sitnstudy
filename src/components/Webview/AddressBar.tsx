@@ -1,4 +1,3 @@
-
 import { Box } from "@mui/material";
 
 interface AddressBarProps {
@@ -18,6 +17,7 @@ export default function AddressBar({ url }: AddressBarProps): JSX.Element {
         alignItems: "center",
         padding: "0 12px",
         zIndex: 1001,
+        borderBottom: "1px solid #e0e0e0",
       }}
     >
       <Box

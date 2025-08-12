@@ -47,7 +47,7 @@
     "iconPath": "/icons/youtube.svg",
     "description": "Watch educational videos and tutorials on a wide range of topics.",
     "urlLogging": true,
-    "allowExternalNavigation": false,
+    "allowExternalNavigation": true,
     "showAddressBar": false
   }
 ]
