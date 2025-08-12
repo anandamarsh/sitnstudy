@@ -13,9 +13,12 @@
  */
 
 import { ipcMain } from 'electron'
+import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 import { promises as fs } from 'fs'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
