@@ -11,7 +11,7 @@
  * window and any additional windows (like login windows).
  */
 
-import { BrowserWindow, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -95,7 +95,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       const iconPng = path.join(process.env.APP_ROOT!, 'build-icons', 'icon512.png')
       const img = nativeImage.createFromPath(iconPng)
       if (!img.isEmpty()) {
-        // Note: app.dock.setIcon(img) will be called from the main file
+        app.dock.setIcon(img)
       }
     } catch {}
   }
