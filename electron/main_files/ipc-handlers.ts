@@ -94,6 +94,19 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
     // Write back to the file
     writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
     
+    // Also remove the corresponding URL history file
+    try {
+      const urlHistoryPath = path.join(__dirname, '../app_data/url_history', `${siteKey}.json`)
+      if (existsSync(urlHistoryPath)) {
+        const fs = await import('fs/promises')
+        await fs.unlink(urlHistoryPath)
+        console.log(`Removed URL history file for ${siteKey}: ${urlHistoryPath}`)
+      }
+    } catch (historyError) {
+      console.error(`Error removing URL history file for ${siteKey}:`, historyError)
+      // Don't fail the entire operation if history removal fails
+    }
+    
     return { 
       success: true, 
       message: `Successfully removed site: ${siteKey}` 

@@ -49,16 +49,5 @@
     "urlLogging": true,
     "allowExternalNavigation": true,
     "showAddressBar": false
-  },
-  {
-    "key": "google_me82aimf",
-    "title": "Google",
-    "url": "https://google.com",
-    "iconPath": "https://google.com/favicon.ico",
-    "iconType": "svg",
-    "description": "Access google.com - a web application for productivity and learning.",
-    "showAddressBar": true,
-    "allowExternalNavigation": true,
-    "urlLogging": true
   }
 ]
