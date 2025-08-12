@@ -24,10 +24,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // IPC handlers for site management
 ipcMain.handle('add-new-site', async (_event, newSite) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../app_data/app.json')
-    const currentContent = readFileSync(availableSitesPath, 'utf8')
-    const sites = JSON.parse(currentContent)
-    
     // Generate a unique filename for the SVG icon
     const iconFilename = `${newSite.key}.svg`
     const iconPath = path.join(__dirname, '../public/icons', iconFilename)
@@ -57,9 +53,15 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
     // Remove the temporary svgContent property
     delete newSite.svgContent
     
-    sites.push(newSite)
+    // Add the site using the config manager
+    const success = await configManager.addSite(newSite)
     
-    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
+    if (!success) {
+      return { 
+        success: false, 
+        message: `Failed to add site: ${newSite.title}. Site with key ${newSite.key} may already exist.`
+      }
+    }
     
     return { 
       success: true, 

@@ -77,6 +77,27 @@ class ConfigManager {
     return this.sites.find(site => site.key === siteKey)
   }
 
+  // Add a new site
+  async addSite(newSite: Site): Promise<boolean> {
+    try {
+      // Check if site with same key already exists
+      if (this.sites.find(site => site.key === newSite.key)) {
+        console.error(`Site with key ${newSite.key} already exists`)
+        return false
+      }
+      
+      this.sites.push(newSite)
+      await this.saveConfig()
+      this.notifyListeners()
+      
+      console.log(`Added new site: ${newSite.title} (${newSite.key})`)
+      return true
+    } catch (error) {
+      console.error('Error adding new site:', error)
+      return false
+    }
+  }
+
   // Update external navigation preference
   async updateExternalNavigation(siteKey: string, enabled: boolean): Promise<boolean> {
     const siteIndex = this.sites.findIndex(site => site.key === siteKey)
