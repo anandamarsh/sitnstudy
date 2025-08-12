@@ -35,6 +35,8 @@ export interface WebviewTabProps {
   onPreserveState: (tabKey: string) => void;
   onRestoreState: (tabKey: string) => void;
   onBackClick: (index: number) => void;
+  onForwardClick: (index: number) => void;
+  onRefreshClick: (index: number) => void;
 }
 
 export interface WebviewState {

@@ -35,6 +35,20 @@ export default function Webview(props: WebviewProps): JSX.Element {
     }
   };
 
+  const handleForwardClick = (index: number) => {
+    const webview = webviewRefs.current[index];
+    if (webview && typeof webview.canGoForward === 'function' && webview.canGoForward()) {
+      webview.goForward();
+    }
+  };
+
+  const handleRefreshClick = (index: number) => {
+    const webview = webviewRefs.current[index];
+    if (webview && typeof webview.reload === 'function') {
+      webview.reload();
+    }
+  };
+
   // Media control functions available for external use
   useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
 
@@ -65,6 +79,8 @@ export default function Webview(props: WebviewProps): JSX.Element {
           onPreserveState={preserveWebviewState}
           onRestoreState={restoreWebviewState}
           onBackClick={handleBackClick}
+          onForwardClick={handleForwardClick}
+          onRefreshClick={handleRefreshClick}
         />
       ))}
     </Box>

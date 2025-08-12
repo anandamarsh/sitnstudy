@@ -1,12 +1,14 @@
 import { Box, IconButton } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowBack, ArrowForward, Refresh } from "@mui/icons-material";
 
 interface AddressBarProps {
   url: string;
   onBackClick?: () => void;
+  onForwardClick?: () => void;
+  onRefreshClick?: () => void;
 }
 
-export default function AddressBar({ url, onBackClick }: AddressBarProps): JSX.Element {
+export default function AddressBar({ url, onBackClick, onForwardClick, onRefreshClick }: AddressBarProps): JSX.Element {
   return (
     <Box
       sx={{
@@ -23,9 +25,41 @@ export default function AddressBar({ url, onBackClick }: AddressBarProps): JSX.E
         backgroundColor: "#f5f5f5",
       }}
     >
-      {/* Back Button */}
+      {/* Navigation Buttons */}
       <IconButton
         onClick={onBackClick}
+        sx={{
+          width: 32,
+          height: 32,
+          marginRight: 4,
+          color: "#666",
+          "&:hover": {
+            backgroundColor: "#e0e0e0",
+          },
+        }}
+        title="Go back"
+      >
+        <ArrowBack fontSize="small" />
+      </IconButton>
+
+      <IconButton
+        onClick={onForwardClick}
+        sx={{
+          width: 32,
+          height: 32,
+          marginRight: 4,
+          color: "#666",
+          "&:hover": {
+            backgroundColor: "#e0e0e0",
+          },
+        }}
+        title="Go forward"
+      >
+        <ArrowForward fontSize="small" />
+      </IconButton>
+
+      <IconButton
+        onClick={onRefreshClick}
         sx={{
           width: 32,
           height: 32,
@@ -35,9 +69,9 @@ export default function AddressBar({ url, onBackClick }: AddressBarProps): JSX.E
             backgroundColor: "#e0e0e0",
           },
         }}
-        title="Go back"
+        title="Refresh page"
       >
-        <ArrowBack fontSize="small" />
+        <Refresh fontSize="small" />
       </IconButton>
 
       {/* Address Bar */}

@@ -17,7 +17,9 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
     currentUrl,
     linkPreview,
     onUrlChange,
-    onBackClick
+    onBackClick,
+    onForwardClick,
+    onRefreshClick
   } = props;
 
   return (
@@ -37,6 +39,8 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
         <AddressBar 
           url={currentUrl || tab.url} 
           onBackClick={() => onBackClick(index)}
+          onForwardClick={() => onForwardClick(index)}
+          onRefreshClick={() => onRefreshClick(index)}
         />
       )}
 
