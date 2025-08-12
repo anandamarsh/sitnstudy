@@ -76,25 +76,15 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
 
 ipcMain.handle('remove-site', async (_event, siteKey) => {
   try {
-    const availableSitesPath = path.join(__dirname, '../app_data/app.json')
-    const currentContent = readFileSync(availableSitesPath, 'utf8')
-    const sites = JSON.parse(currentContent)
+    // Remove the site using the config manager
+    const success = await configManager.removeSite(siteKey)
     
-    // Find the site to remove
-    const siteIndex = sites.findIndex((site: any) => site.key === siteKey)
-    
-    if (siteIndex === -1) {
+    if (!success) {
       return { 
         success: false, 
         message: `Site with key "${siteKey}" not found.` 
       }
     }
-    
-    // Remove the site
-    sites.splice(siteIndex, 1)
-    
-    // Write back to the file
-    writeFileSync(availableSitesPath, JSON.stringify(sites, null, 2), 'utf8')
     
     // Also remove the corresponding URL history file
     try {

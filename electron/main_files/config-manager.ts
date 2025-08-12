@@ -63,15 +63,16 @@ class ConfigManager {
     }
   }
 
-  private notifyListeners() {
+  private async notifyListeners() {
     this.listeners.forEach(listener => listener([...this.sites]))
     
     // Also broadcast to all renderer processes
     try {
-      const { BrowserWindow } = require('electron')
+      const { BrowserWindow } = await import('electron')
       const windows = BrowserWindow.getAllWindows()
       windows.forEach((window: any) => {
         if (!window.isDestroyed()) {
+          console.log(`Broadcasting sites-updated to window: ${window.id}`)
           window.webContents.send('sites-updated', [...this.sites])
         }
       })
@@ -101,12 +102,33 @@ class ConfigManager {
       
       this.sites.push(newSite)
       await this.saveConfig()
-      this.notifyListeners()
+      await this.notifyListeners()
       
       console.log(`Added new site: ${newSite.title} (${newSite.key})`)
       return true
     } catch (error) {
       console.error('Error adding new site:', error)
+      return false
+    }
+  }
+
+  // Remove a site
+  async removeSite(siteKey: string): Promise<boolean> {
+    try {
+      const siteIndex = this.sites.findIndex(site => site.key === siteKey)
+      if (siteIndex === -1) {
+        console.error(`Site with key ${siteKey} not found`)
+        return false
+      }
+      
+      this.sites.splice(siteIndex, 1)
+      await this.saveConfig()
+      await this.notifyListeners()
+      
+      console.log(`Removed site: ${siteKey}`)
+      return true
+    } catch (error) {
+      console.error('Error removing site:', error)
       return false
     }
   }
@@ -120,7 +142,7 @@ class ConfigManager {
 
     this.sites[siteIndex].allowExternalNavigation = enabled
     await this.saveConfig()
-    this.notifyListeners()
+    await this.notifyListeners()
     
     console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
     return true
@@ -129,13 +151,14 @@ class ConfigManager {
   // Update address bar preference
   async updateAddressBar(siteKey: string, enabled: boolean): Promise<boolean> {
     const siteIndex = this.sites.findIndex(site => site.key === siteKey)
-    if (siteIndex === -1) {
+    if (siteIndex === -1)
+    {
       return false
     }
 
     this.sites[siteIndex].showAddressBar = enabled
     await this.saveConfig()
-    this.notifyListeners()
+    await this.notifyListeners()
     
     console.log(`Updated address bar for ${siteKey} to ${enabled}`)
     return true
@@ -150,7 +173,7 @@ class ConfigManager {
 
     this.sites[siteIndex].urlLogging = enabled
     await this.saveConfig()
-    this.notifyListeners()
+    await this.notifyListeners()
     
     console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
     return true
