@@ -69,18 +69,33 @@ export default function WebviewElement(
         flexDirection: "column",
       }}
       onContextMenu={(e) => {
-        console.log('🔍 RIGHT-CLICK ON CONTAINER!', e);
+        console.log("🔍 RIGHT-CLICK ON CONTAINER!", e);
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Find the webview and try to open DevTools
-        const webview = e.currentTarget.querySelector('webview');
+        const webview = e.currentTarget.querySelector("webview");
         if (webview && (webview as any).openDevTools) {
           try {
-            console.log('🔍 Opening DevTools from container...');
-            (webview as any).openDevTools({ mode: 'detach' });
+            console.log("🔍 Opening DevTools from container...");
+            (webview as any).openDevTools({ mode: "detach" });
           } catch (error) {
-            console.error('🔍 Error opening DevTools from container:', error);
+            console.error("🔍 Error opening DevTools from container:", error);
+          }
+        }
+      }}
+      onKeyDown={(e) => {
+        // Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to open DevTools
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'i') {
+          e.preventDefault();
+          const webview = e.currentTarget.querySelector("webview");
+          if (webview && (webview as any).openDevTools) {
+            try {
+              console.log("🔍 Opening DevTools via keyboard shortcut...");
+              (webview as any).openDevTools({ mode: "detach" });
+            } catch (error) {
+              console.error("🔍 Error opening DevTools via keyboard:", error);
+            }
           }
         }
       }}
@@ -95,23 +110,23 @@ export default function WebviewElement(
           height: "100%",
           flex: 1,
         }}
-        webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
+        webpreferences="allowRunningInsecureContent,contextIsolation=false,nodeIntegration=false,webSecurity=true"
         allowpopups={true}
         partition="persist:sitnstudy-shared"
         preload="/webview-preload.js"
         onContextMenu={(e) => {
-          console.log('🔍 DIRECT RIGHT-CLICK ON WEBVIEW!', e);
+          console.log("🔍 DIRECT RIGHT-CLICK ON WEBVIEW!", e);
           e.preventDefault();
           e.stopPropagation();
-          
+
           // Try to open DevTools directly
           try {
             if (e.currentTarget && (e.currentTarget as any).openDevTools) {
-              console.log('🔍 Opening DevTools directly...');
-              (e.currentTarget as any).openDevTools({ mode: 'detach' });
+              console.log("🔍 Opening DevTools directly...");
+              (e.currentTarget as any).openDevTools({ mode: "detach" });
             }
           } catch (error) {
-            console.error('🔍 Error opening DevTools:', error);
+            console.error("🔍 Error opening DevTools:", error);
           }
         }}
       />
