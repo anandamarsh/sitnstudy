@@ -86,7 +86,7 @@ export default function WebviewElement(
       }}
       onKeyDown={(e) => {
         // Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to open DevTools
-        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'i') {
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "i") {
           e.preventDefault();
           const webview = e.currentTarget.querySelector("webview");
           if (webview && (webview as any).openDevTools) {
@@ -105,6 +105,7 @@ export default function WebviewElement(
         key={`webview-${tab.key}`}
         ref={handleWebviewRef}
         src={tab.url}
+        data-tab-key={tab.key}
         style={{
           width: "100%",
           height: "100%",

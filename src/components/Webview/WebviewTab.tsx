@@ -40,11 +40,23 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
       {tab.showAddressBar && isActive && (
         <AddressBar 
           url={currentUrl || tab.url} 
-          onBackClick={() => onBackClick(index)}
-          onForwardClick={() => onForwardClick(index)}
-          onRefreshClick={() => onRefreshClick(index)}
-          canGoBack={canGoBack}
-          canGoForward={canGoForward}
+                  onBackClick={() => onBackClick(index)}
+        onForwardClick={() => onForwardClick(index)}
+        onRefreshClick={() => onRefreshClick(index)}
+        onInspectClick={() => {
+          // Open DevTools for this webview
+          // We need to find the webview element in the DOM since webviewRef is a function
+          const webviewElement = document.querySelector(`webview[data-tab-key="${tab.key}"]`);
+          if (webviewElement && (webviewElement as any).openDevTools) {
+            try {
+              (webviewElement as any).openDevTools({ mode: 'detach' });
+            } catch (error) {
+              console.error('Error opening DevTools:', error);
+            }
+          }
+        }}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
         />
       )}
 

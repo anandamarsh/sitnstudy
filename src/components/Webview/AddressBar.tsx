@@ -1,16 +1,17 @@
 import { Box, IconButton } from "@mui/material";
-import { ArrowBack, ArrowForward, Refresh } from "@mui/icons-material";
+import { ArrowBack, ArrowForward, Refresh, Code } from "@mui/icons-material";
 
 interface AddressBarProps {
   url: string;
   onBackClick?: () => void;
   onForwardClick?: () => void;
   onRefreshClick?: () => void;
+  onInspectClick?: () => void;
   canGoBack: boolean;
   canGoForward: boolean;
 }
 
-export default function AddressBar({ url, onBackClick, onForwardClick, onRefreshClick, canGoBack, canGoForward }: AddressBarProps): JSX.Element {
+export default function AddressBar({ url, onBackClick, onForwardClick, onRefreshClick, onInspectClick, canGoBack, canGoForward }: AddressBarProps): JSX.Element {
   return (
     <Box
       sx={{
@@ -73,7 +74,7 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
         sx={{
           width: 32,
           height: 32,
-          marginRight: 2,
+          marginRight: 1,
           color: "#666",
           "&:hover": {
             backgroundColor: "#e0e0e0",
@@ -82,6 +83,23 @@ export default function AddressBar({ url, onBackClick, onForwardClick, onRefresh
         title="Refresh page"
       >
         <Refresh fontSize="small" />
+      </IconButton>
+
+      {/* Inspect Button */}
+      <IconButton
+        onClick={onInspectClick}
+        sx={{
+          width: 32,
+          height: 32,
+          marginRight: 2,
+          color: "#666",
+          "&:hover": {
+            backgroundColor: "#e0e0e0",
+          },
+        }}
+        title="Inspect Element (DevTools)"
+      >
+        <Code fontSize="small" />
       </IconButton>
 
       {/* Address Bar */}
