@@ -68,7 +68,22 @@ export default function WebviewElement(
         display: "flex",
         flexDirection: "column",
       }}
-            // Note: Context menu is now handled by webview preload script via IPC
+      onContextMenu={(e) => {
+        console.log('🔍 RIGHT-CLICK ON CONTAINER!', e);
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Find the webview and try to open DevTools
+        const webview = e.currentTarget.querySelector('webview');
+        if (webview && (webview as any).openDevTools) {
+          try {
+            console.log('🔍 Opening DevTools from container...');
+            (webview as any).openDevTools({ mode: 'detach' });
+          } catch (error) {
+            console.error('🔍 Error opening DevTools from container:', error);
+          }
+        }
+      }}
     >
       {/* eslint-disable-next-line react/no-unknown-property */}
       <webview
@@ -83,7 +98,22 @@ export default function WebviewElement(
         webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
         allowpopups={true}
         partition="persist:sitnstudy-shared"
-        preload="electron/webview-preload.js"
+        preload="/webview-preload.js"
+        onContextMenu={(e) => {
+          console.log('🔍 DIRECT RIGHT-CLICK ON WEBVIEW!', e);
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Try to open DevTools directly
+          try {
+            if (e.currentTarget && (e.currentTarget as any).openDevTools) {
+              console.log('🔍 Opening DevTools directly...');
+              (e.currentTarget as any).openDevTools({ mode: 'detach' });
+            }
+          } catch (error) {
+            console.error('🔍 Error opening DevTools:', error);
+          }
+        }}
       />
     </Box>
   );
