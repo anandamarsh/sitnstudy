@@ -477,10 +477,10 @@ function resizeMainWindowForDevTools(mainWindow: BrowserWindow | null) {
     // Resize main window to 80% width and height
     mainWindow.setSize(mainWindowWidth, mainWindowHeight);
     
-    // Center the window on screen
-    mainWindow.center();
+    // Position main window at top-left of screen
+    mainWindow.setPosition(0, 0);
     
-    console.log(`[WM] Main window resized to ${mainWindowWidth}x${mainWindowHeight} (80% of screen)`);
+    console.log(`[WM] Main window resized to ${mainWindowWidth}x${mainWindowHeight} (80% of screen) and positioned at top-left`);
   } catch (error) {
     console.error('[WM] Error resizing main window for DevTools:', error);
   }
