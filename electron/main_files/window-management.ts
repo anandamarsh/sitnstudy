@@ -11,7 +11,7 @@
  * window and any additional windows (like login windows).
  */
 
-import { app, BrowserWindow, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, screen } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
@@ -103,6 +103,18 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       // For now, allow all popups to open in the same webview
       // You can customize this behavior based on your needs
       return { action: 'allow' };
+    });
+
+    // Listen for DevTools opening to resize main window
+    webContents.on('devtools-opened', () => {
+      console.log('[WM] DevTools opened for webview, resizing main window');
+      resizeMainWindowForDevTools(win);
+    });
+
+    // Listen for DevTools closing to restore main window
+    webContents.on('devtools-closed', () => {
+      console.log('[WM] DevTools closed for webview, restoring main window');
+      restoreMainWindowSize(win);
     });
 
     // Block navigation to external domains
@@ -447,6 +459,48 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
   Menu.setApplicationMenu(menu)
 
   return win
+}
+
+// Helper functions for DevTools window management
+function resizeMainWindowForDevTools(mainWindow: BrowserWindow | null) {
+  if (!mainWindow) return;
+  
+  try {
+    // Get the current display bounds
+    const display = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = display.workAreaSize;
+    
+    // Calculate new dimensions: main window takes 60%, DevTools takes 40%
+    const mainWindowWidth = Math.round(screenWidth * 0.6);
+    const mainWindowHeight = screenHeight;
+    
+    // Resize main window to 60% width
+    mainWindow.setSize(mainWindowWidth, mainWindowHeight);
+    
+    // Position main window on the left side
+    mainWindow.setPosition(0, 0);
+    
+    console.log(`[WM] Main window resized to ${mainWindowWidth}x${mainWindowHeight} (60% of screen)`);
+  } catch (error) {
+    console.error('[WM] Error resizing main window for DevTools:', error);
+  }
+}
+
+function restoreMainWindowSize(mainWindow: BrowserWindow | null) {
+  if (!mainWindow) return;
+  
+  try {
+    // Get the current display bounds
+    const display = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = display.workAreaSize;
+    
+    // Restore main window to full screen size
+    mainWindow.setSize(screenWidth, screenHeight);
+    
+    console.log(`[WM] Main window restored to full size ${screenWidth}x${screenHeight}`);
+  } catch (error) {
+    console.error('[WM] Error restoring main window size:', error);
+  }
 }
 
 
