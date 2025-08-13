@@ -138,8 +138,6 @@
     lastUrl = currentUrl;
   });
 
-
-
   // Media control functions
   window.pauseAllMedia = function () {
     try {

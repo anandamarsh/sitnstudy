@@ -37,7 +37,7 @@
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
     "urlLogging": true,
     "allowExternalNavigation": true,
-    "showAddressBar": false
+    "showAddressBar": true
   },
   {
     "key": "youtube",
