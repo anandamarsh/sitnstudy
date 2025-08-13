@@ -12,7 +12,7 @@
  * that allow the renderer process to communicate with the main process.
  */
 
-import { ipcMain } from 'electron'
+import { ipcMain, Menu, BrowserWindow } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
@@ -270,5 +270,52 @@ ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   } catch (error) {
     console.error('Error removing URL log file:', error)
     return { success: false, message: 'Failed to remove URL log file' }
+  }
+})
+
+// IPC handler for webview context menu
+ipcMain.handle('show-webview-context-menu', async (event, pos) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) {
+      console.error('Could not find browser window for webview context menu');
+      return { success: false };
+    }
+
+    const menu = Menu.buildFromTemplate([
+      {
+        label: 'Inspect Element',
+        click: () => {
+          // Open DevTools for the webview guest
+          event.sender.openDevTools({ mode: 'detach' });
+        },
+      },
+      { type: 'separator' },
+      { 
+        label: 'Reload', 
+        click: () => event.sender.reload() 
+      },
+      { 
+        label: 'Go Back', 
+        click: () => event.sender.goBack(), 
+        enabled: event.sender.canGoBack() 
+      },
+      { 
+        label: 'Go Forward', 
+        click: () => event.sender.goForward(), 
+        enabled: event.sender.canGoForward() 
+      },
+    ]);
+
+    menu.popup({ 
+      window: win, 
+      x: Math.round(pos?.x ?? 0), 
+      y: Math.round(pos?.y ?? 0) 
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error showing webview context menu:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 })

@@ -16,6 +16,12 @@ declare global {
       }
     }
   }
+
+  interface Window {
+    electronAPI?: {
+      showWebviewContextMenu: (pos: { x: number; y: number }) => Promise<any>;
+    };
+  }
 }
 
 export {}

@@ -76,6 +76,45 @@ export default function Webview(props: WebviewProps): JSX.Element {
     };
   }, [activeIndex]);
 
+  // Listen for IPC messages from webview preload scripts
+  React.useEffect(() => {
+    const handleWebviewIpcMessage = (event: any) => {
+      if (event.channel === 'webview-context-menu') {
+        const pos = event.args?.[0] || { x: 0, y: 0 };
+        console.log('🔍 Received webview context menu request:', pos);
+        
+        // Show native context menu using the electronAPI
+        if (window.electronAPI?.showWebviewContextMenu) {
+          window.electronAPI.showWebviewContextMenu(pos);
+        }
+      }
+    };
+
+    // Add IPC message listeners to all webviews
+    const addIpcListeners = () => {
+      tabs.forEach((_tab, index) => {
+        const webview = webviewRefs.current[index];
+        if (webview && webview.addEventListener) {
+          webview.addEventListener('ipc-message', handleWebviewIpcMessage);
+        }
+      });
+    };
+
+    // Add listeners when webviews are ready
+    const timeoutId = setTimeout(addIpcListeners, 1000);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      // Clean up listeners
+      tabs.forEach((_tab, index) => {
+        const webview = webviewRefs.current[index];
+        if (webview && webview.removeEventListener) {
+          webview.removeEventListener('ipc-message', handleWebviewIpcMessage);
+        }
+      });
+    };
+  }, [tabs, webviewRefs]);
+
   // Update navigation state when webview refs change
   React.useEffect(() => {
     const updateNavigationState = () => {
