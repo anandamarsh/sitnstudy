@@ -287,7 +287,7 @@ ipcMain.handle('show-webview-context-menu', async (event, pos) => {
         label: 'Inspect Element',
         click: () => {
           // Open DevTools for the webview guest
-          event.sender.openDevTools({ mode: 'detach' });
+          event.sender.openDevTools({ mode: 'right' });
         },
       },
       { type: 'separator' },

@@ -78,7 +78,7 @@ export default function WebviewElement(
         if (webview && (webview as any).openDevTools) {
           try {
             console.log("🔍 Opening DevTools from container...");
-            (webview as any).openDevTools({ mode: "detach" });
+            (webview as any).openDevTools({ mode: "right" });
           } catch (error) {
             console.error("🔍 Error opening DevTools from container:", error);
           }
@@ -124,7 +124,7 @@ export default function WebviewElement(
           try {
             if (e.currentTarget && (e.currentTarget as any).openDevTools) {
               console.log("🔍 Opening DevTools directly...");
-              (e.currentTarget as any).openDevTools({ mode: "detach" });
+              (e.currentTarget as any).openDevTools({ mode: "right" });
             }
           } catch (error) {
             console.error("🔍 Error opening DevTools:", error);

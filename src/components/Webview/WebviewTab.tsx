@@ -49,7 +49,8 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
           const webviewElement = document.querySelector(`webview[data-tab-key="${tab.key}"]`);
           if (webviewElement && (webviewElement as any).openDevTools) {
             try {
-              (webviewElement as any).openDevTools({ mode: 'detach' });
+              // Open DevTools docked to the right of the webview
+              (webviewElement as any).openDevTools({ mode: 'right' });
             } catch (error) {
               console.error('Error opening DevTools:', error);
             }
