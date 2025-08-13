@@ -424,6 +424,14 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           accelerator: process.platform === 'darwin' ? 'Cmd+Shift+I' : 'Ctrl+Shift+I',
           click: () => win?.webContents.toggleDevTools()
         },
+        {
+          label: 'Open Webview DevTools',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Shift+W' : 'Ctrl+Shift+W',
+          click: () => {
+            // Send a message to the renderer to open webview DevTools
+            win?.webContents.send('open-webview-devtools');
+          }
+        },
 
         { type: 'separator' },
         { role: 'resetZoom' },

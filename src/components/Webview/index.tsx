@@ -55,6 +55,27 @@ export default function Webview(props: WebviewProps): JSX.Element {
     }
   };
 
+  // Listen for messages from main process to open webview DevTools
+  React.useEffect(() => {
+    const handleOpenWebviewDevTools = () => {
+      // Find the currently active webview and open its DevTools
+      const activeWebview = webviewRefs.current[activeIndex];
+      if (activeWebview && activeWebview.openDevTools) {
+        try {
+          activeWebview.openDevTools();
+        } catch (error) {
+          console.error('Error opening webview DevTools:', error);
+        }
+      }
+    };
+
+    window.ipcRenderer.on('open-webview-devtools', handleOpenWebviewDevTools);
+    
+    return () => {
+      window.ipcRenderer.removeListener('open-webview-devtools', handleOpenWebviewDevTools);
+    };
+  }, [activeIndex]);
+
   // Update navigation state when webview refs change
   React.useEffect(() => {
     const updateNavigationState = () => {
