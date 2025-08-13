@@ -72,7 +72,7 @@ export default function Webview(props: WebviewProps): JSX.Element {
     window.ipcRenderer.on('open-webview-devtools', handleOpenWebviewDevTools);
     
     return () => {
-      window.ipcRenderer.removeListener('open-webview-devtools', handleOpenWebviewDevTools);
+      window.ipcRenderer.off('open-webview-devtools', handleOpenWebviewDevTools);
     };
   }, [activeIndex]);
 
