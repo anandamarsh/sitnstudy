@@ -230,15 +230,15 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
                 try {
                   const scriptPath = path.join(siteScriptsDir, jsFile);
                   const scriptContent = readFileSync(scriptPath, 'utf8');
-                  console.log(`Injecting site-specific script: ${jsFile} for site: ${siteKey}`);
+                  console.log(`[WM] Injecting site-specific script: ${jsFile} for site: ${siteKey}`);
                   webContents.executeJavaScript(scriptContent);
                 } catch (scriptError) {
-                  console.error(`Error injecting site-specific script ${jsFile}:`, scriptError);
+                  console.error(`[WM] Error injecting site-specific script ${jsFile}:`, scriptError);
                 }
               }
             }
           } catch (dirError) {
-            console.error(`Error reading site scripts directory for ${siteKey}:`, dirError);
+            console.error(`[WM] Error reading site scripts directory for ${siteKey}:`, dirError);
           }
         }
         
@@ -255,6 +255,8 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
     });
     
+
+
     // Listen for console messages from injected script
     webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
       if (message.startsWith('NAVIGATION_BLOCKED:')) {
@@ -417,11 +419,12 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { 
+                {
           label: 'Toggle Developer Tools',
           accelerator: process.platform === 'darwin' ? 'Cmd+Shift+I' : 'Ctrl+Shift+I',
           click: () => win?.webContents.toggleDevTools()
         },
+
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
