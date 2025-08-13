@@ -21,10 +21,7 @@ export default function Webview(props: WebviewProps): JSX.Element {
     loadingProgress,
     loadedTabs,
     currentUrls,
-    linkPreview,
     handleUrlChange,
-    handleLinkHover,
-    handleLinkLeave,
     preserveWebviewState,
     restoreWebviewState
   } = useWebviewState(tabs);
@@ -194,10 +191,7 @@ export default function Webview(props: WebviewProps): JSX.Element {
           loadingProgress={loadingProgress[t.key]}
           isLoaded={loadedTabs[t.key]}
           currentUrl={currentUrls[t.key]}
-          linkPreview={linkPreview}
           onUrlChange={handleUrlChange}
-          onLinkHover={handleLinkHover}
-          onLinkLeave={handleLinkLeave}
           onPreserveState={preserveWebviewState}
           onRestoreState={restoreWebviewState}
           onBackClick={handleBackClick}

@@ -17,22 +17,14 @@ export function useWebviewState(
   const [currentUrls, setCurrentUrls] = React.useState<{
     [key: string]: string;
   }>({});
-  const [linkPreview, setLinkPreview] = React.useState<string>("");
+
 
   // Handle URL changes for a specific tab
   const handleUrlChange = React.useCallback((tabKey: string, url: string) => {
     setCurrentUrls(prev => ({ ...prev, [tabKey]: url }));
   }, []);
 
-  // Handle link hover events
-  const handleLinkHover = React.useCallback((url: string) => {
-    setLinkPreview(url);
-  }, []);
 
-  // Handle link leave events
-  const handleLinkLeave = React.useCallback(() => {
-    setLinkPreview("");
-  }, []);
 
   // Preserve webview state by keeping them mounted but hidden
   const preserveWebviewState = React.useCallback(
@@ -85,19 +77,7 @@ export function useWebviewState(
     setCurrentUrls(initialUrls);
   }, [tabs]);
 
-  // Listen for link hover messages from webviews
-  React.useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'link-hover') {
-        handleLinkHover(event.data.url);
-      } else if (event.data.type === 'link-leave') {
-        handleLinkLeave();
-      }
-    };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [handleLinkHover, handleLinkLeave]);
 
   return {
     webviewRefs,
@@ -105,10 +85,7 @@ export function useWebviewState(
     loadingProgress,
     loadedTabs,
     currentUrls,
-    linkPreview,
     handleUrlChange,
-    handleLinkHover,
-    handleLinkLeave,
     preserveWebviewState,
     restoreWebviewState
   };

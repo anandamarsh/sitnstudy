@@ -138,41 +138,7 @@
     lastUrl = currentUrl;
   });
 
-  // Monitor link hover events for address bar functionality
-  document.addEventListener("mouseover", function (e) {
-    const target = e.target.closest("a");
-    if (target && target.href) {
-      try {
-        const url = new URL(target.href);
-        // Send link hover event to parent window
-        window.parent.postMessage(
-          {
-            type: "link-hover",
-            url: target.href,
-            text: target.textContent || target.title || target.href,
-          },
-          "*"
-        );
-        console.log("[IC] 🔗 Link hover detected in webview:", target.href);
-      } catch (error) {
-        // Invalid URL, ignore
-      }
-    }
-  });
 
-  document.addEventListener("mouseout", function (e) {
-    const target = e.target.closest("a");
-    if (target && target.href) {
-      // Send link leave event to parent window
-      window.parent.postMessage(
-        {
-          type: "link-leave",
-        },
-        "*"
-      );
-      console.log("[IC] 🔗 Link hover ended in webview");
-    }
-  });
 
   // Media control functions
   window.pauseAllMedia = function () {

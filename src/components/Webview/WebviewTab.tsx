@@ -3,7 +3,7 @@ import { Box, LinearProgress } from "@mui/material";
 import { WebviewTabProps } from "./types";
 import WebviewElement from "./WebviewElement";
 import AddressBar from "./AddressBar";
-import LinkPreviewBar from "./LinkPreviewBar";
+
 
 export default function WebviewTab(props: WebviewTabProps): JSX.Element {
   const {
@@ -15,7 +15,7 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
     loadingProgress,
     isLoaded,
     currentUrl,
-    linkPreview,
+
     onUrlChange,
     onBackClick,
     onForwardClick,
@@ -47,13 +47,28 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
           // Open DevTools for this webview
           // We need to find the webview element in the DOM since webviewRef is a function
           const webviewElement = document.querySelector(`webview[data-tab-key="${tab.key}"]`);
+          console.log('🔍 Found webview element:', webviewElement);
+          console.log('🔍 Webview methods:', webviewElement ? Object.getOwnPropertyNames(webviewElement) : 'No element');
+          
           if (webviewElement && (webviewElement as any).openDevTools) {
             try {
-              // Open DevTools docked to the right of the webview
-              (webviewElement as any).openDevTools({ mode: 'right' });
+              console.log('🔍 Attempting to open DevTools...');
+              // Try without mode first, then with mode if that fails
+              (webviewElement as any).openDevTools();
+              console.log('🔍 DevTools opened successfully');
             } catch (error) {
-              console.error('Error opening DevTools:', error);
+              console.error('🔍 Error opening DevTools:', error);
+              // Fallback: try with detached mode
+              try {
+                console.log('🔍 Trying detached mode as fallback...');
+                (webviewElement as any).openDevTools({ mode: 'detach' });
+                console.log('🔍 DevTools opened in detached mode');
+              } catch (fallbackError) {
+                console.error('🔍 Fallback also failed:', fallbackError);
+              }
             }
+          } else {
+            console.error('🔍 Webview element not found or openDevTools method not available');
           }
         }}
         canGoBack={canGoBack}
@@ -79,10 +94,7 @@ export default function WebviewTab(props: WebviewTabProps): JSX.Element {
         onUrlChange={onUrlChange}
       />
 
-      {/* Link Preview Bar - shown at bottom of this webview when hovering over links */}
-      {linkPreview && isActive && (
-        <LinkPreviewBar linkPreview={linkPreview} />
-      )}
+
     </Box>
   );
 }
