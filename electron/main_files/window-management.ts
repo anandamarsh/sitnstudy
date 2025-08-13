@@ -470,17 +470,17 @@ function resizeMainWindowForDevTools(mainWindow: BrowserWindow | null) {
     const display = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = display.workAreaSize;
     
-    // Calculate new dimensions: main window takes 80% of both width and height
-    const mainWindowWidth = Math.round(screenWidth * 0.8);
-    const mainWindowHeight = Math.round(screenHeight * 0.8);
+    // Calculate new dimensions: main window takes 90% of both width and height
+    const mainWindowWidth = Math.round(screenWidth * 0.9);
+    const mainWindowHeight = Math.round(screenHeight * 0.9);
     
-    // Resize main window to 80% width and height
+    // Resize main window to 90% width and height
     mainWindow.setSize(mainWindowWidth, mainWindowHeight);
     
     // Position main window at top-left of screen
     mainWindow.setPosition(0, 0);
     
-    console.log(`[WM] Main window resized to ${mainWindowWidth}x${mainWindowHeight} (80% of screen) and positioned at top-left`);
+    console.log(`[WM] Main window resized to ${mainWindowWidth}x${mainWindowHeight} (90% of screen) and positioned at top-left`);
   } catch (error) {
     console.error('[WM] Error resizing main window for DevTools:', error);
   }
