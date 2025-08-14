@@ -42,12 +42,12 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
       }));
 
       setGifs(gifData);
-      
+
       // Randomly select one GIF to display
       const randomIndex = Math.floor(Math.random() * gifData.length);
       const randomGif = gifData[randomIndex];
       setSelectedGif(randomGif);
-      
+
       console.log("🎉 Celebration GIFs loaded:", gifData.length);
       console.log("🎉 Randomly selected GIF:", randomGif.id);
     } catch (error) {
@@ -120,7 +120,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
   return (
     <div className="celebration-gifs-overlay">
       <div className="celebration-gifs-container">
-                {isLoading ? (
+        {isLoading ? (
           <div className="loading-spinner">
             <div className="spinner"></div>
             <p>Loading celebration GIF... 🎉</p>
