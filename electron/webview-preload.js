@@ -53,29 +53,18 @@ window.addEventListener("message", async (event) => {
     }
   }
 
-  // Handle celebration triggers
+  // Handle celebration triggers - forward directly to parent window
   if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
     try {
-      console.log("🎉 Webview preload: Received celebration trigger, forwarding to main process");
+      console.log("🎉 Webview preload: Received celebration trigger, forwarding to parent window");
       console.log("🎉 Webview preload: Celebration data:", event.data.celebrationData);
       
-      const result = await ipcRenderer.invoke("trigger-celebration");
-      console.log("🎉 Webview preload: Celebration trigger result:", result);
+      // Forward the celebration message to the parent window (main app)
+      window.parent.postMessage(event.data, "*");
       
-      // Send result back to the webview content
-      window.postMessage({
-        type: "CELEBRATION_TRIGGER_RESULT",
-        result: result
-      }, "*");
-      
-      console.log("🎉 Webview preload: Celebration result sent back to webview content");
+      console.log("🎉 Webview preload: Celebration message forwarded to parent window");
     } catch (error) {
-      console.error("🎉 Webview preload: Error triggering celebration:", error);
-      // Send error back to the webview content
-      window.postMessage({
-        type: "CELEBRATION_TRIGGER_RESULT",
-        result: { success: false, message: error.message }
-      }, "*");
+      console.error("🎉 Webview preload: Error forwarding celebration:", error);
     }
   }
 });

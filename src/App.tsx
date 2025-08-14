@@ -31,26 +31,26 @@ function App() {
       });
     };
 
-    // Listen for celebration triggers from main process
-    const handleCelebrationTrigger = () => {
-      console.log('🎉 App received celebration trigger from main process');
-      console.log('🎉 App: About to trigger celebration state...');
-      triggerCelebration();
-      console.log('🎉 App: Celebration state triggered successfully!');
+    // Listen for celebration triggers from webviews via postMessage
+    const handleCelebrationMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
+        console.log('🎉 App received celebration message from webview:', event.data);
+        console.log('🎉 App: About to trigger celebration state...');
+        triggerCelebration();
+        console.log('🎉 App: Celebration state triggered successfully!');
+      }
     };
 
     // Set up the listeners
     const cleanupNavigation = (window as any).ipcRenderer.onNavigationBlocked(handleNavigationBlocked);
-    const cleanupCelebration = (window as any).ipcRenderer.on('celebration-triggered', handleCelebrationTrigger);
+    window.addEventListener('message', handleCelebrationMessage);
 
     // Cleanup function
     return () => {
       if (cleanupNavigation && typeof cleanupNavigation === 'function') {
         cleanupNavigation();
       }
-      if (cleanupCelebration && typeof cleanupCelebration === 'function') {
-        cleanupCelebration();
-      }
+      window.removeEventListener('message', handleCelebrationMessage);
     };
   }, [triggerCelebration]);
 

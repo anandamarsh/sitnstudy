@@ -20,8 +20,7 @@ import './ipc-handlers'
 // Import success feedback system
 import './success-feedback'
 
-// Import celebration handler
-import './celebration-handler'
+// Celebration is now handled directly via React state - no need for main process handler
 
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
