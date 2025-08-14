@@ -333,14 +333,57 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
     
     const filePath = path.join(sessionDir, filename);
     
-    // Always overwrite the file with just this session (one session per file)
-    const sessionToSave = data;
+    // Read existing entries if file exists
+    let entries: any[] = [];
+    if (existsSync(filePath)) {
+      try {
+        const existingContent = readFileSync(filePath, 'utf8');
+        const parsed = JSON.parse(existingContent);
+        
+        // Ensure entries is always an array
+        if (Array.isArray(parsed)) {
+          entries = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          // If file contains a single object, convert to array
+          entries = [parsed];
+        } else {
+          entries = [];
+        }
+        
+        console.log(`Loaded ${entries.length} existing entries from ${filename}`);
+      } catch (parseError) {
+        console.error('Error parsing existing file:', parseError);
+        entries = [];
+      }
+    }
     
-    // Write the session to file (overwriting any existing content)
-    writeFileSync(filePath, JSON.stringify(sessionToSave, null, 2), 'utf8');
+    // Extract questions from the session data
+    const questions = data.questions || [];
+    console.log(`Processing ${questions.length} questions from session ${data.sessionId}`);
     
-    console.log(`IXL session ${data.sessionId} saved/updated to: ${filePath}`);
-    return { success: true, message: 'Session saved successfully' };
+    // Process each question - use URL as primary key
+    questions.forEach((question: any) => {
+      if (question.url) {
+        // Check if this URL already exists
+        const existingIndex = entries.findIndex((entry: any) => entry.url === question.url);
+        
+        if (existingIndex !== -1) {
+          // Update existing entry
+          entries[existingIndex] = question;
+          console.log(`Updated existing entry for URL: ${question.url}`);
+        } else {
+          // Add new entry
+          entries.push(question);
+          console.log(`Added new entry for URL: ${question.url}`);
+        }
+      }
+    });
+    
+    // Write the updated entries array back to file
+    writeFileSync(filePath, JSON.stringify(entries, null, 2), 'utf8');
+    
+    console.log(`IXL session ${data.sessionId} processed, ${entries.length} total entries saved to: ${filePath}`);
+    return { success: true, message: 'Session processed successfully' };
     
   } catch (error) {
     console.error('Error saving IXL session:', error);

@@ -184,16 +184,13 @@ console.log("🔗 IXL-specific script loaded successfully");
     function startNewSession(url, questionData) {
       try {
         const now = new Date();
-        const sessionId = generateSessionId();
 
         // Extract question information
         const questionInfo = {
           questionNumber: sessionQuestions.length + 1,
-          questionKey: questionData.questionKey,
-          generatorCode: questionData.question?.content?.generatorCode,
-          subject: questionData.question?.content?.subject?.name,
-          gradeLevel: questionData.question?.content?.gradeLevel?.name,
-          timestamp: now.toISOString(),
+          subject: questionData.question?.content?.subject?.name || "unknown",
+          gradeLevel: questionData.question?.content?.gradeLevel?.name || "unknown",
+          status: "in_progress",
           url: url,
         };
 
@@ -202,7 +199,7 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         // Create or update current session
         currentSession = {
-          sessionId: sessionId,
+          sessionId: generateSessionId(),
           start: now.toISOString(),
           end: "in_progress",
           questions: [...sessionQuestions],
@@ -230,20 +227,28 @@ console.log("🔗 IXL-specific script loaded successfully");
         // Update session with completion data
         currentSession.end = now.toISOString();
         currentSession.status = "completed";
-        currentSession.completion = {
-          smartScore: completionData.smartScore,
-          problemsCorrect: completionData.problemsCorrect,
-          problemsAttempted: completionData.problemsAttempted,
-          timeSpent: completionData.timeSpent,
-          masteryMessage: completionData.masteryMessage,
-          gradeName: completionData.gradeName,
-          skillSubjectUrl: completionData.skillSubjectUrl,
-          gradeSubjectUrl: completionData.gradeSubjectUrl,
-          skillUrl: completionData.skillUrl,
-          skillId: completionData.skillId,
-          skillMastered: completionData.skillMastered,
-          skillAtExcellence: completionData.skillAtExcellence,
-        };
+        
+        // Update the last question with completion status and data
+        if (sessionQuestions.length > 0) {
+          const lastQuestion = sessionQuestions[sessionQuestions.length - 1];
+          lastQuestion.status = "completed";
+          
+          // Add completion data in flat structure
+          Object.assign(lastQuestion, {
+            smartScore: completionData.smartScore,
+            problemsCorrect: completionData.problemsCorrect,
+            problemsAttempted: completionData.problemsAttempted,
+            timeSpent: completionData.timeSpent,
+            masteryMessage: completionData.masteryMessage,
+            gradeName: completionData.gradeName,
+            skillSubjectUrl: completionData.skillSubjectUrl,
+            gradeSubjectUrl: completionData.gradeSubjectUrl,
+            skillUrl: completionData.skillUrl,
+            skillId: completionData.skillId,
+            skillMastered: completionData.skillMastered,
+            skillAtExcellence: completionData.skillAtExcellence,
+          });
+        }
 
         console.log("🔗 IXL: Session completed:", currentSession);
 

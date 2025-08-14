@@ -1,0 +1,59 @@
+{
+  "sessionId": "ixl_1755177468683_5vqxrnemk",
+  "start": "2025-08-14T13:17:48.683Z",
+  "end": "2025-08-14T13:17:53.287Z",
+  "questions": [
+    {
+      "questionNumber": 1,
+      "questionKey": "xe658gt1",
+      "generatorCode": "K-COUNT-90",
+      "subject": "MATH",
+      "gradeLevel": "A",
+      "timestamp": "2025-08-14T13:17:25.071Z",
+      "url": "/practice/pose?pesId=6c7333cdb85b88917e5ba71afc459a5e_mebfbvx2_gh0"
+    },
+    {
+      "questionNumber": 2,
+      "questionKey": "xe658p2t",
+      "generatorCode": "K-COUNT-90",
+      "subject": "MATH",
+      "gradeLevel": "A",
+      "timestamp": "2025-08-14T13:17:34.595Z",
+      "url": "/practice/pose?pesId=6c7333cdb85b88917e5ba71afc459a5e_mebfbvx2_gh0"
+    },
+    {
+      "questionNumber": 3,
+      "questionKey": "xe658uma",
+      "generatorCode": "K-COUNT-90",
+      "subject": "MATH",
+      "gradeLevel": "A",
+      "timestamp": "2025-08-14T13:17:40.735Z",
+      "url": "/practice/pose?pesId=6c7333cdb85b88917e5ba71afc459a5e_mebfbvx2_gh0"
+    },
+    {
+      "questionNumber": 4,
+      "questionKey": "xe6593j5",
+      "generatorCode": "K-COUNT-90",
+      "subject": "MATH",
+      "gradeLevel": "A",
+      "timestamp": "2025-08-14T13:17:48.683Z",
+      "url": "/practice/pose?pesId=6c7333cdb85b88917e5ba71afc459a5e_mebfbvx2_gh0"
+    }
+  ],
+  "status": "completed",
+  "completion": {
+    "smartScore": 100,
+    "problemsCorrect": 14,
+    "problemsAttempted": 14,
+    "timeSpent": "3 min 4 sec",
+    "masteryMessage": "Congratulations!",
+    "gradeName": "Preschool",
+    "skillSubjectUrl": "math",
+    "gradeSubjectUrl": "preschool",
+    "skillUrl": "learn-to-count-up-to-3",
+    "skillId": 2020008673,
+    "skillMastered": true,
+    "skillAtExcellence": true
+  },
+  "savedAt": "2025-08-14T13:17:53.287Z"
+}
