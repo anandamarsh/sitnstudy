@@ -284,38 +284,8 @@ console.log("🔗 IXL-specific script loaded successfully");
           savedAt: now.toISOString(),
         };
 
-        // Try to send via ipcRenderer first (direct Electron communication)
-        try {
-          const { ipcRenderer } = require("electron");
-          ipcRenderer
-            .invoke("save-ixl-session", {
-              filename: filename,
-              data: sessionData,
-            })
-            .then((result) => {
-              if (result.success) {
-                console.log("🔗 IXL: Session saved via IPC:", result.message);
-              } else {
-                console.error(
-                  "🔗 IXL: Failed to save session via IPC:",
-                  result.message
-                );
-                // Fallback to postMessage
-                sendSessionViaPostMessage(filename, sessionData);
-              }
-            })
-            .catch((error) => {
-              console.log(
-                "🔗 IXL: IPC error, falling back to postMessage:",
-                error
-              );
-              // Fallback to postMessage
-              sendSessionViaPostMessage(filename, sessionData);
-            });
-        } catch (ipcError) {
-          console.log("🔗 IXL: ipcRenderer not available, using postMessage");
-          sendSessionViaPostMessage(filename, sessionData);
-        }
+        // Use postMessage to send data to the preload script
+        sendSessionViaPostMessage(filename, sessionData);
 
         console.log("🔗 IXL: Session data sent for saving to:", filepath);
       } catch (error) {
@@ -325,16 +295,18 @@ console.log("🔗 IXL-specific script loaded successfully");
 
     function sendSessionViaPostMessage(filename, sessionData) {
       try {
-        window.parent.postMessage(
+        // Send to the preload script which will relay to main process via IPC
+        window.postMessage(
           {
-            type: "ixl-session-update",
-            action: "save-session",
-            filename: filename,
-            data: sessionData,
+            type: "IXL_SESSION_DATA",
+            sessionData: {
+              filename: filename,
+              data: sessionData,
+            }
           },
           "*"
         );
-        console.log("🔗 IXL: Session data sent via postMessage fallback");
+        console.log("🔗 IXL: Session data sent via postMessage to preload script");
       } catch (error) {
         console.error("🔗 IXL: Error sending session via postMessage:", error);
       }
@@ -367,26 +339,16 @@ console.log("🔗 IXL-specific script loaded successfully");
           JSON.stringify(metadata, null, 2)
         );
 
-        // Send to parent window via postMessage
-        window.parent.postMessage(
+        // Send to the preload script which will relay to main process via IPC
+        window.postMessage(
           {
-            type: "ixl-question-completed",
+            type: "IXL_QUESTION_COMPLETED",
             data: metadata,
           },
           "*"
         );
 
-        // Also try to send via ipcRenderer if available (for direct Electron communication)
-        if (window.ipcRenderer) {
-          try {
-            window.ipcRenderer.send("ixl-question-completed", metadata);
-            console.log("🔗 IXL: Sent via ipcRenderer to main process");
-          } catch (ipcError) {
-            console.log(
-              "🔗 IXL: ipcRenderer not available, using postMessage only"
-            );
-          }
-        }
+        console.log("🔗 IXL: Question completion data sent via postMessage to preload script");
       } catch (error) {
         console.error("🔗 IXL: Error processing completion data:", error);
       }
