@@ -20,6 +20,9 @@ import './ipc-handlers'
 // Import success feedback system
 import './success-feedback'
 
+// Import celebration handler
+import './celebration-handler'
+
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
   app.setName('Sit-N-Study')

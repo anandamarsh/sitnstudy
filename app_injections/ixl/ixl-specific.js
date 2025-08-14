@@ -256,6 +256,9 @@ console.log("🔗 IXL-specific script loaded successfully");
         // Trigger success feedback via main process
         triggerSuccessFeedback();
 
+        // Trigger celebration for session completion!
+        triggerCelebration();
+
         // Save session to file
         saveSessionToFile();
 
@@ -394,6 +397,33 @@ console.log("🔗 IXL-specific script loaded successfully");
         console.log("🔊 Audio feedback request sent to main process");
       } catch (error) {
         console.error("❌ IXL: Error triggering success feedback:", error);
+      }
+    }
+
+    // Function to trigger celebration via main process
+    function triggerCelebration() {
+      try {
+        // Send celebration trigger to the preload script
+        window.postMessage(
+          {
+            type: "TRIGGER_CELEBRATION",
+            celebrationData: {
+              type: "ixl_session_completion",
+              message: "Session completed! 🎉",
+              data: {
+                subject: currentSession?.questions?.[0]?.subject || "Unknown",
+                gradeLevel: currentSession?.questions?.[0]?.gradeLevel || "Unknown",
+                questionsCompleted: sessionQuestions.length,
+              },
+            },
+          },
+          "*"
+        );
+
+        console.log("🎉 IXL: Celebration triggered for session completion!");
+        console.log("🎊 Celebration request sent to main process");
+      } catch (error) {
+        console.error("❌ IXL: Error triggering celebration:", error);
       }
     }
   } catch (error) {

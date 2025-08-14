@@ -1,9 +1,13 @@
 import "./App.css";
 import LeftNavMenu from "./components/LeftNavMenu";
 import ErrorSnackbar from "./components/ErrorSnackbar";
+import CelebrationGifs from "./components/CelebrationGifs";
 import { useState, useEffect } from "react";
+import { useCelebration } from "./hooks/useCelebration";
 
 function App() {
+  const { isCelebrating, triggerCelebration, stopCelebration } = useCelebration();
+  
   const [errorSnackbar, setErrorSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -27,16 +31,26 @@ function App() {
       });
     };
 
-    // Set up the listener
-    const cleanup = (window as any).ipcRenderer.onNavigationBlocked(handleNavigationBlocked);
+    // Listen for celebration triggers from main process
+    const handleCelebrationTrigger = () => {
+      console.log('🎉 App received celebration trigger from main process');
+      triggerCelebration();
+    };
+
+    // Set up the listeners
+    const cleanupNavigation = (window as any).ipcRenderer.onNavigationBlocked(handleNavigationBlocked);
+    const cleanupCelebration = (window as any).ipcRenderer.on('celebration-triggered', handleCelebrationTrigger);
 
     // Cleanup function
     return () => {
-      if (cleanup && typeof cleanup === 'function') {
-        cleanup();
+      if (cleanupNavigation && typeof cleanupNavigation === 'function') {
+        cleanupNavigation();
+      }
+      if (cleanupCelebration && typeof cleanupCelebration === 'function') {
+        cleanupCelebration();
       }
     };
-  }, []);
+  }, [triggerCelebration]);
 
   const handleCloseErrorSnackbar = () => {
     setErrorSnackbar(prev => ({ ...prev, open: false }));
@@ -50,6 +64,10 @@ function App() {
         message={errorSnackbar.message}
         details={errorSnackbar.details}
         onClose={handleCloseErrorSnackbar}
+      />
+      <CelebrationGifs 
+        isVisible={isCelebrating}
+        onComplete={stopCelebration}
       />
     </>
   );

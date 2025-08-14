@@ -52,6 +52,28 @@ window.addEventListener("message", async (event) => {
       }, "*");
     }
   }
+
+  // Handle celebration triggers
+  if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
+    try {
+      console.log("🎉 Webview preload: Received celebration trigger, forwarding to main process");
+      const result = await ipcRenderer.invoke("trigger-celebration");
+      console.log("🎉 Webview preload: Celebration trigger result:", result);
+      
+      // Send result back to the webview content
+      window.postMessage({
+        type: "CELEBRATION_TRIGGER_RESULT",
+        result: result
+      }, "*");
+    } catch (error) {
+      console.error("🎉 Webview preload: Error triggering celebration:", error);
+      // Send error back to the webview content
+      window.postMessage({
+        type: "CELEBRATION_TRIGGER_RESULT",
+        result: { success: false, message: error.message }
+      }, "*");
+    }
+  }
 });
 
 console.log("🔗 Webview preload script loaded successfully");
