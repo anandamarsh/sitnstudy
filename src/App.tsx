@@ -1,6 +1,7 @@
 import "./App.css";
 import LeftNavMenu from "./components/LeftNavMenu";
 import ErrorSnackbar from "./components/ErrorSnackbar";
+import CelebrationGifs from "./components/Webview/CelebrationGifs";
 import { useState, useEffect } from "react";
 
 function App() {
@@ -28,18 +29,20 @@ function App() {
     };
 
     // Set up the listener
-    const cleanup = (window as any).ipcRenderer.onNavigationBlocked(handleNavigationBlocked);
+    const cleanup = (window as any).ipcRenderer.onNavigationBlocked(
+      handleNavigationBlocked
+    );
 
     // Cleanup function
     return () => {
-      if (cleanup && typeof cleanup === 'function') {
+      if (cleanup && typeof cleanup === "function") {
         cleanup();
       }
     };
   }, []);
 
   const handleCloseErrorSnackbar = () => {
-    setErrorSnackbar(prev => ({ ...prev, open: false }));
+    setErrorSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -51,6 +54,7 @@ function App() {
         details={errorSnackbar.details}
         onClose={handleCloseErrorSnackbar}
       />
+      <CelebrationGifs isVisible={true} onComplete={() => {}} />
     </>
   );
 }
