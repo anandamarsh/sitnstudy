@@ -338,12 +338,26 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
     if (existsSync(filePath)) {
       try {
         const existingContent = readFileSync(filePath, 'utf8');
-        sessions = JSON.parse(existingContent);
+        const parsed = JSON.parse(existingContent);
+        
+        // Ensure sessions is always an array
+        if (Array.isArray(parsed)) {
+          sessions = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          // If file contains a single session object, convert to array
+          sessions = [parsed];
+        } else {
+          sessions = [];
+        }
+        
+        console.log(`Loaded ${sessions.length} existing sessions from ${filename}`);
       } catch (parseError) {
         console.error('Error parsing existing session file:', parseError);
         sessions = [];
       }
     }
+    
+    console.log(`Processing session ${data.sessionId}, current sessions array length: ${sessions.length}`);
     
     // Check if this session already exists (by sessionId)
     const existingSessionIndex = sessions.findIndex((s: any) => s.sessionId === data.sessionId);
