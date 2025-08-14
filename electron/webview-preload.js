@@ -57,6 +57,8 @@ window.addEventListener("message", async (event) => {
   if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
     try {
       console.log("🎉 Webview preload: Received celebration trigger, forwarding to main process");
+      console.log("🎉 Webview preload: Celebration data:", event.data.celebrationData);
+      
       const result = await ipcRenderer.invoke("trigger-celebration");
       console.log("🎉 Webview preload: Celebration trigger result:", result);
       
@@ -65,6 +67,8 @@ window.addEventListener("message", async (event) => {
         type: "CELEBRATION_TRIGGER_RESULT",
         result: result
       }, "*");
+      
+      console.log("🎉 Webview preload: Celebration result sent back to webview content");
     } catch (error) {
       console.error("🎉 Webview preload: Error triggering celebration:", error);
       // Send error back to the webview content

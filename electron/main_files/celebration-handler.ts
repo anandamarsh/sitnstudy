@@ -4,17 +4,26 @@ import { ipcMain, BrowserWindow } from 'electron';
 ipcMain.handle('trigger-celebration', async () => {
   try {
     console.log('🎉 Main process: Celebration triggered!');
+    console.log('🎉 Main process: Looking for main window to send celebration event...');
     
     // Get the main window to send celebration event
     const windows = BrowserWindow.getAllWindows();
-    const mainWindow = windows.find(win => win.webContents.getURL().includes('index.html'));
+    console.log(`🎉 Main process: Found ${windows.length} total windows`);
+    
+    const mainWindow = windows.find(win => {
+      const url = win.webContents.getURL();
+      console.log(`🎉 Main process: Checking window URL: ${url}`);
+      return url.includes('index.html');
+    });
     
     if (mainWindow) {
-      console.log('🎉 Main process: Sending celebration event to renderer');
+      console.log('🎉 Main process: Main window found! Sending celebration event to renderer...');
       mainWindow.webContents.send('celebration-triggered');
+      console.log('🎉 Main process: Celebration event sent to renderer successfully!');
       return { success: true, message: 'Celebration triggered successfully' };
     } else {
-      console.warn('🎉 Main process: Main window not found');
+      console.warn('🎉 Main process: Main window not found - no windows contain index.html');
+      console.warn('🎉 Main process: Available window URLs:', windows.map(win => win.webContents.getURL()));
       return { success: false, message: 'Main window not found' };
     }
   } catch (error) {

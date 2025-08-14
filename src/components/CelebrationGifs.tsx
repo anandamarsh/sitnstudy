@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { GiphyFetch } from '@giphy/js-fetch-api';
+import React, { useState, useEffect } from "react";
+import { GiphyFetch } from "@giphy/js-fetch-api";
 
 interface GifData {
   id: string | number;
@@ -13,34 +13,37 @@ interface CelebrationGifsProps {
   onComplete?: () => void;
 }
 
-const CelebrationGifs: React.FC<CelebrationGifsProps> = ({ isVisible, onComplete }) => {
+const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
+  isVisible,
+  onComplete,
+}) => {
   const [gifs, setGifs] = useState<GifData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Giphy API key
-  const gf = new GiphyFetch('Di6sZg5SfZYwsfb5wvzjqOEjkp7Pzida');
+  const gf = new GiphyFetch("Di6sZg5SfZYwsfb5wvzjqOEjkp7Pzida");
 
   // Fetch celebration GIFs
   const fetchCelebrationGifs = async () => {
     try {
       setIsLoading(true);
-      const result = await gf.search('celebration success party', { 
-        limit: 10, 
-        rating: 'g',
-        type: 'gifs'
+      const result = await gf.search("celebration success party", {
+        limit: 10,
+        rating: "g",
+        type: "gifs",
       });
-      
-      const gifData: GifData[] = result.data.map(gif => ({
+
+      const gifData: GifData[] = result.data.map((gif) => ({
         id: gif.id,
         url: gif.images.fixed_height.url,
         width: Number(gif.images.fixed_height.width),
-        height: Number(gif.images.fixed_height.height)
+        height: Number(gif.images.fixed_height.height),
       }));
-      
+
       setGifs(gifData);
-      console.log('🎉 Celebration GIFs loaded:', gifData.length);
+      console.log("🎉 Celebration GIFs loaded:", gifData.length);
     } catch (error) {
-      console.error('❌ Error fetching celebration GIFs:', error);
+      console.error("❌ Error fetching celebration GIFs:", error);
     } finally {
       setIsLoading(false);
     }
@@ -48,25 +51,42 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({ isVisible, onComplete
 
   // Load GIFs when component becomes visible
   useEffect(() => {
+    console.log('🎉 CelebrationGifs: useEffect triggered, isVisible:', isVisible, 'gifs.length:', gifs.length);
     if (isVisible && gifs.length === 0) {
+      console.log('🎉 CelebrationGifs: Starting to fetch celebration GIFs...');
       fetchCelebrationGifs();
+    } else if (isVisible) {
+      console.log('🎉 CelebrationGifs: Already have GIFs, no need to fetch');
+    } else {
+      console.log('🎉 CelebrationGifs: Not visible, not fetching GIFs');
     }
   }, [isVisible]);
 
   // Auto-hide after animation completes
   useEffect(() => {
+    console.log('🎉 CelebrationGifs: Auto-hide useEffect triggered, isVisible:', isVisible, 'gifs.length:', gifs.length);
     if (isVisible && gifs.length > 0) {
+      console.log('🎉 CelebrationGifs: Setting 5-second timer for auto-hide...');
       const timer = setTimeout(() => {
+        console.log('🎉 CelebrationGifs: 5-second timer expired, calling onComplete...');
         if (onComplete) {
           onComplete();
         }
       }, 5000); // Show for 5 seconds
 
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('🎉 CelebrationGifs: Cleaning up auto-hide timer');
+        clearTimeout(timer);
+      };
     }
   }, [isVisible, gifs.length, onComplete]);
 
-  if (!isVisible) return null;
+  console.log('🎉 CelebrationGifs: render called, isVisible:', isVisible, 'isLoading:', isLoading, 'gifs.length:', gifs.length);
+  
+  if (!isVisible) {
+    console.log('🎉 CelebrationGifs: Not visible, returning null');
+    return null;
+  }
 
   return (
     <div className="celebration-gifs-overlay">
@@ -83,11 +103,11 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({ isVisible, onComplete
               className="celebration-gif"
               style={{
                 animationDelay: `${index * 0.2}s`,
-                animationDuration: '3s'
+                animationDuration: "3s",
               }}
             >
-              <img 
-                src={gif.url} 
+              <img
+                src={gif.url}
                 alt="Celebration!"
                 width={gif.width}
                 height={gif.height}
@@ -96,7 +116,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({ isVisible, onComplete
           ))
         )}
       </div>
-      
+
       <style>{`
         .celebration-gifs-overlay {
           position: fixed;

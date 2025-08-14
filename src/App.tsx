@@ -34,7 +34,9 @@ function App() {
     // Listen for celebration triggers from main process
     const handleCelebrationTrigger = () => {
       console.log('🎉 App received celebration trigger from main process');
+      console.log('🎉 App: About to trigger celebration state...');
       triggerCelebration();
+      console.log('🎉 App: Celebration state triggered successfully!');
     };
 
     // Set up the listeners
