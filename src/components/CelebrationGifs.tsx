@@ -18,6 +18,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
   onComplete,
 }) => {
   const [gifs, setGifs] = useState<GifData[]>([]);
+  const [selectedGif, setSelectedGif] = useState<GifData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Giphy API key
@@ -27,7 +28,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
   const fetchCelebrationGifs = async () => {
     try {
       setIsLoading(true);
-      const result = await gf.search("celebration success party", {
+      const result = await gf.search("mario luigi mansion sonic", {
         limit: 10,
         rating: "g",
         type: "gifs",
@@ -41,7 +42,14 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
       }));
 
       setGifs(gifData);
+      
+      // Randomly select one GIF to display
+      const randomIndex = Math.floor(Math.random() * gifData.length);
+      const randomGif = gifData[randomIndex];
+      setSelectedGif(randomGif);
+      
       console.log("🎉 Celebration GIFs loaded:", gifData.length);
+      console.log("🎉 Randomly selected GIF:", randomGif.id);
     } catch (error) {
       console.error("❌ Error fetching celebration GIFs:", error);
     } finally {
@@ -72,10 +80,10 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
     console.log(
       "🎉 CelebrationGifs: Auto-hide useEffect triggered, isVisible:",
       isVisible,
-      "gifs.length:",
-      gifs.length
+      "selectedGif:",
+      selectedGif?.id
     );
-    if (isVisible && gifs.length > 0) {
+    if (isVisible && selectedGif) {
       console.log(
         "🎉 CelebrationGifs: Setting 5-second timer for auto-hide..."
       );
@@ -93,15 +101,15 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
         clearTimeout(timer);
       };
     }
-  }, [isVisible, gifs.length, onComplete]);
+  }, [isVisible, selectedGif, onComplete]);
 
   console.log(
     "🎉 CelebrationGifs: render called, isVisible:",
     isVisible,
     "isLoading:",
     isLoading,
-    "gifs.length:",
-    gifs.length
+    "selectedGif:",
+    selectedGif?.id
   );
 
   if (!isVisible) {
@@ -115,27 +123,18 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
         {isLoading ? (
           <div className="loading-spinner">
             <div className="spinner"></div>
-            <p>Loading celebration GIFs... 🎉</p>
+            <p>Loading celebration GIF... 🎉</p>
           </div>
-        ) : (
-          gifs.map((gif, index) => (
-            <div
-              key={gif.id}
-              className="celebration-gif"
-              style={{
-                animationDelay: `${index * 0.2}s`,
-                animationDuration: "3s",
-              }}
-            >
-              <img
-                src={gif.url}
-                alt="Celebration!"
-                width={gif.width}
-                height={gif.height}
-              />
-            </div>
-          ))
-        )}
+        ) : selectedGif ? (
+          <div className="celebration-gif">
+            <img
+              src={selectedGif.url}
+              alt="Celebration!"
+              width={selectedGif.width}
+              height={selectedGif.height}
+            />
+          </div>
+        ) : null}
       </div>
 
       <style>{`
@@ -162,29 +161,36 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
 
         .celebration-gif {
           position: absolute;
-          animation: crawlAcrossScreen 3s ease-in-out forwards;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          animation: celebrationEntrance 3s ease-in-out forwards;
           opacity: 0;
         }
 
         .celebration-gif img {
-          border-radius: 8px;
-          box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(255, 255, 255, 0.4);
+          max-width: 80vw;
+          max-height: 80vh;
         }
 
-        @keyframes crawlAcrossScreen {
+        @keyframes celebrationEntrance {
           0% {
             opacity: 0;
-            transform: translateX(-100px) translateY(0);
+            transform: translate(-50%, -50%) scale(0.5) rotate(-10deg);
           }
           20% {
             opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
           }
           80% {
             opacity: 1;
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
           }
           100% {
             opacity: 0;
-            transform: translateX(calc(100vw + 100px)) translateY(0);
+            transform: translate(-50%, -50%) scale(0.8) rotate(5deg);
           }
         }
 

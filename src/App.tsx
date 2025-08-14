@@ -6,8 +6,9 @@ import { useState, useEffect } from "react";
 import { useCelebration } from "./hooks/useCelebration";
 
 function App() {
-  const { isCelebrating, triggerCelebration, stopCelebration } = useCelebration();
-  
+  const { isCelebrating, triggerCelebration, stopCelebration } =
+    useCelebration();
+
   const [errorSnackbar, setErrorSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -34,28 +35,33 @@ function App() {
     // Listen for celebration triggers from webviews via postMessage
     const handleCelebrationMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
-        console.log('🎉 App received celebration message from webview:', event.data);
-        console.log('🎉 App: About to trigger celebration state...');
+        console.log(
+          "🎉 App received celebration message from webview:",
+          event.data
+        );
+        console.log("🎉 App: About to trigger celebration state...");
         triggerCelebration();
-        console.log('🎉 App: Celebration state triggered successfully!');
+        console.log("🎉 App: Celebration state triggered successfully!");
       }
     };
 
     // Set up the listeners
-    const cleanupNavigation = (window as any).ipcRenderer.onNavigationBlocked(handleNavigationBlocked);
-    window.addEventListener('message', handleCelebrationMessage);
+    const cleanupNavigation = (window as any).ipcRenderer.onNavigationBlocked(
+      handleNavigationBlocked
+    );
+    window.addEventListener("message", handleCelebrationMessage);
 
     // Cleanup function
     return () => {
-      if (cleanupNavigation && typeof cleanupNavigation === 'function') {
+      if (cleanupNavigation && typeof cleanupNavigation === "function") {
         cleanupNavigation();
       }
-      window.removeEventListener('message', handleCelebrationMessage);
+      window.removeEventListener("message", handleCelebrationMessage);
     };
   }, [triggerCelebration]);
 
   const handleCloseErrorSnackbar = () => {
-    setErrorSnackbar(prev => ({ ...prev, open: false }));
+    setErrorSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -67,10 +73,7 @@ function App() {
         details={errorSnackbar.details}
         onClose={handleCloseErrorSnackbar}
       />
-      <CelebrationGifs 
-        isVisible={isCelebrating}
-        onComplete={stopCelebration}
-      />
+      <CelebrationGifs isVisible={isCelebrating} onComplete={stopCelebration} />
     </>
   );
 }
