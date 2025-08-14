@@ -333,47 +333,11 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
     
     const filePath = path.join(sessionDir, filename);
     
-    // Read existing sessions if file exists
-    let sessions = [];
-    if (existsSync(filePath)) {
-      try {
-        const existingContent = readFileSync(filePath, 'utf8');
-        const parsed = JSON.parse(existingContent);
-        
-        // Ensure sessions is always an array
-        if (Array.isArray(parsed)) {
-          sessions = parsed;
-        } else if (parsed && typeof parsed === 'object') {
-          // If file contains a single session object, convert to array
-          sessions = [parsed];
-        } else {
-          sessions = [];
-        }
-        
-        console.log(`Loaded ${sessions.length} existing sessions from ${filename}`);
-      } catch (parseError) {
-        console.error('Error parsing existing session file:', parseError);
-        sessions = [];
-      }
-    }
+    // Always overwrite the file with just this session (one session per file)
+    const sessionToSave = data;
     
-    console.log(`Processing session ${data.sessionId}, current sessions array length: ${sessions.length}`);
-    
-    // Check if this session already exists (by sessionId)
-    const existingSessionIndex = sessions.findIndex((s: any) => s.sessionId === data.sessionId);
-    
-    if (existingSessionIndex !== -1) {
-      // Update existing session
-      sessions[existingSessionIndex] = data;
-      console.log(`Updated existing IXL session: ${data.sessionId}`);
-    } else {
-      // Add new session
-      sessions.push(data);
-      console.log(`Added new IXL session: ${data.sessionId}`);
-    }
-    
-    // Write the updated sessions back to file
-    writeFileSync(filePath, JSON.stringify(sessions, null, 2), 'utf8');
+    // Write the session to file (overwriting any existing content)
+    writeFileSync(filePath, JSON.stringify(sessionToSave, null, 2), 'utf8');
     
     console.log(`IXL session ${data.sessionId} saved/updated to: ${filePath}`);
     return { success: true, message: 'Session saved successfully' };
@@ -384,26 +348,6 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
   }
 })
 
-// IPC handler for requesting IXL sessions
-ipcMain.handle('get-ixl-sessions', async (_event, filename) => {
-  try {
-    const sessionDir = path.join(__dirname, '../app_data/session_history/ixl');
-    const filePath = path.join(sessionDir, filename);
-    
-    if (!existsSync(filePath)) {
-      return { success: true, sessions: [] };
-    }
-    
-    const content = readFileSync(filePath, 'utf8');
-    const sessions = JSON.parse(content);
-    
-    console.log(`Retrieved ${sessions.length} IXL sessions from: ${filePath}`);
-    return { success: true, sessions: sessions };
-    
-  } catch (error) {
-    console.error('Error retrieving IXL sessions:', error);
-    return { success: false, message: 'Failed to retrieve sessions', sessions: [] };
-  }
-})
+
 
 

@@ -31,27 +31,7 @@ window.addEventListener("message", async (event) => {
     }
   }
   
-  // Handle IXL session requests
-  if (event.data && event.data.type === "IXL_REQUEST_SESSIONS") {
-    try {
-      console.log("🔗 Webview preload: Received IXL session request, forwarding to main process");
-      const result = await ipcRenderer.invoke("get-ixl-sessions", event.data.filename);
-      console.log("🔗 Webview preload: IXL sessions retrieved:", result);
-      
-      // Send result back to the webview content
-      window.postMessage({
-        type: "IXL_SESSIONS_RETRIEVED",
-        result: result
-      }, "*");
-    } catch (error) {
-      console.error("🔗 Webview preload: Error retrieving IXL sessions:", error);
-      // Send error back to the webview content
-      window.postMessage({
-        type: "IXL_SESSIONS_RETRIEVED",
-        result: { success: false, message: error.message, sessions: [] }
-      }, "*");
-    }
-  }
+
 });
 
 console.log("🔗 Webview preload script loaded successfully");
