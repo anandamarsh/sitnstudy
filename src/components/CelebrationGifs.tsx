@@ -51,40 +51,61 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
 
   // Load GIFs when component becomes visible
   useEffect(() => {
-    console.log('🎉 CelebrationGifs: useEffect triggered, isVisible:', isVisible, 'gifs.length:', gifs.length);
+    console.log(
+      "🎉 CelebrationGifs: useEffect triggered, isVisible:",
+      isVisible,
+      "gifs.length:",
+      gifs.length
+    );
     if (isVisible && gifs.length === 0) {
-      console.log('🎉 CelebrationGifs: Starting to fetch celebration GIFs...');
+      console.log("🎉 CelebrationGifs: Starting to fetch celebration GIFs...");
       fetchCelebrationGifs();
     } else if (isVisible) {
-      console.log('🎉 CelebrationGifs: Already have GIFs, no need to fetch');
+      console.log("🎉 CelebrationGifs: Already have GIFs, no need to fetch");
     } else {
-      console.log('🎉 CelebrationGifs: Not visible, not fetching GIFs');
+      console.log("🎉 CelebrationGifs: Not visible, not fetching GIFs");
     }
   }, [isVisible]);
 
   // Auto-hide after animation completes
   useEffect(() => {
-    console.log('🎉 CelebrationGifs: Auto-hide useEffect triggered, isVisible:', isVisible, 'gifs.length:', gifs.length);
+    console.log(
+      "🎉 CelebrationGifs: Auto-hide useEffect triggered, isVisible:",
+      isVisible,
+      "gifs.length:",
+      gifs.length
+    );
     if (isVisible && gifs.length > 0) {
-      console.log('🎉 CelebrationGifs: Setting 5-second timer for auto-hide...');
+      console.log(
+        "🎉 CelebrationGifs: Setting 5-second timer for auto-hide..."
+      );
       const timer = setTimeout(() => {
-        console.log('🎉 CelebrationGifs: 5-second timer expired, calling onComplete...');
+        console.log(
+          "🎉 CelebrationGifs: 5-second timer expired, calling onComplete..."
+        );
         if (onComplete) {
           onComplete();
         }
       }, 5000); // Show for 5 seconds
 
       return () => {
-        console.log('🎉 CelebrationGifs: Cleaning up auto-hide timer');
+        console.log("🎉 CelebrationGifs: Cleaning up auto-hide timer");
         clearTimeout(timer);
       };
     }
   }, [isVisible, gifs.length, onComplete]);
 
-  console.log('🎉 CelebrationGifs: render called, isVisible:', isVisible, 'isLoading:', isLoading, 'gifs.length:', gifs.length);
-  
+  console.log(
+    "🎉 CelebrationGifs: render called, isVisible:",
+    isVisible,
+    "isLoading:",
+    isLoading,
+    "gifs.length:",
+    gifs.length
+  );
+
   if (!isVisible) {
-    console.log('🎉 CelebrationGifs: Not visible, returning null');
+    console.log("🎉 CelebrationGifs: Not visible, returning null");
     return null;
   }
 

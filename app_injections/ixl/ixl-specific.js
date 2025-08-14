@@ -430,11 +430,13 @@ console.log("🔗 IXL-specific script loaded successfully");
 
     // 🧪 SIMULATION CODE - REMOVE AFTER TESTING! 🧪
     // Simulate celebration trigger 15 seconds after script loads
-    console.log("🧪 IXL: Simulation mode activated! Celebration will trigger in 15 seconds...");
+    console.log(
+      "🧪 IXL: Simulation mode activated! Celebration will trigger in 15 seconds..."
+    );
     setTimeout(() => {
       console.log("🧪 IXL: SIMULATION: Triggering celebration now!");
       console.log("🧪 IXL: SIMULATION: This simulates session completion");
-      
+
       // Simulate a completed session
       if (!currentSession) {
         currentSession = {
@@ -446,13 +448,13 @@ console.log("🔗 IXL-specific script loaded successfully");
               questionNumber: 1,
               subject: "MATH",
               gradeLevel: "A",
-              url: "/simulation/url"
-            }
+              url: "/simulation/url",
+            },
           ],
-          status: "completed"
+          status: "completed",
         };
       }
-      
+
       triggerCelebration();
       console.log("🧪 IXL: SIMULATION: Celebration triggered successfully!");
     }, 15000); // 15 seconds

@@ -13,7 +13,8 @@ ipcMain.handle('trigger-celebration', async () => {
     const mainWindow = windows.find(win => {
       const url = win.webContents.getURL();
       console.log(`🎉 Main process: Checking window URL: ${url}`);
-      return url.includes('index.html');
+      // Check for both production (index.html) and development (localhost:5173) URLs
+      return url.includes('index.html') || url.includes('localhost:5173') || url.includes('127.0.0.1:5173');
     });
     
     if (mainWindow) {
