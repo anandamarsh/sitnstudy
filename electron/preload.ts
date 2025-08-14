@@ -54,11 +54,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getWebviewPreloadPath: () => {
     // Return the correct path for webview preload script
     if (process.env.NODE_ENV === 'development') {
+      console.log('🔧 Dev mode: returning /webview-preload.js')
       return '/webview-preload.js'
     } else {
       // In production, use the file:// protocol with the correct path
       const path = require('path')
-      return `file://${path.join(__dirname, 'webview-preload.js')}`
+      const fullPath = path.join(process.cwd(), 'dist-electron', 'webview-preload.js')
+      const fileUrl = `file://${fullPath}`
+      console.log('🔧 Production mode: returning', fileUrl)
+      console.log('🔧 Full path:', fullPath)
+      console.log('🔧 Process cwd:', process.cwd())
+      return fileUrl
     }
   },
 })
