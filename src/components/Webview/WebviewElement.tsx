@@ -114,7 +114,7 @@ export default function WebviewElement(
         webpreferences="allowRunningInsecureContent,contextIsolation=false,nodeIntegration=false,webSecurity=true"
         allowpopups={true}
         partition="persist:sitnstudy-shared"
-        preload="/webview-preload.js"
+        preload={window.electronAPI?.getWebviewPreloadPath?.() || '/webview-preload.js'}
         onContextMenu={(e) => {
           console.log("🔍 DIRECT RIGHT-CLICK ON WEBVIEW!", e);
           e.preventDefault();

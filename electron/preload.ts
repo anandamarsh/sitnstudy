@@ -51,4 +51,14 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 contextBridge.exposeInMainWorld('electronAPI', {
   showWebviewContextMenu: (pos: { x: number; y: number }) => 
     ipcRenderer.invoke('show-webview-context-menu', pos),
+  getWebviewPreloadPath: () => {
+    // Return the correct path for webview preload script
+    if (process.env.NODE_ENV === 'development') {
+      return '/webview-preload.js'
+    } else {
+      // In production, use the file:// protocol with the correct path
+      const path = require('path')
+      return `file://${path.join(__dirname, 'webview-preload.js')}`
+    }
+  },
 })
