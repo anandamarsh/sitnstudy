@@ -1,6 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+import player from 'play-sound';
 
 // Success feedback types that web apps can trigger
 export interface SuccessFeedbackData {
@@ -58,15 +59,20 @@ async function playSuccessSound(soundFile: string): Promise<void> {
       return;
     }
     
-    // For now, we'll use a simple approach
-    // In the future, we could use native audio libraries for better control
     console.log(`🔊 Playing success sound: ${soundFile}`);
+    console.log(`🎵 Audio file path: ${audioPath}`);
     
-    // Note: In a real implementation, you might want to use a native audio library
-    // like 'play-sound' or similar for better cross-platform audio support
+    // Use play-sound library to actually play the audio
+    player().play(audioPath, (err: any) => {
+      if (err) {
+        console.error('❌ Error playing audio:', err);
+      } else {
+        console.log('✅ Success sound played successfully!');
+      }
+    });
     
   } catch (error) {
-    console.error('Error playing success sound:', error);
+    console.error('❌ Error playing success sound:', error);
   }
 }
 

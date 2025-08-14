@@ -208,6 +208,9 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         console.log("🔗 IXL: New session started:", currentSession);
 
+        // Play happy sound for every correct answer!
+        triggerSuccessFeedback();
+
         // Save session to file
         saveSessionToFile();
       } catch (error) {
@@ -373,22 +376,24 @@ console.log("🔗 IXL-specific script loaded successfully");
             type: "SUCCESS_FEEDBACK",
             feedbackData: {
               type: "ixl_completion",
-              title: "IXL Session Complete!",
-              message: "Great job completing this skill!",
+              title: "Correct Answer! 🎉",
+              message: "Great job! Keep going!",
               soundFile: "success.mp3",
-              duration: 3000,
+              duration: 2000, // Shorter duration for frequent feedback
               data: {
                 subject: currentSession?.questions?.[0]?.subject || "Unknown",
-                gradeLevel: currentSession?.questions?.[0]?.gradeLevel || "Unknown"
-              }
-            }
+                gradeLevel:
+                  currentSession?.questions?.[0]?.gradeLevel || "Unknown",
+              },
+            },
           },
           "*"
         );
 
-        console.log("🔗 IXL: Success feedback request sent!");
+        console.log("🎵 IXL: Happy sound triggered for correct answer!");
+        console.log("🔊 Audio feedback request sent to main process");
       } catch (error) {
-        console.error("🔗 IXL: Error triggering success feedback:", error);
+        console.error("❌ IXL: Error triggering success feedback:", error);
       }
     }
   } catch (error) {
