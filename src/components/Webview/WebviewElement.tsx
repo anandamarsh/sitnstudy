@@ -37,29 +37,8 @@ export default function WebviewElement(
         };
         const domReadyListener = () => {
           if (el && typeof (el as any).executeJavaScript === "function") {
-            // Inject mole.js script into the webview
-            try {
-              // First inject the mole.js script
-              (el as any).executeJavaScript(`
-              if (!window.moleScriptLoaded) {
-                // Load mole.js script
-                const script = document.createElement('script');
-                script.src = '/mole.js';
-                script.onload = function() {
-                  console.log('🔗 Mole.js script loaded successfully');
-                  window.moleScriptLoaded = true;
-                };
-                script.onerror = function() {
-                  console.error('🔗 Failed to load mole.js script');
-                };
-                document.head.appendChild(script);
-              } else {
-                console.log('🔗 Mole.js script already loaded');
-              }
-            `);
-            } catch (error) {
-              console.error("Error injecting mole.js script:", error);
-            }
+            // Note: Script injection is handled by the main process in window-management.ts
+            // This ensures the script is properly loaded with the correct domain context
           }
         };
 
@@ -89,20 +68,67 @@ export default function WebviewElement(
         display: "flex",
         flexDirection: "column",
       }}
+      onContextMenu={(e) => {
+        console.log("🔍 RIGHT-CLICK ON CONTAINER!", e);
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Find the webview and try to open DevTools
+        const webview = e.currentTarget.querySelector("webview");
+        if (webview && (webview as any).openDevTools) {
+          try {
+            console.log("🔍 Opening DevTools from container...");
+            (webview as any).openDevTools({ mode: "right" });
+          } catch (error) {
+            console.error("🔍 Error opening DevTools from container:", error);
+          }
+        }
+      }}
+      onKeyDown={(e) => {
+        // Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows/Linux) to open DevTools
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "i") {
+          e.preventDefault();
+          const webview = e.currentTarget.querySelector("webview");
+          if (webview && (webview as any).openDevTools) {
+            try {
+              console.log("🔍 Opening DevTools via keyboard shortcut...");
+              (webview as any).openDevTools({ mode: "detach" });
+            } catch (error) {
+              console.error("🔍 Error opening DevTools via keyboard:", error);
+            }
+          }
+        }
+      }}
     >
       {/* eslint-disable-next-line react/no-unknown-property */}
       <webview
         key={`webview-${tab.key}`}
         ref={handleWebviewRef}
         src={tab.url}
+        data-tab-key={tab.key}
         style={{
           width: "100%",
           height: "100%",
           flex: 1,
         }}
-        webpreferences="allowRunningInsecureContent,contextIsolation,nodeIntegration,webSecurity"
+        webpreferences="allowRunningInsecureContent,contextIsolation=false,nodeIntegration=false,webSecurity=true"
         allowpopups={true}
         partition="persist:sitnstudy-shared"
+        onContextMenu={(e) => {
+          console.log("🔍 DIRECT RIGHT-CLICK ON WEBVIEW!", e);
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Try to open DevTools directly
+          try {
+            if (e.currentTarget && (e.currentTarget as any).openDevTools) {
+              console.log("🔍 Opening DevTools directly...");
+              (e.currentTarget as any).openDevTools({ mode: "right" });
+            }
+          } catch (error) {
+            console.error("🔍 Error opening DevTools:", error);
+          }
+        }}
       />
     </Box>
   );

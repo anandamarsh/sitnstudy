@@ -11,10 +11,10 @@
  * window and any additional windows (like login windows).
  */
 
-import { app, BrowserWindow, Menu, nativeImage } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, screen } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
+import { writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { configManager } from './config-manager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -95,7 +95,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
 
   // Webview attached handler - enable popups and handle new windows
   win.webContents.on('did-attach-webview', (_event, webContents) => {
-    // Enable popups for this webview
+    // ✅ Force every webview to use our preload script for security
     webContents.setWindowOpenHandler(({ url, frameName, features }) => {
       // Open popups in the same webview or create a new window
       console.log('Webview popup requested:', url, frameName, features);
@@ -103,6 +103,18 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       // For now, allow all popups to open in the same webview
       // You can customize this behavior based on your needs
       return { action: 'allow' };
+    });
+
+    // Listen for DevTools opening to resize main window
+    webContents.on('devtools-opened', () => {
+      console.log('[WM] DevTools opened for webview, resizing main window');
+      resizeMainWindowForDevTools(win);
+    });
+
+    // Listen for DevTools closing to restore main window
+    webContents.on('devtools-closed', () => {
+      console.log('[WM] DevTools closed for webview, restoring main window');
+      restoreMainWindowSize(win);
     });
 
     // Block navigation to external domains
@@ -127,7 +139,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               
               // If external navigation is allowed for the original site, don't block
               if (originalSite && originalSite.allowExternalNavigation === true) {
-                console.log(`Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
+                console.log(`[WM] Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
                 return; // Allow the navigation
               }
             }
@@ -136,7 +148,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
             // Default to blocking if there's an error
           }
         
-        console.log(`Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
+        console.log(`[WM] Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
         event.preventDefault();
         
         // Send message to renderer to show error snackbar
@@ -174,9 +186,9 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           
           if (site) {
             webviewSiteMap.set(webviewId, site.key)
-            console.log(`Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
+            console.log(`[WM] Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
           } else {
-            console.log(`Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
+            console.log(`[WM] Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
             // Log available sites for debugging
             console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
           }
@@ -185,15 +197,65 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         }
       }
         
-      // Inject external script to intercept link clicks, form submissions, and client-side navigation
-      const moleScriptPath = path.join(__dirname, '../public/mole.js');
+      // Inject common script first
+      const commonScriptPath = path.join(__dirname, '../app_injections/common.js');
       try {
-        const moleScript = readFileSync(moleScriptPath, 'utf8');
+        const commonScript = readFileSync(commonScriptPath, 'utf8');
         // Replace the placeholder with the actual current domain
-        const scriptWithDomain = moleScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
+        const scriptWithDomain = commonScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
         webContents.executeJavaScript(scriptWithDomain);
+        
+        // Now inject site-specific scripts
+        const webviewId = String(webContents.id);
+        let siteKey = webviewSiteMap.get(webviewId);
+        
+        if (!siteKey) {
+          // Try to find site by current domain
+          const currentUrl = webContents.getURL();
+          const currentDomain = new URL(currentUrl).hostname;
+          
+          const sites = configManager.getSites();
+          const site = sites.find((s: any) => {
+            try {
+              const siteDomain = new URL(s.url).hostname;
+              return currentDomain === siteDomain || currentDomain.endsWith('.' + siteDomain);
+            } catch {
+              return false;
+            }
+          });
+          
+          if (site) {
+            siteKey = site.key;
+            webviewSiteMap.set(webviewId, site.key);
+          }
+        }
+        
+        // Inject site-specific scripts if we found a site key
+        if (siteKey && siteKey !== 'landing') {
+          const siteScriptsDir = path.join(__dirname, '../app_injections', siteKey);
+          try {
+            if (existsSync(siteScriptsDir)) {
+              const files = readdirSync(siteScriptsDir);
+              const jsFiles = files.filter((file: string) => file.endsWith('.js'));
+              
+              for (const jsFile of jsFiles) {
+                try {
+                  const scriptPath = path.join(siteScriptsDir, jsFile);
+                  const scriptContent = readFileSync(scriptPath, 'utf8');
+                  console.log(`[WM] Injecting site-specific script: ${jsFile} for site: ${siteKey}`);
+                  webContents.executeJavaScript(scriptContent);
+                } catch (scriptError) {
+                  console.error(`[WM] Error injecting site-specific script ${jsFile}:`, scriptError);
+                }
+              }
+            }
+          } catch (dirError) {
+            console.error(`[WM] Error reading site scripts directory for ${siteKey}:`, dirError);
+          }
+        }
+        
       } catch (error) {
-        console.error('Error loading mole.js script:', error);
+        console.error('Error loading common.js script:', error);
         // Fallback to basic injection if file can't be loaded
         webContents.executeJavaScript(`
           console.log('URL_CHANGE:' + JSON.stringify({
@@ -205,6 +267,8 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
     });
     
+
+
     // Listen for console messages from injected script
     webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
       if (message.startsWith('NAVIGATION_BLOCKED:')) {
@@ -317,15 +381,15 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               // Write back to file
               writeFileSync(logFilePath, JSON.stringify(urlLog, null, 2), 'utf8')
               
-              console.log(`URL logged for ${site.key}: ${url}`)
+              console.log(`[WM] URL logged for ${site.key}: ${url}`)
             } catch (logError) {
               console.error('Error logging URL:', logError)
             }
           } else {
-            console.log(`URL logging not enabled for site: ${siteKey}`)
+            console.log(`[WM] URL logging not enabled for site: ${siteKey}`)
           }
         } else {
-          console.log(`Could not determine site key for webview ${webviewId}. URL: ${url}`)
+          console.log(`[WM] Could not determine site key for webview ${webviewId}. URL: ${url}`)
         }
       } catch (error) {
         console.error('Error logging URL navigation:', error)
@@ -335,14 +399,14 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
     // Listen for full page navigations
     webContents.on('did-navigate', async (_event, navigationUrl) => {
       const webviewId = String(webContents.id);
-      console.log(`Navigation detected for webview ${webviewId}: ${navigationUrl}`);
+      console.log(`[WM] Navigation detected for webview ${webviewId}: ${navigationUrl}`);
       await logUrlNavigation(navigationUrl);
     });
 
     // Listen for in-page navigations (SPA routing, hash changes, etc.)
     webContents.on('did-navigate-in-page', async (_event, navigationUrl) => {
       const webviewId = String(webContents.id);
-      console.log(`In-page navigation detected for webview ${webviewId}: ${navigationUrl}`);
+      console.log(`[WM] In-page navigation detected for webview ${webviewId}: ${navigationUrl}`);
       await logUrlNavigation(navigationUrl);
     });
   });
@@ -367,11 +431,20 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { 
+                {
           label: 'Toggle Developer Tools',
           accelerator: process.platform === 'darwin' ? 'Cmd+Shift+I' : 'Ctrl+Shift+I',
           click: () => win?.webContents.toggleDevTools()
         },
+        {
+          label: 'Open Webview DevTools',
+          accelerator: process.platform === 'darwin' ? 'Cmd+Shift+W' : 'Ctrl+Shift+W',
+          click: () => {
+            // Send a message to the renderer to open webview DevTools
+            win?.webContents.send('open-webview-devtools');
+          }
+        },
+
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
@@ -381,19 +454,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       ]
     },
     { role: 'windowMenu' },
-    {
-      label: 'Account',
-      submenu: [
-        {
-          label: 'Sign in to YouTube (secure window)',
-          click: () => openYoutubeLoginWindow(sharedSession),
-        },
-        {
-          label: 'Sign in to ChatGPT (secure window)',
-          click: () => openChatgptLoginWindow(sharedSession),
-        },
-      ],
-    },
   ]
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -401,37 +461,46 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
   return win
 }
 
-export function openChatgptLoginWindow(sharedSession: Electron.Session) {
-  const loginWin = new BrowserWindow({
-    width: 1100,
-    height: 800,
-    show: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      session: sharedSession,
-    },
-  })
-  loginWin.loadURL('https://chat.openai.com/auth/login')
+// Helper functions for DevTools window management
+function resizeMainWindowForDevTools(mainWindow: BrowserWindow | null) {
+  if (!mainWindow) return;
+  
+  try {
+    // Get the current display bounds
+    const display = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = display.workAreaSize;
+    
+    // Calculate new dimensions: main window takes 90% of both width and height
+    const mainWindowWidth = Math.round(screenWidth * 0.9);
+    const mainWindowHeight = Math.round(screenHeight * 0.9);
+    
+    // Resize main window to 90% width and height
+    mainWindow.setSize(mainWindowWidth, mainWindowHeight);
+    
+    // Position main window at top-left of screen
+    mainWindow.setPosition(0, 0);
+    
+    console.log(`[WM] Main window resized to ${mainWindowWidth}x${mainWindowHeight} (90% of screen) and positioned at top-left`);
+  } catch (error) {
+    console.error('[WM] Error resizing main window for DevTools:', error);
+  }
 }
 
-export function openYoutubeLoginWindow(sharedSession: Electron.Session) {
-  const loginWin = new BrowserWindow({
-    width: 1100,
-    height: 800,
-    show: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      session: sharedSession,
-    },
-  })
-  loginWin.loadURL('https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/')
-  loginWin.webContents.on('did-navigate', (_event, url) => {
-    if (url.startsWith('https://www.youtube.com/')) {
-      setTimeout(() => loginWin.close(), 500)
-    }
-  })
+function restoreMainWindowSize(mainWindow: BrowserWindow | null) {
+  if (!mainWindow) return;
+  
+  try {
+    // Get the current display bounds
+    const display = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = display.workAreaSize;
+    
+    // Restore main window to full screen size
+    mainWindow.setSize(screenWidth, screenHeight);
+    
+    console.log(`[WM] Main window restored to full size ${screenWidth}x${screenHeight}`);
+  } catch (error) {
+    console.error('[WM] Error restoring main window size:', error);
+  }
 }
+
+

@@ -46,3 +46,10 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   // You can expose other APTs you need here.
   // ...
 })
+
+// Expose webview context menu API
+contextBridge.exposeInMainWorld('electronAPI', {
+  showWebviewContextMenu: (pos: { x: number; y: number }) => 
+    ipcRenderer.invoke('show-webview-context-menu', pos),
+
+})

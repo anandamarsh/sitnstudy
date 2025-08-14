@@ -12,7 +12,7 @@ dist
 dist-ssr
 release
 dist-electron
-app_data
+app_data/url_history
 *.local
 
 # Editor directories and files

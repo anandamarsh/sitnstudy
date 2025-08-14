@@ -28,12 +28,14 @@ export interface WebviewTabProps {
   loadingProgress: number;
   isLoaded: boolean;
   currentUrl: string;
-  linkPreview: string;
   onUrlChange: (tabKey: string, url: string) => void;
-  onLinkHover: (url: string) => void;
-  onLinkLeave: () => void;
   onPreserveState: (tabKey: string) => void;
   onRestoreState: (tabKey: string) => void;
+  onBackClick: (index: number) => void;
+  onForwardClick: (index: number) => void;
+  onRefreshClick: (index: number) => void;
+  canGoBack: boolean;
+  canGoForward: boolean;
 }
 
 export interface WebviewState {
@@ -42,10 +44,7 @@ export interface WebviewState {
   loadingProgress: { [key: string]: number };
   loadedTabs: { [key: string]: boolean };
   currentUrls: { [key: string]: string };
-  linkPreview: string;
   handleUrlChange: (tabKey: string, url: string) => void;
-  handleLinkHover: (url: string) => void;
-  handleLinkLeave: () => void;
   preserveWebviewState: (tabKey: string) => void;
   restoreWebviewState: (tabKey: string) => void;
 }
