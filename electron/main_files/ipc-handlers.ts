@@ -319,3 +319,53 @@ ipcMain.handle('show-webview-context-menu', async (event, pos) => {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 })
+
+// IPC handler for IXL session management
+ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
+  try {
+    const { filename, data } = sessionData;
+    const sessionDir = path.join(__dirname, '../app_data/session_history/ixl');
+    
+    // Ensure the session directory exists
+    if (!existsSync(sessionDir)) {
+      mkdirSync(sessionDir, { recursive: true });
+    }
+    
+    const filePath = path.join(sessionDir, filename);
+    
+    // Read existing sessions if file exists
+    let sessions = [];
+    if (existsSync(filePath)) {
+      try {
+        const existingContent = readFileSync(filePath, 'utf8');
+        sessions = JSON.parse(existingContent);
+      } catch (parseError) {
+        console.error('Error parsing existing session file:', parseError);
+        sessions = [];
+      }
+    }
+    
+    // Check if this session already exists (by sessionId)
+    const existingSessionIndex = sessions.findIndex((s: any) => s.sessionId === data.sessionId);
+    
+    if (existingSessionIndex !== -1) {
+      // Update existing session
+      sessions[existingSessionIndex] = data;
+      console.log(`Updated existing IXL session: ${data.sessionId}`);
+    } else {
+      // Add new session
+      sessions.push(data);
+      console.log(`Added new IXL session: ${data.sessionId}`);
+    }
+    
+    // Write the updated sessions back to file
+    writeFileSync(filePath, JSON.stringify(sessions, null, 2), 'utf8');
+    
+    console.log(`IXL session saved to: ${filePath}`);
+    return { success: true, message: 'Session saved successfully' };
+    
+  } catch (error) {
+    console.error('Error saving IXL session:', error);
+    return { success: false, message: 'Failed to save session' };
+  }
+})
