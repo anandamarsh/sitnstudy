@@ -17,6 +17,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Import IPC handlers
 import './ipc-handlers'
 
+// Import success feedback system
+import './success-feedback'
+
 // Ensure app name is set as early as possible (affects Dock/menu in dev on macOS)
 if (process.platform === 'darwin') {
   app.setName('Sit-N-Study')

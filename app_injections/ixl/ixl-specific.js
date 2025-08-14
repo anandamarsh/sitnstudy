@@ -250,8 +250,8 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         console.log("🔗 IXL: Session completed:", currentSession);
 
-        // Play success sound
-        playSuccessSound();
+        // Trigger success feedback via main process
+        triggerSuccessFeedback();
 
         // Save session to file
         saveSessionToFile();
@@ -364,23 +364,31 @@ console.log("🔗 IXL-specific script loaded successfully");
       }
     }
 
-    // Function to play success sound
-    function playSuccessSound() {
+    // Function to trigger success feedback via main process
+    function triggerSuccessFeedback() {
       try {
-        // Create audio element
-        const audio = new Audio('/audio/success.mp3');
-        
-        // Set volume to a reasonable level (0.0 to 1.0)
-        audio.volume = 0.6;
-        
-        // Play the sound
-        audio.play().catch(error => {
-          console.log("🔗 IXL: Audio playback failed (user may not have interacted yet):", error.message);
-        });
-        
-        console.log("🔗 IXL: Success sound played!");
+        // Send success feedback request to the preload script
+        window.postMessage(
+          {
+            type: "SUCCESS_FEEDBACK",
+            feedbackData: {
+              type: "ixl_completion",
+              title: "IXL Session Complete!",
+              message: "Great job completing this skill!",
+              soundFile: "success.mp3",
+              duration: 3000,
+              data: {
+                subject: currentSession?.questions?.[0]?.subject || "Unknown",
+                gradeLevel: currentSession?.questions?.[0]?.gradeLevel || "Unknown"
+              }
+            }
+          },
+          "*"
+        );
+
+        console.log("🔗 IXL: Success feedback request sent!");
       } catch (error) {
-        console.error("🔗 IXL: Error playing success sound:", error);
+        console.error("🔗 IXL: Error triggering success feedback:", error);
       }
     }
   } catch (error) {

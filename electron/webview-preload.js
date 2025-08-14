@@ -31,7 +31,27 @@ window.addEventListener("message", async (event) => {
     }
   }
   
-
+  // Handle success feedback requests
+  if (event.data && event.data.type === "SUCCESS_FEEDBACK") {
+    try {
+      console.log("🔗 Webview preload: Received success feedback request, forwarding to main process");
+      const result = await ipcRenderer.invoke("trigger-success-feedback", event.data.feedbackData);
+      console.log("🔗 Webview preload: Success feedback result:", result);
+      
+      // Send result back to the webview content
+      window.postMessage({
+        type: "SUCCESS_FEEDBACK_RESULT",
+        result: result
+      }, "*");
+    } catch (error) {
+      console.error("🔗 Webview preload: Error triggering success feedback:", error);
+      // Send error back to the webview content
+      window.postMessage({
+        type: "SUCCESS_FEEDBACK_RESULT",
+        result: { success: false, message: error.message }
+      }, "*");
+    }
+  }
 });
 
 console.log("🔗 Webview preload script loaded successfully");
