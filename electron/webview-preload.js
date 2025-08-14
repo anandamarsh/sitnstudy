@@ -12,58 +12,89 @@ window.addEventListener("message", async (event) => {
   // Handle IXL session data
   if (event.data && event.data.type === "IXL_SESSION_DATA") {
     try {
-      console.log("🔗 Webview preload: Received IXL session data, forwarding to main process");
-      const result = await ipcRenderer.invoke("save-ixl-session", event.data.sessionData);
+      console.log(
+        "🔗 Webview preload: Received IXL session data, forwarding to main process"
+      );
+      const result = await ipcRenderer.invoke(
+        "save-ixl-session",
+        event.data.sessionData
+      );
       console.log("🔗 Webview preload: IXL session save result:", result);
-      
+
       // Send result back to the webview content
-      window.postMessage({
-        type: "IXL_SESSION_SAVE_RESULT",
-        result: result
-      }, "*");
+      window.postMessage(
+        {
+          type: "IXL_SESSION_SAVE_RESULT",
+          result: result,
+        },
+        "*"
+      );
     } catch (error) {
       console.error("🔗 Webview preload: Error saving IXL session:", error);
       // Send error back to the webview content
-      window.postMessage({
-        type: "IXL_SESSION_SAVE_RESULT",
-        result: { success: false, message: error.message }
-      }, "*");
+      window.postMessage(
+        {
+          type: "IXL_SESSION_SAVE_RESULT",
+          result: { success: false, message: error.message },
+        },
+        "*"
+      );
     }
   }
-  
+
   // Handle success feedback requests
   if (event.data && event.data.type === "SUCCESS_FEEDBACK") {
     try {
-      console.log("🔗 Webview preload: Received success feedback request, forwarding to main process");
-      const result = await ipcRenderer.invoke("trigger-success-feedback", event.data.feedbackData);
+      console.log(
+        "🔗 Webview preload: Received success feedback request, forwarding to main process"
+      );
+      const result = await ipcRenderer.invoke(
+        "trigger-success-feedback",
+        event.data.feedbackData
+      );
       console.log("🔗 Webview preload: Success feedback result:", result);
-      
+
       // Send result back to the webview content
-      window.postMessage({
-        type: "SUCCESS_FEEDBACK_RESULT",
-        result: result
-      }, "*");
+      window.postMessage(
+        {
+          type: "SUCCESS_FEEDBACK_RESULT",
+          result: result,
+        },
+        "*"
+      );
     } catch (error) {
-      console.error("🔗 Webview preload: Error triggering success feedback:", error);
+      console.error(
+        "🔗 Webview preload: Error triggering success feedback:",
+        error
+      );
       // Send error back to the webview content
-      window.postMessage({
-        type: "SUCCESS_FEEDBACK_RESULT",
-        result: { success: false, message: error.message }
-      }, "*");
+      window.postMessage(
+        {
+          type: "SUCCESS_FEEDBACK_RESULT",
+          result: { success: false, message: error.message },
+        },
+        "*"
+      );
     }
   }
 
   // Handle celebration triggers - forward to parent window like other messages
   if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
     try {
-      console.log("🎉 Webview preload: Received celebration trigger, forwarding to parent window");
-      console.log("🎉 Webview preload: Celebration data:", event.data.celebrationData);
-      
+      console.log(
+        "🎉 Webview preload: Received celebration trigger, forwarding to parent window"
+      );
+      console.log(
+        "🎉 Webview preload: Celebration data:",
+        event.data.celebrationData
+      );
+
       // Forward the celebration message to the parent window (main app) - same as other working messages
       window.parent.postMessage(event.data, "*");
-      
-      console.log("🎉 Webview preload: Celebration message forwarded to parent window");
-      
+
+      console.log(
+        "🎉 Webview preload: Celebration message forwarded to parent window"
+      );
     } catch (error) {
       console.error("🎉 Webview preload: Error forwarding celebration:", error);
     }

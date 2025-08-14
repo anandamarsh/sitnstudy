@@ -3,11 +3,11 @@ import LeftNavMenu from "./components/LeftNavMenu";
 import ErrorSnackbar from "./components/ErrorSnackbar";
 import CelebrationGifs from "./components/CelebrationGifs";
 import { useState, useEffect } from "react";
-import { useCelebration } from "./hooks/useCelebration";
+import { useCelebrationStore } from "./store/celebrationStore";
 
 function App() {
   const { isCelebrating, triggerCelebration, stopCelebration } =
-    useCelebration();
+    useCelebrationStore();
 
   const [errorSnackbar, setErrorSnackbar] = useState<{
     open: boolean;
@@ -39,9 +39,10 @@ function App() {
           "🎉 App received celebration message from webview:",
           event.data
         );
-        console.log("🎉 App: About to trigger celebration state...");
-        triggerCelebration();
-        console.log("🎉 App: Celebration state triggered successfully!");
+        console.log("🎉 App: About to update global celebration state...");
+        // Update global state instead of calling local function
+        triggerCelebration(event.data.celebrationData);
+        console.log("🎉 App: Global celebration state updated successfully!");
       }
     };
 

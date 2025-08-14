@@ -22,7 +22,8 @@
     "play-sound": "^1.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@types/play-sound": "^1.1.2",
