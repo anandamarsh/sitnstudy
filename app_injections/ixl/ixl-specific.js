@@ -189,8 +189,8 @@ console.log("🔗 IXL-specific script loaded successfully");
         const questionInfo = {
           questionNumber: sessionQuestions.length + 1,
           subject: questionData.question?.content?.subject?.name || "unknown",
-          gradeLevel: questionData.question?.content?.gradeLevel?.name || "unknown",
-          status: "in_progress",
+          gradeLevel:
+            questionData.question?.content?.gradeLevel?.name || "unknown",
           url: url,
         };
 
@@ -227,19 +227,17 @@ console.log("🔗 IXL-specific script loaded successfully");
         // Update session with completion data
         currentSession.end = now.toISOString();
         currentSession.status = "completed";
-        
-        // Update the last question with completion status and data
+
+        // Update the last question with completion data
         if (sessionQuestions.length > 0) {
           const lastQuestion = sessionQuestions[sessionQuestions.length - 1];
-          lastQuestion.status = "completed";
-          
-          // Add completion data in flat structure
+
+          // Add completion data in flat structure (only essential fields)
           Object.assign(lastQuestion, {
             smartScore: completionData.smartScore,
             problemsCorrect: completionData.problemsCorrect,
             problemsAttempted: completionData.problemsAttempted,
             timeSpent: completionData.timeSpent,
-            masteryMessage: completionData.masteryMessage,
             gradeName: completionData.gradeName,
             skillSubjectUrl: completionData.skillSubjectUrl,
             gradeSubjectUrl: completionData.gradeSubjectUrl,
