@@ -183,30 +183,42 @@ console.log("🔗 IXL-specific script loaded successfully");
     function startNewSession(url, questionData) {
       try {
         const now = new Date();
-        const sessionId = generateSessionId();
-
-        // Extract subject and grade from URL
-        const urlParts = url.split('/');
-        const subject = urlParts[3] || 'unknown'; // e.g., 'maths'
-        const gradeLevel = urlParts[4] || 'unknown'; // e.g., 'year-2'
         
+        // Extract subject and grade from URL
+        const urlParts = url.split("/");
+        const subject = urlParts[3] || "unknown"; // e.g., 'maths'
+        const gradeLevel = urlParts[4] || "unknown"; // e.g., 'year-2'
+
         // Count questions from the question data
         const noOfQuestions = questionData.questions?.length || 1;
 
-        // Create or update current session
-        currentSession = {
-          sessionId: sessionId,
-          start: now.toISOString(),
-          end: "", // Empty string means session is in progress
-          subject: subject,
-          gradeLevel: gradeLevel,
-          noOfQuestions: noOfQuestions
-        };
+        // Check if we have an ongoing session for this subject/grade combination
+        // If yes, continue that session; if no, start a new one
+        if (currentSession && 
+            currentSession.subject === subject && 
+            currentSession.gradeLevel === gradeLevel &&
+            currentSession.end === "") {
+          // Continue existing session - just update question count if needed
+          if (noOfQuestions > currentSession.noOfQuestions) {
+            currentSession.noOfQuestions = noOfQuestions;
+            console.log("🔗 IXL: Updated ongoing session:", currentSession);
+            saveSessionToFile();
+          }
+        } else {
+          // Start new session
+          const sessionId = generateSessionId();
+          currentSession = {
+            sessionId: sessionId,
+            start: now.toISOString(),
+            end: "", // Empty string means session is in progress
+            subject: subject,
+            gradeLevel: gradeLevel,
+            noOfQuestions: noOfQuestions,
+          };
 
-        console.log("🔗 IXL: New session started:", currentSession);
-
-        // Save session to file
-        saveSessionToFile();
+          console.log("🔗 IXL: New session started:", currentSession);
+          saveSessionToFile();
+        }
       } catch (error) {
         console.error("🔗 IXL: Error starting new session:", error);
       }
@@ -333,6 +345,27 @@ console.log("🔗 IXL-specific script loaded successfully");
         );
       } catch (error) {
         console.error("🔗 IXL: Error processing completion data:", error);
+      }
+    }
+
+    // Function to check if we have an ongoing session for the current subject/grade
+    function checkForOngoingSession(subject, gradeLevel) {
+      try {
+        const now = new Date();
+        const filename = `${String(now.getMonth() + 1).padStart(2, "0")}_${String(now.getDate()).padStart(2, "0")}.json`;
+        
+        // Request the current day's sessions from the main process
+        window.postMessage(
+          {
+            type: "IXL_REQUEST_SESSIONS",
+            filename: filename
+          },
+          "*"
+        );
+        
+        console.log("🔗 IXL: Requested sessions for ongoing session check");
+      } catch (error) {
+        console.error("🔗 IXL: Error checking for ongoing session:", error);
       }
     }
   } catch (error) {
