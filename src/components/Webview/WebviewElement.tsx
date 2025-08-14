@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import { SiteTab } from "./types";
 
@@ -12,6 +12,18 @@ export default function WebviewElement(
   props: WebviewElementProps
 ): JSX.Element {
   const { tab, webviewRef, onUrlChange } = props;
+  const [preloadPath, setPreloadPath] = useState<string>('/webview-preload.js');
+
+  // Get the preload path when the component mounts
+  useEffect(() => {
+    if (window.electronAPI?.getWebviewPreloadPath) {
+      const path = window.electronAPI.getWebviewPreloadPath();
+      console.log('🔧 WebviewElement: Setting preload path to:', path);
+      setPreloadPath(path);
+    } else {
+      console.log('🔧 WebviewElement: electronAPI not available, using fallback path');
+    }
+  }, []);
 
   const handleWebviewRef = React.useCallback(
     (el: HTMLWebViewElement | null) => {
@@ -114,7 +126,7 @@ export default function WebviewElement(
         webpreferences="allowRunningInsecureContent,contextIsolation=false,nodeIntegration=false,webSecurity=true"
         allowpopups={true}
         partition="persist:sitnstudy-shared"
-        preload={window.electronAPI?.getWebviewPreloadPath?.() || '/webview-preload.js'}
+        preload={preloadPath}
         onContextMenu={(e) => {
           console.log("🔍 DIRECT RIGHT-CLICK ON WEBVIEW!", e);
           e.preventDefault();
