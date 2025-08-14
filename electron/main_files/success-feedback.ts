@@ -2,6 +2,11 @@ import { BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import player from 'play-sound';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Success feedback types that web apps can trigger
 export interface SuccessFeedbackData {
