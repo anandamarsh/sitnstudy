@@ -187,8 +187,10 @@ console.log("🔗 IXL-specific script loaded successfully");
         const sessionId = generateSessionId();
 
         // Extract subject and grade from question data
-        const subject = questionData.question?.content?.subject?.name || "unknown";
-        const gradeLevel = questionData.question?.content?.gradeLevel?.name || "unknown";
+        const subject =
+          questionData.question?.content?.subject?.name || "unknown";
+        const gradeLevel =
+          questionData.question?.content?.gradeLevel?.name || "unknown";
 
         // Increment question count
         questionCount++;
