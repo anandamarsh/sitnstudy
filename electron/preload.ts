@@ -52,19 +52,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showWebviewContextMenu: (pos: { x: number; y: number }) => 
     ipcRenderer.invoke('show-webview-context-menu', pos),
   getWebviewPreloadPath: () => {
-    // Return the correct path for webview preload script
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔧 Dev mode: returning /webview-preload.js')
-      return '/webview-preload.js'
-    } else {
-      // In production, use the file:// protocol with the correct path
-      const path = require('path')
-      const fullPath = path.join(process.cwd(), 'dist-electron', 'webview-preload.js')
-      const fileUrl = `file://${fullPath}`
-      console.log('🔧 Production mode: returning', fileUrl)
-      console.log('🔧 Full path:', fullPath)
-      console.log('🔧 Process cwd:', process.cwd())
-      return fileUrl
-    }
+    // Always return the public path since webview-preload.js is served from there
+    console.log('🔧 Returning webview preload path: /webview-preload.js')
+    return '/webview-preload.js'
   },
 })
