@@ -211,9 +211,6 @@ console.log("🔗 IXL-specific script loaded successfully");
         // Play happy sound for every correct answer!
         triggerSuccessFeedback();
 
-        // Trigger celebration for every new question solved!
-        triggerCelebration();
-
         // Save session to file
         saveSessionToFile();
       } catch (error) {
@@ -430,8 +427,6 @@ console.log("🔗 IXL-specific script loaded successfully");
         console.error("❌ IXL: Error triggering celebration:", error);
       }
     }
-
-    
   } catch (error) {
     console.error("Error in IXL-specific script:", error);
   }
