@@ -10,7 +10,7 @@ console.log("🔗 IXL-specific script loaded successfully");
 
     function initIXL() {
       console.log("🔗 IXL DOM ready, initializing AJAX interception");
-      
+
       // Intercept AJAX requests to detect question completion
       interceptAJAXRequests();
     }
@@ -18,39 +18,48 @@ console.log("🔗 IXL-specific script loaded successfully");
     function interceptAJAXRequests() {
       try {
         console.log("🔗 IXL: Setting up AJAX interception...");
-        
+
         // Intercept fetch requests
         const originalFetch = window.fetch;
-        window.fetch = function(...args) {
+        window.fetch = function (...args) {
           const url = args[0];
           const options = args[1] || {};
-          
+
           // Check if this is a practice summary request
-          if (typeof url === 'string' && url.includes('/practice/summary')) {
+          if (typeof url === "string" && url.includes("/practice/summary")) {
             console.log("🔗 IXL: Detected practice summary request:", url);
-            
-            return originalFetch.apply(this, args)
-              .then(response => {
-                // Clone the response so we can read it multiple times
-                const clonedResponse = response.clone();
-                
-                // Read the response body
-                clonedResponse.json().then(data => {
-                  console.log("🔗 IXL: Practice summary response received:", data);
-                  
+
+            return originalFetch.apply(this, args).then((response) => {
+              // Clone the response so we can read it multiple times
+              const clonedResponse = response.clone();
+
+              // Read the response body
+              clonedResponse
+                .json()
+                .then((data) => {
+                  console.log(
+                    "🔗 IXL: Practice summary response received:",
+                    data
+                  );
+
                   // Check if this is a successful completion response
-                  if (data && data.smartScore !== undefined && data.problemsCorrect !== undefined) {
+                  if (
+                    data &&
+                    data.smartScore !== undefined &&
+                    data.problemsCorrect !== undefined
+                  ) {
                     console.log("🔗 IXL: Question completion detected!");
                     showCompletionAlert(data);
                   }
-                }).catch(error => {
+                })
+                .catch((error) => {
                   console.log("🔗 IXL: Response is not JSON:", error);
                 });
-                
-                return response;
-              });
+
+              return response;
+            });
           }
-          
+
           // For non-matching requests, proceed normally
           return originalFetch.apply(this, args);
         };
@@ -58,25 +67,37 @@ console.log("🔗 IXL-specific script loaded successfully");
         // Intercept XMLHttpRequest
         const originalXHROpen = XMLHttpRequest.prototype.open;
         const originalXHRSend = XMLHttpRequest.prototype.send;
-        
-        XMLHttpRequest.prototype.open = function(method, url, ...args) {
+
+        XMLHttpRequest.prototype.open = function (method, url, ...args) {
           this._ixlUrl = url;
           return originalXHROpen.apply(this, [method, url, ...args]);
         };
-        
-        XMLHttpRequest.prototype.send = function(...args) {
-          if (this._ixlUrl && this._ixlUrl.includes('/practice/summary')) {
-            console.log("🔗 IXL: Detected XHR practice summary request:", this._ixlUrl);
-            
-            this.addEventListener('load', function() {
+
+        XMLHttpRequest.prototype.send = function (...args) {
+          if (this._ixlUrl && this._ixlUrl.includes("/practice/summary")) {
+            console.log(
+              "🔗 IXL: Detected XHR practice summary request:",
+              this._ixlUrl
+            );
+
+            this.addEventListener("load", function () {
               try {
                 if (this.responseText) {
                   const data = JSON.parse(this.responseText);
-                  console.log("🔗 IXL: XHR practice summary response received:", data);
-                  
+                  console.log(
+                    "🔗 IXL: XHR practice summary response received:",
+                    data
+                  );
+
                   // Check if this is a successful completion response
-                  if (data && data.smartScore !== undefined && data.problemsCorrect !== undefined) {
-                    console.log("🔗 IXL: Question completion detected via XHR!");
+                  if (
+                    data &&
+                    data.smartScore !== undefined &&
+                    data.problemsCorrect !== undefined
+                  ) {
+                    console.log(
+                      "🔗 IXL: Question completion detected via XHR!"
+                    );
                     showCompletionAlert(data);
                   }
                 }
@@ -85,12 +106,11 @@ console.log("🔗 IXL-specific script loaded successfully");
               }
             });
           }
-          
+
           return originalXHRSend.apply(this, args);
         };
 
         console.log("🔗 IXL: AJAX interception setup complete");
-        
       } catch (error) {
         console.error("🔗 IXL: Error setting up AJAX interception:", error);
       }
@@ -113,50 +133,36 @@ console.log("🔗 IXL-specific script loaded successfully");
           showRecommendations: data.showRecommendations,
           prizesToReveal: data.prizesToReveal,
           skillMastered: data.skillMastered,
-          skillAtExcellence: data.skillAtExcellence
+          skillAtExcellence: data.skillAtExcellence,
         };
 
-        // Create formatted alert message
-        const alertMessage = `🎉 IXL Question Completed!
+        // Log the metadata to console
+        console.log("🔗 IXL: Question completion detected!");
+        console.log("🔗 IXL: Metadata JSON:", JSON.stringify(metadata, null, 2));
 
-📊 Performance:
-• Smart Score: ${metadata.smartScore}
-• Problems Correct: ${metadata.problemsCorrect}/${metadata.problemsAttempted}
-• Time Spent: ${metadata.timeSpent}
+        // Send to parent window via postMessage
+        window.parent.postMessage(
+          {
+            type: "ixl-question-completed",
+            data: metadata,
+          },
+          "*"
+        );
 
-🏆 Achievement:
-• Mastery Message: ${metadata.masteryMessage}
-• Grade: ${metadata.gradeName}
-• Subject: ${metadata.skillSubjectUrl}
-• Skill: ${metadata.skillUrl}
+        // Also try to send via ipcRenderer if available (for direct Electron communication)
+        if (window.ipcRenderer) {
+          try {
+            window.ipcRenderer.send("ixl-question-completed", metadata);
+            console.log("🔗 IXL: Sent via ipcRenderer to main process");
+          } catch (ipcError) {
+            console.log("🔗 IXL: ipcRenderer not available, using postMessage only");
+          }
+        }
 
-📈 Status:
-• Skill Mastered: ${metadata.skillMastered ? 'Yes' : 'No'}
-• Skill at Excellence: ${metadata.skillAtExcellence ? 'Yes' : 'No'}
-• Recommendations: ${metadata.showRecommendations ? 'Available' : 'Not Available'}
-• Prizes: ${metadata.prizesToReveal ? 'Available' : 'Not Available'}
-
-🆔 Skill ID: ${metadata.skillId}`;
-
-        // Show the alert
-        alert(alertMessage);
-        
-        // Also log to console for debugging
-        console.log("🔗 IXL: Completion alert shown with metadata:", metadata);
-        
-        // Send to parent window
-        window.parent.postMessage({
-          type: 'ixl-question-completed',
-          data: metadata
-        }, '*');
-        
       } catch (error) {
-        console.error("🔗 IXL: Error showing completion alert:", error);
-        // Fallback simple alert
-        alert(`🎉 IXL Question Completed! Smart Score: ${data.smartScore || 'N/A'}`);
+        console.error("🔗 IXL: Error processing completion data:", error);
       }
     }
-
   } catch (error) {
     console.error("Error in IXL-specific script:", error);
   }
