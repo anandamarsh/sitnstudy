@@ -164,7 +164,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          animation: celebrationEntrance 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+          animation: celebrationEntrance 6s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
           opacity: 0;
         }
 
@@ -179,47 +179,87 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
         @keyframes celebrationEntrance {
           0% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(4.0) rotate(-5deg);
+            transform: translate(-50%, -50%) scale(4.0) rotate(0deg);
+          }
+          5% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(3.8) rotate(18deg);
           }
           10% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(3.8) rotate(-3deg);
+            transform: translate(-50%, -50%) scale(3.6) rotate(36deg);
+          }
+          15% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(3.4) rotate(54deg);
           }
           20% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(3.4) rotate(-1deg);
+            transform: translate(-50%, -50%) scale(3.2) rotate(72deg);
+          }
+          25% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(3.0) rotate(90deg);
           }
           30% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(3.0) rotate(0deg);
+            transform: translate(-50%, -50%) scale(2.8) rotate(108deg);
+          }
+          35% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(2.6) rotate(126deg);
           }
           40% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(2.6) rotate(0deg);
+            transform: translate(-50%, -50%) scale(2.4) rotate(144deg);
+          }
+          45% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(2.2) rotate(162deg);
           }
           50% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(2.2) rotate(0deg);
+            transform: translate(-50%, -50%) scale(2.0) rotate(180deg);
+          }
+          55% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.8) rotate(198deg);
           }
           60% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1.8) rotate(0deg);
+            transform: translate(-50%, -50%) scale(1.6) rotate(216deg);
+          }
+          65% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.4) rotate(234deg);
           }
           70% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+            transform: translate(-50%, -50%) scale(1.2) rotate(252deg);
+          }
+          75% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1) rotate(270deg);
           }
           80% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1.3) rotate(0deg);
+            transform: translate(-50%, -50%) scale(1.05) rotate(288deg);
+          }
+          85% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.02) rotate(306deg);
           }
           90% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1.1) rotate(1deg);
+            transform: translate(-50%, -50%) scale(1.01) rotate(324deg);
+          }
+          95% {
+            opacity: 0.5;
+            transform: translate(-50%, -50%) scale(1.005) rotate(342deg);
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(1.0) rotate(2deg);
+            transform: translate(-50%, -50%) scale(1.0) rotate(360deg);
           }
         }
 
