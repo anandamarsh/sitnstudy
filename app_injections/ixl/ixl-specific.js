@@ -10,7 +10,6 @@ console.log("🔗 IXL-specific script loaded successfully");
 
     // Session tracking variables
     let currentSession = null;
-    let sessionQuestions = [];
 
     function initIXL() {
       console.log(
@@ -186,27 +185,22 @@ console.log("🔗 IXL-specific script loaded successfully");
         const now = new Date();
         const sessionId = generateSessionId();
 
-        // Extract question information
-        const questionInfo = {
-          questionNumber: sessionQuestions.length + 1,
-          questionKey: questionData.questionKey,
-          generatorCode: questionData.question?.content?.generatorCode,
-          subject: questionData.question?.content?.subject?.name,
-          gradeLevel: questionData.question?.content?.gradeLevel?.name,
-          timestamp: now.toISOString(),
-          url: url,
-        };
-
-        // Add to session questions
-        sessionQuestions.push(questionInfo);
+        // Extract subject and grade from URL
+        const urlParts = url.split('/');
+        const subject = urlParts[3] || 'unknown'; // e.g., 'maths'
+        const gradeLevel = urlParts[4] || 'unknown'; // e.g., 'year-2'
+        
+        // Count questions from the question data
+        const noOfQuestions = questionData.questions?.length || 1;
 
         // Create or update current session
         currentSession = {
           sessionId: sessionId,
           start: now.toISOString(),
-          end: "in_progress",
-          questions: [...sessionQuestions],
-          status: "active",
+          end: "", // Empty string means session is in progress
+          subject: subject,
+          gradeLevel: gradeLevel,
+          noOfQuestions: noOfQuestions
         };
 
         console.log("🔗 IXL: New session started:", currentSession);
@@ -227,23 +221,8 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         const now = new Date();
 
-        // Update session with completion data
+        // Update session with completion timestamp
         currentSession.end = now.toISOString();
-        currentSession.status = "completed";
-        currentSession.completion = {
-          smartScore: completionData.smartScore,
-          problemsCorrect: completionData.problemsCorrect,
-          problemsAttempted: completionData.problemsAttempted,
-          timeSpent: completionData.timeSpent,
-          masteryMessage: completionData.masteryMessage,
-          gradeName: completionData.gradeName,
-          skillSubjectUrl: completionData.skillSubjectUrl,
-          gradeSubjectUrl: completionData.gradeSubjectUrl,
-          skillUrl: completionData.skillUrl,
-          skillId: completionData.skillId,
-          skillMastered: completionData.skillMastered,
-          skillAtExcellence: completionData.skillAtExcellence,
-        };
 
         console.log("🔗 IXL: Session completed:", currentSession);
 
@@ -252,7 +231,6 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         // Reset for next session
         currentSession = null;
-        sessionQuestions = [];
       } catch (error) {
         console.error("🔗 IXL: Error ending session:", error);
       }
@@ -302,11 +280,13 @@ console.log("🔗 IXL-specific script loaded successfully");
             sessionData: {
               filename: filename,
               data: sessionData,
-            }
+            },
           },
           "*"
         );
-        console.log("🔗 IXL: Session data sent via postMessage to preload script");
+        console.log(
+          "🔗 IXL: Session data sent via postMessage to preload script"
+        );
       } catch (error) {
         console.error("🔗 IXL: Error sending session via postMessage:", error);
       }
@@ -348,7 +328,9 @@ console.log("🔗 IXL-specific script loaded successfully");
           "*"
         );
 
-        console.log("🔗 IXL: Question completion data sent via postMessage to preload script");
+        console.log(
+          "🔗 IXL: Question completion data sent via postMessage to preload script"
+        );
       } catch (error) {
         console.error("🔗 IXL: Error processing completion data:", error);
       }

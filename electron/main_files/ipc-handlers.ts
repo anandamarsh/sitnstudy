@@ -333,35 +333,13 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
     
     const filePath = path.join(sessionDir, filename);
     
-    // Read existing sessions if file exists
-    let sessions = [];
-    if (existsSync(filePath)) {
-      try {
-        const existingContent = readFileSync(filePath, 'utf8');
-        sessions = JSON.parse(existingContent);
-      } catch (parseError) {
-        console.error('Error parsing existing session file:', parseError);
-        sessions = [];
-      }
-    }
+    // Always overwrite the file with just this session (one session per file)
+    const sessionToSave = data;
     
-    // Check if this session already exists (by sessionId)
-    const existingSessionIndex = sessions.findIndex((s: any) => s.sessionId === data.sessionId);
+    // Write the session to file (overwriting any existing content)
+    writeFileSync(filePath, JSON.stringify(sessionToSave, null, 2), 'utf8');
     
-    if (existingSessionIndex !== -1) {
-      // Update existing session
-      sessions[existingSessionIndex] = data;
-      console.log(`Updated existing IXL session: ${data.sessionId}`);
-    } else {
-      // Add new session
-      sessions.push(data);
-      console.log(`Added new IXL session: ${data.sessionId}`);
-    }
-    
-    // Write the updated sessions back to file
-    writeFileSync(filePath, JSON.stringify(sessions, null, 2), 'utf8');
-    
-    console.log(`IXL session saved to: ${filePath}`);
+    console.log(`IXL session ${data.sessionId} saved/updated to: ${filePath}`);
     return { success: true, message: 'Session saved successfully' };
     
   } catch (error) {
