@@ -75,6 +75,18 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
     }
   }, [isVisible]);
 
+  // Play victory sound when celebration starts
+  useEffect(() => {
+    if (isVisible && selectedGif) {
+      console.log("🎉 CelebrationGifs: Playing victory sound!");
+      const audio = new Audio('/audio/victory.wav');
+      audio.volume = 0.7; // Set volume to 70%
+      audio.play().catch(error => {
+        console.log("🎉 CelebrationGifs: Audio play failed:", error.message);
+      });
+    }
+  }, [isVisible, selectedGif]);
+
   // Auto-hide after animation completes
   useEffect(() => {
     console.log(
@@ -180,26 +192,6 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           0% {
             opacity: 0;
             transform: translate(-50%, -50%) scale(5.0) rotate(0deg);
-          }
-          15% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(4.0) rotate(90deg);
-          }
-          30% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(3.0) rotate(180deg);
-          }
-          50% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(2.0) rotate(270deg);
-          }
-          70% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.3) rotate(315deg);
-          }
-          85% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.1) rotate(330deg);
           }
           100% {
             opacity: 0;
