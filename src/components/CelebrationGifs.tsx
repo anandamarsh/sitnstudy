@@ -42,12 +42,12 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
       }));
 
       setGifs(gifData);
-      
+
       // Randomly select one GIF to display
       const randomIndex = Math.floor(Math.random() * gifData.length);
       const randomGif = gifData[randomIndex];
       setSelectedGif(randomGif);
-      
+
       console.log("🎉 Celebration GIFs loaded:", gifData.length);
       console.log("🎉 Randomly selected GIF:", randomGif.id);
     } catch (error) {
@@ -144,7 +144,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           left: 0;
           width: 100vw;
           height: 100vh;
-          background: rgba(0, 0, 0, 0.8);
+          background: transparent;
           z-index: 9999;
           display: flex;
           align-items: center;
@@ -169,28 +169,37 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
         }
 
         .celebration-gif img {
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(255, 255, 255, 0.4);
-          max-width: 80vw;
-          max-height: 80vh;
+          border-radius: 16px;
+          border: 4px solid rgba(255, 255, 255, 0.9);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.3);
+          max-width: 90vw;
+          max-height: 90vh;
         }
 
         @keyframes celebrationEntrance {
           0% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.5) rotate(-10deg);
+            transform: translate(-50%, -50%) scale(2.5) rotate(-5deg);
           }
-          20% {
+          15% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+            transform: translate(-50%, -50%) scale(2.2) rotate(-2deg);
+          }
+          30% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.8) rotate(0deg);
+          }
+          50% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.4) rotate(0deg);
           }
           80% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0.8) rotate(5deg);
+            transform: translate(-50%, -50%) scale(0.9) rotate(2deg);
           }
         }
 
