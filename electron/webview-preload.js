@@ -63,6 +63,15 @@ window.addEventListener("message", async (event) => {
       window.parent.postMessage(event.data, "*");
       
       console.log("🎉 Webview preload: Celebration message forwarded to parent window");
+      
+      // Also try sending via IPC as a backup
+      try {
+        console.log("🎉 Webview preload: Also trying IPC backup method...");
+        const result = await ipcRenderer.invoke("trigger-celebration", event.data.celebrationData);
+        console.log("🎉 Webview preload: IPC celebration result:", result);
+      } catch (ipcError) {
+        console.log("🎉 Webview preload: IPC celebration failed (expected):", ipcError.message);
+      }
     } catch (error) {
       console.error("🎉 Webview preload: Error forwarding celebration:", error);
     }

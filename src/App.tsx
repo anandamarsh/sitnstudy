@@ -45,9 +45,24 @@ function App() {
       }
     };
 
+    // Listen for celebration triggers from main process via IPC (backup method)
+    const handleCelebrationIPC = (_event: any, celebrationData: any) => {
+      console.log(
+        "🎉 App received celebration event from main process via IPC:",
+        celebrationData
+      );
+      console.log("🎉 App: About to trigger celebration state via IPC...");
+      triggerCelebration();
+      console.log("🎉 App: Celebration state triggered successfully via IPC!");
+    };
+
     // Set up the listeners
     const cleanupNavigation = (window as any).ipcRenderer.onNavigationBlocked(
       handleNavigationBlocked
+    );
+    const cleanupCelebration = (window as any).ipcRenderer.on(
+      "celebration-triggered",
+      handleCelebrationIPC
     );
     window.addEventListener("message", handleCelebrationMessage);
 
@@ -55,6 +70,9 @@ function App() {
     return () => {
       if (cleanupNavigation && typeof cleanupNavigation === "function") {
         cleanupNavigation();
+      }
+      if (cleanupCelebration && typeof cleanupCelebration === "function") {
+        cleanupCelebration();
       }
       window.removeEventListener("message", handleCelebrationMessage);
     };
