@@ -250,6 +250,9 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         console.log("🔗 IXL: Session completed:", currentSession);
 
+        // Play success sound
+        playSuccessSound();
+
         // Save session to file
         saveSessionToFile();
 
@@ -358,6 +361,26 @@ console.log("🔗 IXL-specific script loaded successfully");
         );
       } catch (error) {
         console.error("🔗 IXL: Error processing completion data:", error);
+      }
+    }
+
+    // Function to play success sound
+    function playSuccessSound() {
+      try {
+        // Create audio element
+        const audio = new Audio('/audio/success.mp3');
+        
+        // Set volume to a reasonable level (0.0 to 1.0)
+        audio.volume = 0.6;
+        
+        // Play the sound
+        audio.play().catch(error => {
+          console.log("🔗 IXL: Audio playback failed (user may not have interacted yet):", error.message);
+        });
+        
+        console.log("🔗 IXL: Success sound played!");
+      } catch (error) {
+        console.error("🔗 IXL: Error playing success sound:", error);
       }
     }
   } catch (error) {
