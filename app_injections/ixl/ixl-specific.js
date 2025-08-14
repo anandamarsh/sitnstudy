@@ -13,55 +13,60 @@ console.log("🔗 IXL-specific script loaded successfully");
     let sessionQuestions = [];
 
     function initIXL() {
-      console.log("🔗 IXL DOM ready, initializing AJAX interception and session tracking");
+      console.log(
+        "🔗 IXL DOM ready, initializing AJAX interception and session tracking"
+      );
 
       // Intercept AJAX requests to detect question completion and session start
       interceptAJAXRequests();
     }
 
-        function interceptAJAXRequests() {
+    function interceptAJAXRequests() {
       try {
         console.log("🔗 IXL: Setting up AJAX interception...");
-        
+
         // Intercept fetch requests
         const originalFetch = window.fetch;
         window.fetch = function (...args) {
           const url = args[0];
           const options = args[1] || {};
-          
+
           // Check if this is a practice pose request (session start)
           if (typeof url === "string" && url.includes("/practice/pose")) {
-            console.log("🔗 IXL: Detected practice pose request (session start):", url);
-            
+            console.log(
+              "🔗 IXL: Detected practice pose request (session start):",
+              url
+            );
+
             return originalFetch.apply(this, args).then((response) => {
               // Clone the response so we can read it multiple times
               const clonedResponse = response.clone();
-              
+
               // Read the response body
               clonedResponse
                 .json()
                 .then((data) => {
                   console.log("🔗 IXL: Practice pose response received:", data);
-                  
+
                   // Start new session
                   startNewSession(url, data);
                 })
                 .catch((error) => {
                   console.log("🔗 IXL: Pose response is not JSON:", error);
                 });
-              
+
               return response;
             });
           }
-          
+
           // Check if this is a practice summary request (session end)
           if (typeof url === "string" && url.includes("/practice/summary")) {
             console.log("🔗 IXL: Detected practice summary request:", url);
-            
+
             return originalFetch.apply(this, args).then((response) => {
               // Clone the response so we can read it multiple times
               const clonedResponse = response.clone();
-              
+
               // Read the response body
               clonedResponse
                 .json()
@@ -70,7 +75,7 @@ console.log("🔗 IXL-specific script loaded successfully");
                     "🔗 IXL: Practice summary response received:",
                     data
                   );
-                  
+
                   // Check if this is a successful completion response
                   if (
                     data &&
@@ -85,24 +90,24 @@ console.log("🔗 IXL-specific script loaded successfully");
                 .catch((error) => {
                   console.log("🔗 IXL: Response is not JSON:", error);
                 });
-              
+
               return response;
             });
           }
-          
+
           // For non-matching requests, proceed normally
           return originalFetch.apply(this, args);
         };
 
-                // Intercept XMLHttpRequest
+        // Intercept XMLHttpRequest
         const originalXHROpen = XMLHttpRequest.prototype.open;
         const originalXHRSend = XMLHttpRequest.prototype.send;
-        
+
         XMLHttpRequest.prototype.open = function (method, url, ...args) {
           this._ixlUrl = url;
           return originalXHROpen.apply(this, [method, url, ...args]);
         };
-        
+
         XMLHttpRequest.prototype.send = function (...args) {
           // Check for practice pose request (session start)
           if (this._ixlUrl && this._ixlUrl.includes("/practice/pose")) {
@@ -110,7 +115,7 @@ console.log("🔗 IXL-specific script loaded successfully");
               "🔗 IXL: Detected XHR practice pose request (session start):",
               this._ixlUrl
             );
-            
+
             this.addEventListener("load", function () {
               try {
                 if (this.responseText) {
@@ -119,23 +124,26 @@ console.log("🔗 IXL-specific script loaded successfully");
                     "🔗 IXL: XHR practice pose response received:",
                     data
                   );
-                  
+
                   // Start new session
                   startNewSession(this._ixlUrl, data);
                 }
               } catch (error) {
-                console.log("🔗 IXL: XHR pose response is not valid JSON:", error);
+                console.log(
+                  "🔗 IXL: XHR pose response is not valid JSON:",
+                  error
+                );
               }
             });
           }
-          
+
           // Check for practice summary request (session end)
           if (this._ixlUrl && this._ixlUrl.includes("/practice/summary")) {
             console.log(
               "🔗 IXL: Detected XHR practice summary request:",
               this._ixlUrl
             );
-            
+
             this.addEventListener("load", function () {
               try {
                 if (this.responseText) {
@@ -144,7 +152,7 @@ console.log("🔗 IXL-specific script loaded successfully");
                     "🔗 IXL: XHR practice summary response received:",
                     data
                   );
-                  
+
                   // Check if this is a successful completion response
                   if (
                     data &&
@@ -163,7 +171,7 @@ console.log("🔗 IXL-specific script loaded successfully");
               }
             });
           }
-          
+
           return originalXHRSend.apply(this, args);
         };
 
@@ -177,7 +185,7 @@ console.log("🔗 IXL-specific script loaded successfully");
       try {
         const now = new Date();
         const sessionId = generateSessionId();
-        
+
         // Extract question information
         const questionInfo = {
           questionNumber: sessionQuestions.length + 1,
@@ -186,26 +194,25 @@ console.log("🔗 IXL-specific script loaded successfully");
           subject: questionData.question?.content?.subject?.name,
           gradeLevel: questionData.question?.content?.gradeLevel?.name,
           timestamp: now.toISOString(),
-          url: url
+          url: url,
         };
-        
+
         // Add to session questions
         sessionQuestions.push(questionInfo);
-        
+
         // Create or update current session
         currentSession = {
           sessionId: sessionId,
           start: now.toISOString(),
           end: "in_progress",
           questions: [...sessionQuestions],
-          status: "active"
+          status: "active",
         };
-        
+
         console.log("🔗 IXL: New session started:", currentSession);
-        
+
         // Save session to file
         saveSessionToFile();
-        
       } catch (error) {
         console.error("🔗 IXL: Error starting new session:", error);
       }
@@ -217,9 +224,9 @@ console.log("🔗 IXL-specific script loaded successfully");
           console.log("🔗 IXL: No active session to end");
           return;
         }
-        
+
         const now = new Date();
-        
+
         // Update session with completion data
         currentSession.end = now.toISOString();
         currentSession.status = "completed";
@@ -235,25 +242,26 @@ console.log("🔗 IXL-specific script loaded successfully");
           skillUrl: completionData.skillUrl,
           skillId: completionData.skillId,
           skillMastered: completionData.skillMastered,
-          skillAtExcellence: completionData.skillAtExcellence
+          skillAtExcellence: completionData.skillAtExcellence,
         };
-        
+
         console.log("🔗 IXL: Session completed:", currentSession);
-        
+
         // Save session to file
         saveSessionToFile();
-        
+
         // Reset for next session
         currentSession = null;
         sessionQuestions = [];
-        
       } catch (error) {
         console.error("🔗 IXL: Error ending session:", error);
       }
     }
 
     function generateSessionId() {
-      return 'ixl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      return (
+        "ixl_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
+      );
     }
 
     function saveSessionToFile() {
@@ -262,46 +270,54 @@ console.log("🔗 IXL-specific script loaded successfully");
           console.log("🔗 IXL: No session to save");
           return;
         }
-        
+
         const now = new Date();
-        const filename = `${String(now.getMonth() + 1).padStart(2, '0')}_${String(now.getDate()).padStart(2, '0')}.json`;
+        const filename = `${String(now.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}_${String(now.getDate()).padStart(2, "0")}.json`;
         const filepath = `app_data/session_history/ixl/${filename}`;
-        
+
         // Create session data to save
         const sessionData = {
           ...currentSession,
-          savedAt: now.toISOString()
+          savedAt: now.toISOString(),
         };
-        
+
         // Try to send via ipcRenderer first (direct Electron communication)
-        if (window.ipcRenderer) {
-          try {
-            window.ipcRenderer.invoke("save-ixl-session", {
+        try {
+          const { ipcRenderer } = require("electron");
+          ipcRenderer
+            .invoke("save-ixl-session", {
               filename: filename,
-              data: sessionData
-            }).then(result => {
+              data: sessionData,
+            })
+            .then((result) => {
               if (result.success) {
                 console.log("🔗 IXL: Session saved via IPC:", result.message);
               } else {
-                console.error("🔗 IXL: Failed to save session via IPC:", result.message);
+                console.error(
+                  "🔗 IXL: Failed to save session via IPC:",
+                  result.message
+                );
                 // Fallback to postMessage
                 sendSessionViaPostMessage(filename, sessionData);
               }
-            }).catch(error => {
-              console.log("🔗 IXL: IPC error, falling back to postMessage:", error);
+            })
+            .catch((error) => {
+              console.log(
+                "🔗 IXL: IPC error, falling back to postMessage:",
+                error
+              );
+              // Fallback to postMessage
               sendSessionViaPostMessage(filename, sessionData);
             });
-          } catch (ipcError) {
-            console.log("🔗 IXL: ipcRenderer not available, using postMessage");
-            sendSessionViaPostMessage(filename, sessionData);
-          }
-        } else {
-          // Fallback to postMessage
+        } catch (ipcError) {
+          console.log("🔗 IXL: ipcRenderer not available, using postMessage");
           sendSessionViaPostMessage(filename, sessionData);
         }
-        
+
         console.log("🔗 IXL: Session data sent for saving to:", filepath);
-        
       } catch (error) {
         console.error("🔗 IXL: Error saving session to file:", error);
       }
@@ -309,12 +325,15 @@ console.log("🔗 IXL-specific script loaded successfully");
 
     function sendSessionViaPostMessage(filename, sessionData) {
       try {
-        window.parent.postMessage({
-          type: "ixl-session-update",
-          action: "save-session",
-          filename: filename,
-          data: sessionData
-        }, "*");
+        window.parent.postMessage(
+          {
+            type: "ixl-session-update",
+            action: "save-session",
+            filename: filename,
+            data: sessionData,
+          },
+          "*"
+        );
         console.log("🔗 IXL: Session data sent via postMessage fallback");
       } catch (error) {
         console.error("🔗 IXL: Error sending session via postMessage:", error);
