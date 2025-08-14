@@ -53,27 +53,30 @@ window.addEventListener("message", async (event) => {
     }
   }
 
-  // Handle celebration triggers - forward directly to parent window
+  // Handle celebration triggers - use IPC to main process
   if (event.data && event.data.type === "TRIGGER_CELEBRATION") {
     try {
-      console.log("🎉 Webview preload: Received celebration trigger, forwarding to parent window");
+      console.log("🎉 Webview preload: Received celebration trigger, sending via IPC");
       console.log("🎉 Webview preload: Celebration data:", event.data.celebrationData);
       
-      // Forward the celebration message to the parent window (main app)
-      window.parent.postMessage(event.data, "*");
+      // Send celebration via IPC to main process
+      const result = await ipcRenderer.invoke("trigger-celebration", event.data.celebrationData);
+      console.log("🎉 Webview preload: IPC celebration result:", result);
       
-      console.log("🎉 Webview preload: Celebration message forwarded to parent window");
+      // Send result back to the webview content
+      window.postMessage({
+        type: "CELEBRATION_RESULT",
+        result: result
+      }, "*");
       
-      // Also try sending via IPC as a backup
-      try {
-        console.log("🎉 Webview preload: Also trying IPC backup method...");
-        const result = await ipcRenderer.invoke("trigger-celebration", event.data.celebrationData);
-        console.log("🎉 Webview preload: IPC celebration result:", result);
-      } catch (ipcError) {
-        console.log("🎉 Webview preload: IPC celebration failed (expected):", ipcError.message);
-      }
     } catch (error) {
-      console.error("🎉 Webview preload: Error forwarding celebration:", error);
+      console.error("🎉 Webview preload: Error sending celebration via IPC:", error);
+      
+      // Send error back to the webview content
+      window.postMessage({
+        type: "CELEBRATION_RESULT",
+        result: { success: false, message: error.message }
+      }, "*");
     }
   }
 });
