@@ -12,17 +12,26 @@ export default function WebviewElement(
   props: WebviewElementProps
 ): JSX.Element {
   const { tab, webviewRef, onUrlChange } = props;
-  const [preloadPath, setPreloadPath] = useState<string>('/webview-preload.js');
+  const [preloadPath, setPreloadPath] = useState<string>("/webview-preload.js");
 
   // Get the preload path when the component mounts
   useEffect(() => {
-    if (window.electronAPI?.getWebviewPreloadPath) {
-      const path = window.electronAPI.getWebviewPreloadPath();
-      console.log('🔧 WebviewElement: Setting preload path to:', path);
-      setPreloadPath(path);
-    } else {
-      console.log('🔧 WebviewElement: electronAPI not available, using fallback path');
-    }
+    (async () => {
+      if (window.electronAPI?.getWebviewPreloadPath) {
+        try {
+          const url = await window.electronAPI.getWebviewPreloadPath();
+          console.log("🔧 WebviewElement: Setting preload path to:", url);
+          setPreloadPath(url); // ← now a file:// URL
+        } catch (error) {
+          console.error("🔧 WebviewElement: Error getting preload path:", error);
+          console.log("🔧 WebviewElement: Using fallback path");
+        }
+      } else {
+        console.log(
+          "🔧 WebviewElement: electronAPI not available, using fallback path"
+        );
+      }
+    })();
   }, []);
 
   const handleWebviewRef = React.useCallback(

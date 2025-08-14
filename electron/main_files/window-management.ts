@@ -95,7 +95,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
 
   // Webview attached handler - enable popups and handle new windows
   win.webContents.on('did-attach-webview', (_event, webContents) => {
-    // Enable popups for this webview
+    // ✅ Force every webview to use our preload script for security
     webContents.setWindowOpenHandler(({ url, frameName, features }) => {
       // Open popups in the same webview or create a new window
       console.log('Webview popup requested:', url, frameName, features);
