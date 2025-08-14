@@ -370,10 +370,4 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
   }
 })
 
-// IPC handler for getting webview preload file URL
-ipcMain.handle('get-webview-preload-path', () => {
-  const abs = path.join(__dirname, 'webview-preload.js')
-  const fileUrl = `file://${abs}`
-  console.log('🔧 Main: Returning webview preload file URL:', fileUrl)
-  return fileUrl
-})
+

@@ -51,10 +51,5 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 contextBridge.exposeInMainWorld('electronAPI', {
   showWebviewContextMenu: (pos: { x: number; y: number }) => 
     ipcRenderer.invoke('show-webview-context-menu', pos),
-  getWebviewPreloadPath: async () => {
-    // ✅ Ask main for a real file:// URL
-    const url = await ipcRenderer.invoke('get-webview-preload-path')
-    console.log('🔧 Returning webview preload file URL:', url)
-    return url as string // e.g., file:///…/webview-preload.js
-  },
+
 })
