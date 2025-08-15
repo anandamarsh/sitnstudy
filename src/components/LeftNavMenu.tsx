@@ -494,11 +494,15 @@ export default function LeftNavMenu(): JSX.Element {
           <Box sx={{ 
             position: 'absolute', 
             top: 0, 
-            left: 0, 
+            left: open ? drawerWidth : theme.spacing(8),
             right: 0, 
             bottom: 0, 
             zIndex: 1000,
-            backgroundColor: 'white'
+            backgroundColor: 'white',
+            transition: theme.transitions.create(['left'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
           }}>
             <AppStore onAppSelect={handleAppSelect} />
           </Box>
