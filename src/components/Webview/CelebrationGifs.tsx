@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GiphyFetch } from "@giphy/js-fetch-api";
 
 interface GifData {
@@ -19,90 +19,150 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
 }) => {
   const [gifs, setGifs] = useState<GifData[]>([]);
   const [selectedGif, setSelectedGif] = useState<GifData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Data URL prepared from the selected GIF — we only render once this is ready
+  const [preparedDataUrl, setPreparedDataUrl] = useState<string | null>(null);
+
+  // Keep sound from playing repeatedly in the same session
   const [hasPlayedSound, setHasPlayedSound] = useState(false);
+
+  // Abort controller to cancel pending fetches when visibility toggles/unmounts
+  const abortRef = useRef<AbortController | null>(null);
 
   const gf = new GiphyFetch("Di6sZg5SfZYwsfb5wvzjqOEjkp7Pzida");
 
-  const fetchCelebrationGifs = async () => {
+  // Helper: convert remote URL → Blob → DataURL
+  const toDataURL = async (
+    url: string,
+    signal?: AbortSignal
+  ): Promise<string> => {
+    const res = await fetch(url, {
+      signal,
+      credentials: "omit",
+      cache: "force-cache",
+    });
+    if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
+    const blob = await res.blob();
+    // Use FileReader for widest compatibility
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("FileReader failed"));
+      reader.readAsDataURL(blob);
+    });
+    return dataUrl;
+  };
+
+  // Fetch a batch of GIFs (or use cached) → pick one → prefetch and convert to dataURL
+  const prepareGif = async () => {
+    // Cancel any prior work
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      setIsLoading(true);
-      const result = await gf.search("mario luigi mansion sonic", {
-        limit: 10,
-        rating: "g",
-        type: "gifs",
-      });
-
-      const gifData: GifData[] = result.data.map((gif: any) => ({
-        id: gif.id,
-        url: gif.images.fixed_height.url,
-        width: Number(gif.images.fixed_height.width),
-        height: Number(gif.images.fixed_height.height),
-      }));
-
-      setGifs(gifData);
-
-      if (gifData.length) {
-        const randomIndex = Math.floor(Math.random() * gifData.length);
-        setSelectedGif(gifData[randomIndex]);
-      } else {
-        setSelectedGif(null);
+      let pool = gifs;
+      if (!pool.length) {
+        const result = await gf.search("mario luigi mansion sonic", {
+          rating: "g",
+          type: "gifs",
+        });
+        const mapped: GifData[] = result.data.map((gif: any) => ({
+          id: gif.id,
+          url: gif.images.fixed_height.url,
+          width: Number(gif.images.fixed_height.width),
+          height: Number(gif.images.fixed_height.height),
+        }));
+        pool = mapped;
+        setGifs(mapped);
       }
-    } catch (error) {
-      console.error("❌ Error fetching celebration GIFs:", error);
-    } finally {
-      // ✅ make sure we stop showing the spinner
-      setIsLoading(false);
+
+      if (!pool.length) {
+        console.warn("🎉 CelebrationGifs: No GIFs found.");
+        setSelectedGif(null);
+        setPreparedDataUrl(null);
+        return;
+      }
+
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      setSelectedGif(pick);
+
+      // Prefetch + convert to dataURL
+      const dataUrl = await toDataURL(pick.url, controller.signal);
+      // If we were aborted in the meantime, bail
+      if (controller.signal.aborted) return;
+
+      setPreparedDataUrl(dataUrl);
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        // Swallow aborts
+        return;
+      }
+      console.error(
+        "❌ CelebrationGifs: prepareGif failed:",
+        err?.message || err
+      );
+      setSelectedGif(null);
+      setPreparedDataUrl(null);
     }
   };
 
+  // Kick off preparation ONLY when we become visible
   useEffect(() => {
-    if (isVisible && gifs.length === 0) {
-      fetchCelebrationGifs();
-    } else if (!isVisible) {
+    if (isVisible) {
+      setPreparedDataUrl(null); // ensure we don't flash previous frame
+      setHasPlayedSound(false); // allow sound to play for this session
+      void prepareGif();
+    } else {
+      // Clean up & reset when hidden
+      if (abortRef.current) abortRef.current.abort();
+      setPreparedDataUrl(null);
+      setSelectedGif(null);
       setHasPlayedSound(false);
     }
+    // Cleanup on unmount
+    return () => {
+      if (abortRef.current) abortRef.current.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]);
 
+  // Play victory sound AFTER dataURL is ready (i.e., first paint of animation)
   useEffect(() => {
-    if (isVisible && selectedGif && !hasPlayedSound) {
+    if (isVisible && preparedDataUrl && !hasPlayedSound) {
       const audio = new Audio("/audio/victory.wav"); // ensure this path exists in your app
       audio.volume = 0.7;
-      audio.play().catch((e) => console.log("Audio play failed:", e.message));
+      audio
+        .play()
+        .catch((e) =>
+          console.log("🎉 CelebrationGifs: Audio play failed:", e?.message)
+        );
       setHasPlayedSound(true);
     }
-  }, [isVisible, selectedGif, hasPlayedSound]);
+  }, [isVisible, preparedDataUrl, hasPlayedSound]);
 
+  // Auto-hide 5s after the animation starts (i.e., after dataURL is ready)
   useEffect(() => {
-    if (isVisible && selectedGif) {
+    if (isVisible && preparedDataUrl) {
       const timer = setTimeout(() => onComplete?.(), 5000);
       return () => clearTimeout(timer);
     }
-  }, [isVisible, selectedGif, onComplete]);
+  }, [isVisible, preparedDataUrl, onComplete]);
 
-  if (!isVisible) return null;
+  // Display NOTHING until the dataURL is fully prepared
+  if (!isVisible || !preparedDataUrl || !selectedGif) return null;
 
   return (
-    <div className="celebration-gifs-overlay">
+    <div className="celebration-gifs-overlay" aria-hidden>
       <div className="celebration-gifs-container">
-        {isLoading && !selectedGif ? (
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Loading celebration GIF... 🎉</p>
-          </div>
-        ) : selectedGif ? (
-          <div className="celebration-gif">
-            <img
-              src={selectedGif.url}
-              alt="Celebration!"
-              width={selectedGif.width}
-              height={selectedGif.height}
-            />
-          </div>
-        ) : (
-          <p style={{ color: "white" }}>No GIFs found.</p>
-        )}
+        <div className="celebration-gif">
+          <img
+            src={preparedDataUrl} // ✅ Data URL only
+            alt="Celebration!"
+            width={selectedGif.width}
+            height={selectedGif.height}
+          />
+        </div>
       </div>
 
       <style>{`
@@ -114,7 +174,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
-          pointer-events: none;
+          pointer-events: none; /* don't block clicks */
         }
 
         .celebration-gifs-container {
@@ -129,7 +189,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          animation: celebrationEntrance 2.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+          animation: celebrationEntrance 3.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
           opacity: 0; /* start hidden, fade in via animation */
           will-change: transform, opacity;
         }
@@ -148,37 +208,13 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
             transform: translate(-50%, -50%) scale(5.0) rotate(0deg);
           }
           80% {
-            opacity: 1;
+            opacity: 1; /* visible during most of the animation */
             transform: translate(-50%, -50%) scale(1.0) rotate(360deg);
           }
           100% {
-            opacity: 0; /* ✅ fade out at the end */
+            opacity: 0; /* fade out at the end */
             transform: translate(-50%, -50%) scale(1.0) rotate(360deg);
           }
-        }
-
-        .loading-spinner {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 18px;
-        }
-
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid rgba(255, 255, 255, 0.3);
-          border-top: 4px solid white;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 16px;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>
