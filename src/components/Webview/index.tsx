@@ -10,6 +10,7 @@ interface WebviewProps {
   tabs: SiteTab[];
   activeIndex: number;
   onCloseTab?: (tabKey: string) => void;
+  onPauseAllWebviews?: (pauseFn: () => void) => void;
 }
 
 export default function Webview(props: WebviewProps): JSX.Element {
@@ -121,12 +122,17 @@ export default function Webview(props: WebviewProps): JSX.Element {
         const webview = webviewRefs.current[index];
         if (webview && webview.getWebContentsId) {
           try {
-            newStates[tab.key] = {
-              canGoBack: webview.canGoBack ? webview.canGoBack() : false,
-              canGoForward: webview.canGoForward ? webview.canGoForward() : false
-            };
+            // Check if webview is still attached to DOM before calling methods
+            if (webview.isConnected && webview.getWebContentsId()) {
+              newStates[tab.key] = {
+                canGoBack: webview.canGoBack ? webview.canGoBack() : false,
+                canGoForward: webview.canGoForward ? webview.canGoForward() : false
+              };
+            } else {
+              newStates[tab.key] = { canGoBack: false, canGoForward: false };
+            }
           } catch (error) {
-            // Webview not ready yet
+            // Webview not ready yet or detached
             newStates[tab.key] = { canGoBack: false, canGoForward: false };
           }
         } else {
@@ -141,13 +147,29 @@ export default function Webview(props: WebviewProps): JSX.Element {
     updateNavigationState();
   }, [tabs, webviewRefs]);
 
+  // Clean up navigation states for removed tabs
+  React.useEffect(() => {
+    const currentTabKeys = new Set(tabs.map(tab => tab.key));
+    
+    setNavigationStates(prev => {
+      const cleanedStates = { ...prev };
+      // Remove navigation states for tabs that no longer exist
+      Object.keys(cleanedStates).forEach(key => {
+        if (!currentTabKeys.has(key)) {
+          delete cleanedStates[key];
+        }
+      });
+      return cleanedStates;
+    });
+  }, [tabs]);
+
   // Update navigation state when a specific webview becomes ready
   const updateWebviewNavigationState = React.useCallback((index: number) => {
     const webview = webviewRefs.current[index];
     if (webview && webview.getWebContentsId) {
       try {
         const tab = tabs[index];
-        if (tab) {
+        if (tab && webview.isConnected && webview.getWebContentsId()) {
           setNavigationStates(prev => ({
             ...prev,
             [tab.key]: {
@@ -157,13 +179,20 @@ export default function Webview(props: WebviewProps): JSX.Element {
           }));
         }
       } catch (error) {
-        // Webview not ready yet
+        // Webview not ready yet or detached
       }
     }
   }, [tabs, webviewRefs]);
 
   // Media control functions available for external use
-  useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
+  const { pauseAllWebviews } = useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
+
+  // Expose pauseAllWebviews function to parent component
+  React.useEffect(() => {
+    if (props.onPauseAllWebviews && pauseAllWebviews) {
+      props.onPauseAllWebviews(pauseAllWebviews);
+    }
+  }, [props.onPauseAllWebviews, pauseAllWebviews]);
 
   return (
     <Box
