@@ -342,14 +342,12 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
 // IPC handler for IXL question completion
 ipcMain.handle('handle-ixl-question-completion', async (event, completionData) => {
   try {
-    console.log('🎉 IXL question completion received:', completionData);
     
     // Get the main window to send the celebration event
     const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender);
     if (win) {
       // Send celebration event to the main renderer process
       win.webContents.send('ixl-question-completed', completionData);
-      console.log('🎉 Sent IXL completion event to renderer process');
     }
     
     return { success: true, message: 'IXL completion processed successfully' };

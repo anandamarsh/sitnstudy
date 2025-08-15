@@ -7,7 +7,7 @@ window.addEventListener("message", async (event) => {
   if (event.data && event.data.type === "IXL_SESSION_DATA") {
     try {
       console.log(
-        "🔗 Webview preload: received IXL_SESSION_DATA. relaying save-ixl-session"
+        "🔗 WPL: received IXL_SESSION_DATA. relaying save-ixl-session"
       );
       const result = await ipcRenderer.invoke(
         "save-ixl-session",
@@ -23,7 +23,7 @@ window.addEventListener("message", async (event) => {
         "*"
       );
     } catch (error) {
-      console.error("🔗 Webview preload: Error saving IXL session:", error);
+      console.error("🔗 WPL: Error saving IXL session:", error);
       // Send error back to the webview content
       window.postMessage(
         {
@@ -36,10 +36,10 @@ window.addEventListener("message", async (event) => {
   }
 
   // Handle success feedback requests
-  if (event.data && event.data.type === "SUCCESS_FEEDBACK") {
+  if (event.data && event.data.type === "IXL_SUCCESS_FEEDBACK") {
     try {
       console.log(
-        "🔗 Webview preload: received SUCCESS_FEEDBACK. relaying trigger-success-feedback"
+        "🔗 WPL: received IXL_SUCCESS_FEEDBACK. relaying trigger-success-feedback"
       );
       const result = await ipcRenderer.invoke(
         "trigger-success-feedback",
@@ -49,20 +49,17 @@ window.addEventListener("message", async (event) => {
       // Send result back to the webview content
       window.postMessage(
         {
-          type: "SUCCESS_FEEDBACK_RESULT",
+          type: "IXL_SUCCESS_FEEDBACK_RESULT",
           result: result,
         },
         "*"
       );
     } catch (error) {
-      console.error(
-        "🔗 Webview preload: Error triggering success feedback:",
-        error
-      );
+      console.error("🔗 WPL: Error triggering success feedback:", error);
       // Send error back to the webview content
       window.postMessage(
         {
-          type: "SUCCESS_FEEDBACK_RESULT",
+          type: "IXL_SUCCESS_FEEDBACK_RESULT",
           result: { success: false, message: error.message },
         },
         "*"
@@ -74,7 +71,7 @@ window.addEventListener("message", async (event) => {
   if (event.data && event.data.type === "IXL_QUESTION_COMPLETED") {
     try {
       console.log(
-        "🔗 Webview preload: received IXL_QUESTION_COMPLETED. relaying handle-ixl-question-completion"
+        "🔗 WPL: received IXL_QUESTION_COMPLETED. relaying handle-ixl-question-completion"
       );
       const result = await ipcRenderer.invoke(
         "handle-ixl-question-completion",
@@ -90,10 +87,7 @@ window.addEventListener("message", async (event) => {
         "*"
       );
     } catch (error) {
-      console.error(
-        "🔗 Webview preload: Error handling IXL question completion:",
-        error
-      );
+      console.error("🔗 WPL: Error handling IXL question completion:", error);
       // Send error back to the webview content
       window.postMessage(
         {
@@ -109,16 +103,13 @@ window.addEventListener("message", async (event) => {
   if (event.data && event.data.type === "IXL_QUESTION_COMPLETED") {
     try {
       console.log(
-        "🔗 Webview preload: Received IXL question completion data, forwarding to main process"
+        "🔗 WPL: Received IXL question completion data, forwarding to main process"
       );
       const result = await ipcRenderer.invoke(
         "handle-ixl-question-completion",
         event.data.data
       );
-      console.log(
-        "🔗 Webview preload: IXL question completion result:",
-        result
-      );
+      console.log("🔗 WPL: IXL question completion result:", result);
 
       // Send result back to the webview content
       window.postMessage(
@@ -129,10 +120,7 @@ window.addEventListener("message", async (event) => {
         "*"
       );
     } catch (error) {
-      console.error(
-        "🔗 Webview preload: Error handling IXL question completion:",
-        error
-      );
+      console.error("🔗 WPL: Error handling IXL question completion:", error);
       // Send error back to the webview content
       window.postMessage(
         {

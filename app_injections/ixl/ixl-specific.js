@@ -303,7 +303,7 @@ console.log("🔗 IXL-specific script loaded successfully");
         // Send success feedback request to the preload script
         window.postMessage(
           {
-            type: "SUCCESS_FEEDBACK",
+            type: "IXL_SUCCESS_FEEDBACK",
             feedbackData: {
               type: "ixl_completion",
               title: "Correct Answer! 🎉",
@@ -319,7 +319,7 @@ console.log("🔗 IXL-specific script loaded successfully");
           },
           "*"
         );
-        console.log("🔗 IXL: sent SUCCESS_FEEDBACK");
+        console.log("🔗 IXL: sent IXL_SUCCESS_FEEDBACK");
       } catch (error) {
         console.error("❌ IXL: Error triggering success feedback:", error);
       }
