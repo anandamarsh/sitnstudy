@@ -12,7 +12,7 @@
  * that allow the renderer process to communicate with the main process.
  */
 
-import { ipcMain, Menu, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
@@ -273,53 +273,6 @@ ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   }
 })
 
-// IPC handler for webview context menu
-ipcMain.handle('show-webview-context-menu', async (event, pos) => {
-  try {
-    const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win) {
-      console.error('Could not find browser window for webview context menu');
-      return { success: false };
-    }
-
-    const menu = Menu.buildFromTemplate([
-      {
-        label: 'Inspect Element',
-        click: () => {
-          // Open DevTools for the webview guest
-          event.sender.openDevTools({ mode: 'right' });
-        },
-      },
-      { type: 'separator' },
-      { 
-        label: 'Reload', 
-        click: () => event.sender.reload() 
-      },
-      { 
-        label: 'Go Back', 
-        click: () => event.sender.goBack(), 
-        enabled: event.sender.canGoBack() 
-      },
-      { 
-        label: 'Go Forward', 
-        click: () => event.sender.goForward(), 
-        enabled: event.sender.canGoForward() 
-      },
-    ]);
-
-    menu.popup({ 
-      window: win, 
-      x: Math.round(pos?.x ?? 0), 
-      y: Math.round(pos?.y ?? 0) 
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error showing webview context menu:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
-})
-
 // IPC handler for IXL session management
 ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
   try {
@@ -350,7 +303,6 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
           entries = [];
         }
         
-        console.log(`Loaded ${entries.length} existing entries from ${filename}`);
       } catch (parseError) {
         console.error('Error parsing existing file:', parseError);
         entries = [];
@@ -359,7 +311,6 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
     
     // Extract questions from the session data
     const questions = data.questions || [];
-    console.log(`Processing ${questions.length} questions from session ${data.sessionId}`);
     
     // Process each question - use URL as primary key
     questions.forEach((question: any) => {
@@ -370,11 +321,9 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
         if (existingIndex !== -1) {
           // Update existing entry
           entries[existingIndex] = question;
-          console.log(`Updated existing entry for URL: ${question.url}`);
         } else {
           // Add new entry
           entries.push(question);
-          console.log(`Added new entry for URL: ${question.url}`);
         }
       }
     });
@@ -382,12 +331,29 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
     // Write the updated entries array back to file
     writeFileSync(filePath, JSON.stringify(entries, null, 2), 'utf8');
     
-    console.log(`IXL session ${data.sessionId} processed, ${entries.length} total entries saved to: ${filePath}`);
     return { success: true, message: 'Session processed successfully' };
     
   } catch (error) {
     console.error('Error saving IXL session:', error);
     return { success: false, message: 'Failed to save session' };
+  }
+})
+
+// IPC handler for IXL question completion
+ipcMain.handle('handle-ixl-question-completion', async (event, completionData) => {
+  try {
+    
+    // Get the main window to send the celebration event
+    const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender);
+    if (win) {
+      // Send celebration event to the main renderer process
+      win.webContents.send('ixl-question-completed', completionData);
+    }
+    
+    return { success: true, message: 'IXL completion processed successfully' };
+  } catch (error) {
+    console.error('Error handling IXL question completion:', error);
+    return { success: false, message: 'Failed to process IXL completion' };
   }
 })
 
