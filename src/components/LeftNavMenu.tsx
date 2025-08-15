@@ -128,6 +128,22 @@ export default function LeftNavMenu(): JSX.Element {
     };
   }, []);
 
+  // Store reference to the actual pauseAllWebviews function from Webview component
+  const [pauseAllWebviewsRef, setPauseAllWebviewsRef] = React.useState<(() => void) | null>(null);
+
+  // Expose pauseAllWebviews function globally so it can be called when switching to landing page
+  React.useEffect(() => {
+    (window as any).pauseAllWebviews = () => {
+      if (pauseAllWebviewsRef) {
+        console.log("🔗 Pausing all webviews for landing page");
+        pauseAllWebviewsRef();
+      }
+    };
+    return () => {
+      delete (window as any).pauseAllWebviews;
+    };
+  }, [pauseAllWebviewsRef]);
+
   const IconImg = ({ src, alt }: { src: string; alt: string }) => {
     const [hasError, setHasError] = useState(false);
 
@@ -463,14 +479,29 @@ export default function LeftNavMenu(): JSX.Element {
           overflow: "hidden",
         }}
       >
-        {showLandingPage ? (
-          <AppStore onAppSelect={handleAppSelect} />
-        ) : (
+        {/* Always render Webview to preserve state, but hide it when showing landing page */}
+        <Box sx={{ display: showLandingPage ? 'none' : 'block', width: '100%', height: '100%' }}>
           <Webview
             tabs={tabs}
             activeIndex={activeIndex}
             onCloseTab={closeTab}
+            onPauseAllWebviews={setPauseAllWebviewsRef}
           />
+        </Box>
+        
+        {/* Show landing page on top when needed */}
+        {showLandingPage && (
+          <Box sx={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            zIndex: 1000,
+            backgroundColor: 'white'
+          }}>
+            <AppStore onAppSelect={handleAppSelect} />
+          </Box>
         )}
       </Box>
     </Box>

@@ -10,6 +10,7 @@ interface WebviewProps {
   tabs: SiteTab[];
   activeIndex: number;
   onCloseTab?: (tabKey: string) => void;
+  onPauseAllWebviews?: (pauseFn: () => void) => void;
 }
 
 export default function Webview(props: WebviewProps): JSX.Element {
@@ -163,7 +164,14 @@ export default function Webview(props: WebviewProps): JSX.Element {
   }, [tabs, webviewRefs]);
 
   // Media control functions available for external use
-  useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
+  const { pauseAllWebviews } = useWebviewMedia(webviewRefs, activeIndex, tabs, preserveWebviewState, restoreWebviewState);
+
+  // Expose pauseAllWebviews function to parent component
+  React.useEffect(() => {
+    if (props.onPauseAllWebviews && pauseAllWebviews) {
+      props.onPauseAllWebviews(pauseAllWebviews);
+    }
+  }, [props.onPauseAllWebviews, pauseAllWebviews]);
 
   return (
     <Box
