@@ -147,8 +147,12 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
             opacity: 0;
             transform: translate(-50%, -50%) scale(5.0) rotate(0deg);
           }
+          80% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.0) rotate(360deg);
+          }
           100% {
-            opacity: 1; /* ✅ make it visible */
+            opacity: 0; /* ✅ fade out at the end */
             transform: translate(-50%, -50%) scale(1.0) rotate(360deg);
           }
         }
