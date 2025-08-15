@@ -69,6 +69,80 @@ window.addEventListener("message", async (event) => {
       );
     }
   }
+
+  // Handle IXL question completion data
+  if (event.data && event.data.type === "IXL_QUESTION_COMPLETED") {
+    try {
+      console.log(
+        "🔗 Webview preload: received IXL_QUESTION_COMPLETED. relaying handle-ixl-question-completion"
+      );
+      const result = await ipcRenderer.invoke(
+        "handle-ixl-question-completion",
+        event.data.data
+      );
+
+      // Send result back to the webview content
+      window.postMessage(
+        {
+          type: "IXL_QUESTION_COMPLETION_RESULT",
+          result: result,
+        },
+        "*"
+      );
+    } catch (error) {
+      console.error(
+        "🔗 Webview preload: Error handling IXL question completion:",
+        error
+      );
+      // Send error back to the webview content
+      window.postMessage(
+        {
+          type: "IXL_QUESTION_COMPLETION_RESULT",
+          result: { success: false, message: error.message },
+        },
+        "*"
+      );
+    }
+  }
+
+  // Handle IXL question completion data
+  if (event.data && event.data.type === "IXL_QUESTION_COMPLETED") {
+    try {
+      console.log(
+        "🔗 Webview preload: Received IXL question completion data, forwarding to main process"
+      );
+      const result = await ipcRenderer.invoke(
+        "handle-ixl-question-completion",
+        event.data.data
+      );
+      console.log(
+        "🔗 Webview preload: IXL question completion result:",
+        result
+      );
+
+      // Send result back to the webview content
+      window.postMessage(
+        {
+          type: "IXL_QUESTION_COMPLETION_RESULT",
+          result: result,
+        },
+        "*"
+      );
+    } catch (error) {
+      console.error(
+        "🔗 Webview preload: Error handling IXL question completion:",
+        error
+      );
+      // Send error back to the webview content
+      window.postMessage(
+        {
+          type: "IXL_QUESTION_COMPLETION_RESULT",
+          result: { success: false, message: error.message },
+        },
+        "*"
+      );
+    }
+  }
 });
 
 console.log("🔗 Webview preload script loaded successfully");

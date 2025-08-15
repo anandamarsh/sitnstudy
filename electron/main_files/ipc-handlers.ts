@@ -12,7 +12,7 @@
  * that allow the renderer process to communicate with the main process.
  */
 
-import { ipcMain, Menu, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
@@ -336,6 +336,26 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
   } catch (error) {
     console.error('Error saving IXL session:', error);
     return { success: false, message: 'Failed to save session' };
+  }
+})
+
+// IPC handler for IXL question completion
+ipcMain.handle('handle-ixl-question-completion', async (event, completionData) => {
+  try {
+    console.log('🎉 IXL question completion received:', completionData);
+    
+    // Get the main window to send the celebration event
+    const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender);
+    if (win) {
+      // Send celebration event to the main renderer process
+      win.webContents.send('ixl-question-completed', completionData);
+      console.log('🎉 Sent IXL completion event to renderer process');
+    }
+    
+    return { success: true, message: 'IXL completion processed successfully' };
+  } catch (error) {
+    console.error('Error handling IXL question completion:', error);
+    return { success: false, message: 'Failed to process IXL completion' };
   }
 })
 
