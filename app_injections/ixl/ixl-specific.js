@@ -13,18 +13,12 @@ console.log("🔗 IXL-specific script loaded successfully");
     let sessionQuestions = [];
 
     function initIXL() {
-      console.log(
-        "🔗 IXL DOM ready, initializing AJAX interception and session tracking"
-      );
-
       // Intercept AJAX requests to detect question completion and session start
       interceptAJAXRequests();
     }
 
     function interceptAJAXRequests() {
       try {
-        console.log("🔗 IXL: Setting up AJAX interception...");
-
         // Intercept fetch requests
         const originalFetch = window.fetch;
         window.fetch = function (...args) {
@@ -33,11 +27,6 @@ console.log("🔗 IXL-specific script loaded successfully");
 
           // Check if this is a practice pose request (session start)
           if (typeof url === "string" && url.includes("/practice/pose")) {
-            console.log(
-              "🔗 IXL: Detected practice pose request (session start):",
-              url
-            );
-
             return originalFetch.apply(this, args).then((response) => {
               // Clone the response so we can read it multiple times
               const clonedResponse = response.clone();
@@ -46,8 +35,6 @@ console.log("🔗 IXL-specific script loaded successfully");
               clonedResponse
                 .json()
                 .then((data) => {
-                  console.log("🔗 IXL: Practice pose response received:", data);
-
                   // Start new session
                   startNewSession(url, data);
                 })
@@ -61,8 +48,6 @@ console.log("🔗 IXL-specific script loaded successfully");
 
           // Check if this is a practice summary request (session end)
           if (typeof url === "string" && url.includes("/practice/summary")) {
-            console.log("🔗 IXL: Detected practice summary request:", url);
-
             return originalFetch.apply(this, args).then((response) => {
               // Clone the response so we can read it multiple times
               const clonedResponse = response.clone();
@@ -71,25 +56,17 @@ console.log("🔗 IXL-specific script loaded successfully");
               clonedResponse
                 .json()
                 .then((data) => {
-                  console.log(
-                    "🔗 IXL: Practice summary response received:",
-                    data
-                  );
-
                   // Check if this is a successful completion response
                   if (
                     data &&
                     data.smartScore !== undefined &&
                     data.problemsCorrect !== undefined
                   ) {
-                    console.log("🔗 IXL: Question completion detected!");
                     endCurrentSession(data);
                     showCompletionAlert(data);
                   }
                 })
-                .catch((error) => {
-                  console.log("🔗 IXL: Response is not JSON:", error);
-                });
+                .catch((error) => {});
 
               return response;
             });
@@ -111,47 +88,24 @@ console.log("🔗 IXL-specific script loaded successfully");
         XMLHttpRequest.prototype.send = function (...args) {
           // Check for practice pose request (session start)
           if (this._ixlUrl && this._ixlUrl.includes("/practice/pose")) {
-            console.log(
-              "🔗 IXL: Detected XHR practice pose request (session start):",
-              this._ixlUrl
-            );
-
             this.addEventListener("load", function () {
               try {
                 if (this.responseText) {
                   const data = JSON.parse(this.responseText);
-                  console.log(
-                    "🔗 IXL: XHR practice pose response received:",
-                    data
-                  );
 
                   // Start new session
                   startNewSession(this._ixlUrl, data);
                 }
-              } catch (error) {
-                console.log(
-                  "🔗 IXL: XHR pose response is not valid JSON:",
-                  error
-                );
-              }
+              } catch (error) {}
             });
           }
 
           // Check for practice summary request (session end)
           if (this._ixlUrl && this._ixlUrl.includes("/practice/summary")) {
-            console.log(
-              "🔗 IXL: Detected XHR practice summary request:",
-              this._ixlUrl
-            );
-
             this.addEventListener("load", function () {
               try {
                 if (this.responseText) {
                   const data = JSON.parse(this.responseText);
-                  console.log(
-                    "🔗 IXL: XHR practice summary response received:",
-                    data
-                  );
 
                   // Check if this is a successful completion response
                   if (
@@ -159,23 +113,16 @@ console.log("🔗 IXL-specific script loaded successfully");
                     data.smartScore !== undefined &&
                     data.problemsCorrect !== undefined
                   ) {
-                    console.log(
-                      "🔗 IXL: Question completion detected via XHR!"
-                    );
                     endCurrentSession(data);
                     showCompletionAlert(data);
                   }
                 }
-              } catch (error) {
-                console.log("🔗 IXL: XHR response is not valid JSON:", error);
-              }
+              } catch (error) {}
             });
           }
 
           return originalXHRSend.apply(this, args);
         };
-
-        console.log("🔗 IXL: AJAX interception setup complete");
       } catch (error) {
         console.error("🔗 IXL: Error setting up AJAX interception:", error);
       }
@@ -206,7 +153,7 @@ console.log("🔗 IXL-specific script loaded successfully");
           status: "active",
         };
 
-        console.log("🔗 IXL: New session started:", currentSession);
+        console.log("🔗 IXL: New session started:");
 
         // Play happy sound for every correct answer!
         triggerSuccessFeedback();
@@ -221,7 +168,6 @@ console.log("🔗 IXL-specific script loaded successfully");
     function endCurrentSession(completionData) {
       try {
         if (!currentSession) {
-          console.log("🔗 IXL: No active session to end");
           return;
         }
 
@@ -251,8 +197,6 @@ console.log("🔗 IXL-specific script loaded successfully");
           });
         }
 
-        console.log("🔗 IXL: Session completed:", currentSession);
-
         // Trigger success feedback via main process
         triggerSuccessFeedback();
 
@@ -276,7 +220,6 @@ console.log("🔗 IXL-specific script loaded successfully");
     function saveSessionToFile() {
       try {
         if (!currentSession) {
-          console.log("🔗 IXL: No session to save");
           return;
         }
 
@@ -295,8 +238,6 @@ console.log("🔗 IXL-specific script loaded successfully");
 
         // Use postMessage to send data to the preload script
         sendSessionViaPostMessage(filename, sessionData);
-
-        console.log("🔗 IXL: Session data sent for saving to:", filepath);
       } catch (error) {
         console.error("🔗 IXL: Error saving session to file:", error);
       }
@@ -315,9 +256,7 @@ console.log("🔗 IXL-specific script loaded successfully");
           },
           "*"
         );
-        console.log(
-          "🔗 IXL: Session data sent via postMessage to preload script"
-        );
+        console.log("🔗 IXL: sent IXL_SESSION_DATA");
       } catch (error) {
         console.error("🔗 IXL: Error sending session via postMessage:", error);
       }
@@ -343,13 +282,6 @@ console.log("🔗 IXL-specific script loaded successfully");
           skillAtExcellence: data.skillAtExcellence,
         };
 
-        // Log the metadata to console
-        console.log("🔗 IXL: Question completion detected!");
-        console.log(
-          "🔗 IXL: Metadata JSON:",
-          JSON.stringify(metadata, null, 2)
-        );
-
         // Send to the preload script which will relay to main process via IPC
         window.postMessage(
           {
@@ -359,9 +291,7 @@ console.log("🔗 IXL-specific script loaded successfully");
           "*"
         );
 
-        console.log(
-          "🔗 IXL: Question completion data sent via postMessage to preload script"
-        );
+        console.log("🔗 IXL: sent IXL_QUESTION_COMPLETED");
       } catch (error) {
         console.error("🔗 IXL: Error processing completion data:", error);
       }
@@ -389,9 +319,7 @@ console.log("🔗 IXL-specific script loaded successfully");
           },
           "*"
         );
-
-        console.log("🎵 IXL: Happy sound triggered for correct answer!");
-        console.log("🔊 Audio feedback request sent to main process");
+        console.log("🔗 IXL: sent SUCCESS_FEEDBACK");
       } catch (error) {
         console.error("❌ IXL: Error triggering success feedback:", error);
       }

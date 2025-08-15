@@ -29,7 +29,6 @@ const DEFAULT_FEEDBACK = {
 // IPC handler for success feedback
 ipcMain.handle('trigger-success-feedback', async (_event, feedbackData: SuccessFeedbackData) => {
   try {
-    console.log('🎉 Success feedback triggered:', feedbackData);
     
     // Get the main window
     const mainWindow = BrowserWindow.getAllWindows().find(win => !win.isDestroyed());
@@ -41,10 +40,7 @@ ipcMain.handle('trigger-success-feedback', async (_event, feedbackData: SuccessF
     // Play success sound
     await playSuccessSound(feedbackData.soundFile || DEFAULT_FEEDBACK.soundFile);
     
-    // Show success notification (future enhancement)
-    await showSuccessNotification(mainWindow, feedbackData);
     
-    console.log('🎉 Success feedback completed successfully');
     return { success: true, message: 'Success feedback triggered' };
     
   } catch (error) {
@@ -64,40 +60,17 @@ async function playSuccessSound(soundFile: string): Promise<void> {
       return;
     }
     
-    console.log(`🔊 Playing success sound: ${soundFile}`);
-    console.log(`🎵 Audio file path: ${audioPath}`);
+
     
     // Use play-sound library to actually play the audio
     player().play(audioPath, (err: any) => {
       if (err) {
         console.error('❌ Error playing audio:', err);
-      } else {
-        console.log('✅ Success sound played successfully!');
-      }
+      } 
     });
     
   } catch (error) {
     console.error('❌ Error playing success sound:', error);
-  }
-}
-
-// Function to show success notification
-async function showSuccessNotification(mainWindow: BrowserWindow, feedbackData: SuccessFeedbackData): Promise<void> {
-  try {
-    // Send notification data to the renderer process
-    mainWindow.webContents.send('show-success-notification', {
-      type: feedbackData.type,
-      title: feedbackData.title || 'Success!',
-      message: feedbackData.message || 'Great job!',
-      imageUrl: feedbackData.imageUrl,
-      duration: feedbackData.duration || DEFAULT_FEEDBACK.duration,
-      data: feedbackData.data
-    });
-    
-    console.log('📱 Success notification sent to renderer');
-    
-  } catch (error) {
-    console.error('Error showing success notification:', error);
   }
 }
 
@@ -117,4 +90,3 @@ export function getAvailableSounds(): string[] {
   }
 }
 
-console.log('🎉 Success feedback system initialized');
