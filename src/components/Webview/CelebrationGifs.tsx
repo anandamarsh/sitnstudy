@@ -54,11 +54,24 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
       console.log("🎉 Randomly selected GIF:", randomGif.id);
 
       // Fetch the image as a blob and convert to data URL
+      console.log(
+        "🎉 CelebrationGifs: Fetching image from URL:",
+        randomGif.url
+      );
       const response = await fetch(randomGif.url);
       const blob = await response.blob();
+      console.log("🎉 CelebrationGifs: Blob received, size:", blob.size);
       const reader = new FileReader();
       reader.onloadend = () => {
+        console.log(
+          "🎉 CelebrationGifs: Data URL created, length:",
+          (reader.result as string).length
+        );
         setDataUrl(reader.result as string);
+        setIsLoading(false);
+      };
+      reader.onerror = () => {
+        console.error("🎉 CelebrationGifs: FileReader error");
         setIsLoading(false);
       };
       reader.readAsDataURL(blob);
@@ -92,9 +105,9 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
   useEffect(() => {
     if (isVisible && dataUrl && !hasPlayedSound) {
       console.log("🎉 CelebrationGifs: Playing victory sound!");
-      const audio = new Audio('/audio/victory.wav');
+      const audio = new Audio("/audio/victory.wav");
       audio.volume = 0.7; // Set volume to 70%
-      audio.play().catch(error => {
+      audio.play().catch((error) => {
         console.log("🎉 CelebrationGifs: Audio play failed:", error.message);
       });
       setHasPlayedSound(true);
@@ -135,7 +148,9 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
     "isLoading:",
     isLoading,
     "selectedGif:",
-    selectedGif?.id
+    selectedGif?.id,
+    "dataUrl length:",
+    dataUrl?.length || 0
   );
 
   if (!isVisible) {
