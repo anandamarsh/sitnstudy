@@ -370,7 +370,6 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
         if (existingIndex !== -1) {
           // Update existing entry
           entries[existingIndex] = question;
-          console.log(`Updated existing entry for URL: ${question.url}`);
         } else {
           // Add new entry
           entries.push(question);
@@ -388,6 +387,26 @@ ipcMain.handle('save-ixl-session', async (_event, sessionData) => {
   } catch (error) {
     console.error('Error saving IXL session:', error);
     return { success: false, message: 'Failed to save session' };
+  }
+})
+
+// IPC handler for IXL question completion
+ipcMain.handle('handle-ixl-question-completion', async (event, completionData) => {
+  try {
+    console.log('🎉 IXL question completion received:', completionData);
+    
+    // Get the main window to send the celebration event
+    const win = BrowserWindow.fromWebContents(event.sender.hostWebContents || event.sender);
+    if (win) {
+      // Send celebration event to the main renderer process
+      win.webContents.send('ixl-question-completed', completionData);
+      console.log('🎉 Sent IXL completion event to renderer process');
+    }
+    
+    return { success: true, message: 'IXL completion processed successfully' };
+  } catch (error) {
+    console.error('Error handling IXL question completion:', error);
+    return { success: false, message: 'Failed to process IXL completion' };
   }
 })
 

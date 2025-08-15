@@ -24,6 +24,11 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     return ipcRenderer.on('navigation-blocked', (_event, data) => callback(data))
   },
 
+  // Expose IXL question completion event listener
+  onIxlQuestionCompleted(callback: (data: any) => void) {
+    return ipcRenderer.on('ixl-question-completed', (_event, data) => callback(data))
+  },
+
   // URL logging methods
   toggleUrlLogging: (siteKey: string, enabled: boolean) => ipcRenderer.invoke('toggle-url-logging', siteKey, enabled),
   getUrlLog: (siteKey: string) => ipcRenderer.invoke('get-url-log', siteKey),
