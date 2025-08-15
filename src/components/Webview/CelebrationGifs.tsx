@@ -189,7 +189,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          animation: celebrationEntrance 3.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+          animation: celebrationEntrance 4.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
           opacity: 0; /* start hidden, fade in via animation */
           will-change: transform, opacity;
         }
