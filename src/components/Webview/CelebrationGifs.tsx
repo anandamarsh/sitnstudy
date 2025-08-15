@@ -20,13 +20,10 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
   const [gifs, setGifs] = useState<GifData[]>([]);
   const [selectedGif, setSelectedGif] = useState<GifData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [hasPlayedSound, setHasPlayedSound] = useState(false);
 
-  // Giphy API key
   const gf = new GiphyFetch("Di6sZg5SfZYwsfb5wvzjqOEjkp7Pzida");
 
-  // Fetch celebration GIFs
   const fetchCelebrationGifs = async () => {
     try {
       setIsLoading(true);
@@ -36,7 +33,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
         type: "gifs",
       });
 
-      const gifData: GifData[] = result.data.map((gif) => ({
+      const gifData: GifData[] = result.data.map((gif: any) => ({
         id: gif.id,
         url: gif.images.fixed_height.url,
         width: Number(gif.images.fixed_height.width),
@@ -45,146 +42,73 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
 
       setGifs(gifData);
 
-      // Randomly select one GIF to display
-      const randomIndex = Math.floor(Math.random() * gifData.length);
-      const randomGif = gifData[randomIndex];
-      setSelectedGif(randomGif);
-
-      console.log("🎉 Celebration GIFs loaded:", gifData.length);
-      console.log("🎉 Randomly selected GIF:", randomGif.id);
-
-      // Fetch the image as a blob and convert to data URL
-      console.log(
-        "🎉 CelebrationGifs: Fetching image from URL:",
-        randomGif.url
-      );
-      const response = await fetch(randomGif.url);
-      const blob = await response.blob();
-      console.log("🎉 CelebrationGifs: Blob received, size:", blob.size);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        console.log(
-          "🎉 CelebrationGifs: Data URL created, length:",
-          (reader.result as string).length
-        );
-        setDataUrl(reader.result as string);
-        setIsLoading(false);
-      };
-      reader.onerror = () => {
-        console.error("🎉 CelebrationGifs: FileReader error");
-        setIsLoading(false);
-      };
-      reader.readAsDataURL(blob);
+      if (gifData.length) {
+        const randomIndex = Math.floor(Math.random() * gifData.length);
+        setSelectedGif(gifData[randomIndex]);
+      } else {
+        setSelectedGif(null);
+      }
     } catch (error) {
       console.error("❌ Error fetching celebration GIFs:", error);
+    } finally {
+      // ✅ make sure we stop showing the spinner
       setIsLoading(false);
     }
   };
 
-  // Load GIFs when component becomes visible
   useEffect(() => {
-    console.log(
-      "🎉 CelebrationGifs: useEffect triggered, isVisible:",
-      isVisible,
-      "gifs.length:",
-      gifs.length
-    );
     if (isVisible && gifs.length === 0) {
-      console.log("🎉 CelebrationGifs: Starting to fetch celebration GIFs...");
       fetchCelebrationGifs();
-    } else if (isVisible) {
-      console.log("🎉 CelebrationGifs: Already have GIFs, no need to fetch");
-    } else {
-      console.log("🎉 CelebrationGifs: Not visible, resetting states");
+    } else if (!isVisible) {
       setHasPlayedSound(false);
-      setDataUrl(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]);
 
-  // Play victory sound when image is ready to display (only once)
   useEffect(() => {
-    if (isVisible && dataUrl && !hasPlayedSound) {
-      console.log("🎉 CelebrationGifs: Playing victory sound!");
-      const audio = new Audio("/audio/victory.wav");
-      audio.volume = 0.7; // Set volume to 70%
-      audio.play().catch((error) => {
-        console.log("🎉 CelebrationGifs: Audio play failed:", error.message);
-      });
+    if (isVisible && selectedGif && !hasPlayedSound) {
+      const audio = new Audio("/audio/victory.wav"); // ensure this path exists in your app
+      audio.volume = 0.7;
+      audio.play().catch((e) => console.log("Audio play failed:", e.message));
       setHasPlayedSound(true);
     }
-  }, [isVisible, dataUrl, hasPlayedSound]);
+  }, [isVisible, selectedGif, hasPlayedSound]);
 
-  // Auto-hide after animation completes
   useEffect(() => {
-    console.log(
-      "🎉 CelebrationGifs: Auto-hide useEffect triggered, isVisible:",
-      isVisible,
-      "selectedGif:",
-      selectedGif?.id
-    );
     if (isVisible && selectedGif) {
-      console.log(
-        "🎉 CelebrationGifs: Setting 5-second timer for auto-hide..."
-      );
-      const timer = setTimeout(() => {
-        console.log(
-          "🎉 CelebrationGifs: 5-second timer expired, calling onComplete..."
-        );
-        if (onComplete) {
-          onComplete();
-        }
-      }, 5000); // Show for 5 seconds
-
-      return () => {
-        console.log("🎉 CelebrationGifs: Cleaning up auto-hide timer");
-        clearTimeout(timer);
-      };
+      const timer = setTimeout(() => onComplete?.(), 5000);
+      return () => clearTimeout(timer);
     }
   }, [isVisible, selectedGif, onComplete]);
 
-  console.log(
-    "🎉 CelebrationGifs: render called, isVisible:",
-    isVisible,
-    "isLoading:",
-    isLoading,
-    "selectedGif:",
-    selectedGif?.id,
-    "dataUrl length:",
-    dataUrl?.length || 0
-  );
-
-  if (!isVisible) {
-    console.log("🎉 CelebrationGifs: Not visible, returning null");
-    return null;
-  }
+  if (!isVisible) return null;
 
   return (
     <div className="celebration-gifs-overlay">
       <div className="celebration-gifs-container">
-        {isLoading ? (
+        {isLoading && !selectedGif ? (
           <div className="loading-spinner">
             <div className="spinner"></div>
             <p>Loading celebration GIF... 🎉</p>
           </div>
-        ) : dataUrl ? (
+        ) : selectedGif ? (
           <div className="celebration-gif">
             <img
-              src={dataUrl}
+              src={selectedGif.url}
               alt="Celebration!"
-              width={selectedGif?.width}
-              height={selectedGif?.height}
+              width={selectedGif.width}
+              height={selectedGif.height}
             />
           </div>
-        ) : null}
+        ) : (
+          <p style={{ color: "white" }}>No GIFs found.</p>
+        )}
       </div>
 
       <style>{`
         .celebration-gifs-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
+          inset: 0;
           background: transparent;
           z-index: 9999;
           display: flex;
@@ -205,8 +129,9 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          animation: celebrationEntrance 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-          opacity: 0;
+          animation: celebrationEntrance 2.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+          opacity: 0; /* start hidden, fade in via animation */
+          will-change: transform, opacity;
         }
 
         .celebration-gif img {
@@ -223,7 +148,7 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
             transform: translate(-50%, -50%) scale(5.0) rotate(0deg);
           }
           100% {
-            opacity: 0;
+            opacity: 1; /* ✅ make it visible */
             transform: translate(-50%, -50%) scale(1.0) rotate(360deg);
           }
         }
