@@ -20,6 +20,8 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
   const [gifs, setGifs] = useState<GifData[]>([]);
   const [selectedGif, setSelectedGif] = useState<GifData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [hasPlayedSound, setHasPlayedSound] = useState(false);
 
   // Giphy API key
   const gf = new GiphyFetch("Di6sZg5SfZYwsfb5wvzjqOEjkp7Pzida");
@@ -50,9 +52,18 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
 
       console.log("🎉 Celebration GIFs loaded:", gifData.length);
       console.log("🎉 Randomly selected GIF:", randomGif.id);
+
+      // Fetch the image as a blob and convert to data URL
+      const response = await fetch(randomGif.url);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDataUrl(reader.result as string);
+        setIsLoading(false);
+      };
+      reader.readAsDataURL(blob);
     } catch (error) {
       console.error("❌ Error fetching celebration GIFs:", error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -71,21 +82,24 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
     } else if (isVisible) {
       console.log("🎉 CelebrationGifs: Already have GIFs, no need to fetch");
     } else {
-      console.log("🎉 CelebrationGifs: Not visible, not fetching GIFs");
+      console.log("🎉 CelebrationGifs: Not visible, resetting states");
+      setHasPlayedSound(false);
+      setDataUrl(null);
     }
   }, [isVisible]);
 
-  // Play victory sound when celebration starts
+  // Play victory sound when image is ready to display (only once)
   useEffect(() => {
-    if (isVisible && selectedGif) {
+    if (isVisible && dataUrl && !hasPlayedSound) {
       console.log("🎉 CelebrationGifs: Playing victory sound!");
       const audio = new Audio('/audio/victory.wav');
       audio.volume = 0.7; // Set volume to 70%
       audio.play().catch(error => {
         console.log("🎉 CelebrationGifs: Audio play failed:", error.message);
       });
+      setHasPlayedSound(true);
     }
-  }, [isVisible, selectedGif]);
+  }, [isVisible, dataUrl, hasPlayedSound]);
 
   // Auto-hide after animation completes
   useEffect(() => {
@@ -137,13 +151,13 @@ const CelebrationGifs: React.FC<CelebrationGifsProps> = ({
             <div className="spinner"></div>
             <p>Loading celebration GIF... 🎉</p>
           </div>
-        ) : selectedGif ? (
+        ) : dataUrl ? (
           <div className="celebration-gif">
             <img
-              src={selectedGif.url}
+              src={dataUrl}
               alt="Celebration!"
-              width={selectedGif.width}
-              height={selectedGif.height}
+              width={selectedGif?.width}
+              height={selectedGif?.height}
             />
           </div>
         ) : null}
