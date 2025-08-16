@@ -11,10 +11,15 @@
   function isUrlWhitelisted(targetUrl) {
     console.log(`[IC] 🔍 Checking if URL is whitelisted: ${targetUrl}`);
     console.log(`[IC] 📋 Current whitelist:`, window.whitelistedUrls);
-    console.log(`[IC] 🚫 Internal navigation blocked:`, window.allowInternalNavigation === false);
-    
+    console.log(
+      `[IC] 🚫 Internal navigation blocked:`,
+      window.allowInternalNavigation === false
+    );
+
     if (!window.whitelistedUrls || !window.allowInternalNavigation === false) {
-      console.log(`[IC] ✅ URL allowed - no whitelist or internal navigation enabled`);
+      console.log(
+        `[IC] ✅ URL allowed - no whitelist or internal navigation enabled`
+      );
       return true; // Allow if no whitelist or internal navigation is enabled
     }
 
@@ -23,17 +28,19 @@
       return window.whitelistedUrls.some((whitelistUrl) => {
         try {
           const whitelistUrlObj = new URL(whitelistUrl);
-          const hostnameMatch = whitelistUrlObj.hostname === targetUrlObj.hostname;
-          const pathnameMatch = whitelistUrlObj.pathname === targetUrlObj.pathname;
-          
+          const hostnameMatch =
+            whitelistUrlObj.hostname === targetUrlObj.hostname;
+          const pathnameMatch =
+            whitelistUrlObj.pathname === targetUrlObj.pathname;
+
           console.log(`[IC] 🔍 Whitelist check:`, {
             whitelistUrl: whitelistUrl,
             targetUrl: targetUrl,
             hostnameMatch,
             pathnameMatch,
-            result: hostnameMatch && pathnameMatch
+            result: hostnameMatch && pathnameMatch,
           });
-          
+
           return hostnameMatch && pathnameMatch;
         } catch {
           console.log(`[IC] ❌ Error parsing whitelist URL: ${whitelistUrl}`);
@@ -72,11 +79,15 @@
             return true; // Don't prevent default, let main process decide
           } else if (target.href.startsWith("http")) {
             console.log(`[IC] 🔗 Link click detected: ${target.href}`);
-            console.log(`[IC] 🌐 Current domain: ${currentDomain}, Target domain: ${url.hostname}`);
-            
+            console.log(
+              `[IC] 🌐 Current domain: ${currentDomain}, Target domain: ${url.hostname}`
+            );
+
             // Check if internal navigation should be blocked
             if (window.allowInternalNavigation === false) {
-              console.log(`[IC] 🚫 Internal navigation is blocked, checking whitelist...`);
+              console.log(
+                `[IC] 🚫 Internal navigation is blocked, checking whitelist...`
+              );
               if (!isUrlWhitelisted(target.href)) {
                 console.log(`[IC] ❌ Link blocked - not in whitelist`);
                 e.preventDefault();
@@ -122,13 +133,19 @@
             return true; // Don't prevent default, let main process decide
           } else if (form.action.startsWith("http")) {
             console.log(`[IC] 📝 Form submission detected: ${form.action}`);
-            console.log(`[IC] 🌐 Current domain: ${currentDomain}, Target domain: ${url.hostname}`);
-            
+            console.log(
+              `[IC] 🌐 Current domain: ${currentDomain}, Target domain: ${url.hostname}`
+            );
+
             // Check if internal navigation should be blocked for form submissions
             if (window.allowInternalNavigation === false) {
-              console.log(`[IC] 🚫 Internal navigation is blocked, checking whitelist...`);
+              console.log(
+                `[IC] 🚫 Internal navigation is blocked, checking whitelist...`
+              );
               if (!isUrlWhitelisted(form.action)) {
-                console.log(`[IC] ❌ Form submission blocked - not in whitelist`);
+                console.log(
+                  `[IC] ❌ Form submission blocked - not in whitelist`
+                );
                 e.preventDefault();
                 logNavigationBlocked(form.action, "form submission");
                 return false;

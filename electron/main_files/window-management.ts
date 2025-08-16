@@ -119,9 +119,12 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
 
     // Block navigation to external domains
     webContents.on('will-navigate', async (event, navigationUrl) => {
+      console.log(`[WM] 🚫 will-navigate event fired: ${navigationUrl}`);
       const currentUrl = webContents.getURL();
       const currentDomain = new URL(currentUrl).hostname;
       const navigationDomain = new URL(navigationUrl).hostname;
+      
+      console.log(`[WM] 🌐 Navigation check: ${currentDomain} -> ${navigationDomain}`);
       
       if (currentDomain !== navigationDomain) {
         // Check if external navigation is allowed for the ORIGINAL site that created this webview
@@ -162,31 +165,7 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
     });
 
-    // Listen for internal navigation blocked messages from the webview
-    webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
-      // Check if the message contains our internal navigation blocked data
-      if (message.includes('internal-navigation-blocked')) {
-        try {
-          // Extract the data from the console message
-          const match = message.match(/internal-navigation-blocked: (.+)/);
-          if (match) {
-            const data = JSON.parse(match[1]);
-            console.log(`[WM] Internal navigation blocked to: ${data.blockedUrl} from ${data.currentDomain}`);
-            
-            // Send message to renderer to show error snackbar (same as external navigation)
-            if (win) {
-              win.webContents.send('navigation-blocked', {
-                blockedUrl: data.blockedUrl,
-                currentDomain: data.currentDomain,
-                targetDomain: data.targetDomain
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing internal navigation blocked message:', error);
-        }
-      }
-    });
+    // Note: Console message handling is now consolidated in the main console-message handler above
 
     // Inject JavaScript to intercept link clicks and form submissions
     webContents.on('did-finish-load', () => {
@@ -305,7 +284,16 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         console.log(`[WM] 🚀 Executing combined scripts (${allScriptContent.length} characters)`);
         console.log(`[WM] 📝 Script preview:`, allScriptContent.substring(0, 200) + '...');
         
-        webContents.executeJavaScript(allScriptContent);
+        // Add a test message to verify injection is working
+        const testScript = `
+          console.log('[IC] 🧪 TEST: Script injection successful!');
+          console.log('[IC] 🧪 TEST: allowInternalNavigation =', window.allowInternalNavigation);
+          console.log('[IC] 🧪 TEST: whitelistedUrls =', window.whitelistedUrls);
+          console.log('[IC] 🧪 TEST: currentDomain =', '${currentDomain}');
+        `;
+        
+        const fullScript = allScriptContent + '\n' + testScript;
+        webContents.executeJavaScript(fullScript);
         
         // Now inject site-specific scripts
         if (!siteKey) {
@@ -370,6 +358,8 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
 
     // Listen for console messages from injected script
     webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
+      console.log(`[WM] 📨 Console message from webview: ${message}`);
+      
       if (message.startsWith('NAVIGATION_BLOCKED:')) {
         try {
           const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix
@@ -383,6 +373,22 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           }
         } catch (error) {
           console.error('Error parsing navigation blocked message:', error)
+        }
+      } else if (message.startsWith('internal-navigation-blocked:')) {
+        try {
+          const data = JSON.parse(message.substring(28)); // Remove 'internal-navigation-blocked:' prefix
+          console.log(`[WM] 🚫 Internal navigation blocked:`, data);
+          
+          if (win) {
+            // Send navigation blocked message to renderer
+            win.webContents.send('navigation-blocked', {
+              blockedUrl: data.blockedUrl || '',
+              currentDomain: data.currentDomain || '',
+              targetDomain: data.targetDomain || ''
+            });
+          }
+        } catch (error) {
+          console.error('Error parsing internal navigation blocked message:', error)
         }
       } else if (message.startsWith('URL_CHANGE:')) {
         try {
