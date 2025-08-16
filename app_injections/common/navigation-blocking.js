@@ -18,23 +18,54 @@
     try {
       const targetUrlObj = new URL(targetUrl, window.location.href);
 
+      // Debug logging
+      console.log("[NB] Checking URL:", targetUrl);
+      console.log(
+        "[NB] allowInternalNavigation:",
+        window.allowInternalNavigation
+      );
+      console.log("[NB] whitelistedUrls:", window.whitelistedUrls);
+      console.log("[NB] whitelistedUrls type:", typeof window.whitelistedUrls);
+      console.log(
+        "[NB] whitelistedUrls length:",
+        window.whitelistedUrls?.length
+      );
+
       // If internal navigation is NOT being blocked, or no whitelist exists → allow
       if (window.allowInternalNavigation !== false || !window.whitelistedUrls) {
+        console.log("[NB] Early return - navigation allowed or no whitelist");
         return true;
       }
 
-      return window.whitelistedUrls.some((whitelistUrl) => {
+      // Check if whitelist is empty array
+      if (window.whitelistedUrls.length === 0) {
+        console.log("[NB] Whitelist is empty array - blocking all");
+        return false;
+      }
+
+      const result = window.whitelistedUrls.some((whitelistUrl) => {
         try {
           const w = new URL(whitelistUrl, window.location.href);
-          return (
+          const match =
             w.origin === targetUrlObj.origin &&
-            w.pathname === targetUrlObj.pathname
+            w.pathname === targetUrlObj.pathname;
+          console.log(
+            "[NB] Checking whitelist URL:",
+            whitelistUrl,
+            "Match:",
+            match
           );
-        } catch {
+          return match;
+        } catch (error) {
+          console.log("[NB] Error parsing whitelist URL:", whitelistUrl, error);
           return false;
         }
       });
-    } catch {
+
+      console.log("[NB] Final result:", result);
+      return result;
+    } catch (error) {
+      console.log("[NB] Error in isUrlWhitelisted:", error);
       return false;
     }
   }
