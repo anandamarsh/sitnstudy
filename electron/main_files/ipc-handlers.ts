@@ -29,7 +29,7 @@ function closeWebviewsForSite(siteKey: string) {
         window.webContents.send('close-tabs-for-site', siteKey)
       }
     })
-    console.log(`Sent close-tabs-for-site message for site: ${siteKey}`)
+    console.log(`IH] Sent close-tabs-for-site message for site: ${siteKey}`)
   } catch (error) {
     console.error('Error closing webviews for site:', error)
   }
@@ -59,7 +59,7 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
         // Update the iconPath to point to the local file
         newSite.iconPath = `/icons/${iconFilename}`
         
-        console.log(`Saved SVG icon to: ${iconPath}`)
+        console.log(`IH] Saved SVG icon to: ${iconPath}`)
       } catch (iconError) {
         console.error('Error saving SVG icon:', iconError)
         // Continue with the original iconPath if SVG saving fails
@@ -108,7 +108,7 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
       if (existsSync(urlHistoryPath)) {
         const fs = await import('fs/promises')
         await fs.unlink(urlHistoryPath)
-        console.log(`Removed URL history file for ${siteKey}: ${urlHistoryPath}`)
+        console.log(`IH] Removed URL history file for ${siteKey}: ${urlHistoryPath}`)
       }
     } catch (historyError) {
       console.error(`Error removing URL history file for ${siteKey}:`, historyError)
@@ -121,7 +121,7 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
       if (existsSync(whitelistPath)) {
         const fs = await import('fs/promises')
         await fs.unlink(whitelistPath)
-        console.log(`Removed URL whitelist file for ${siteKey}: ${whitelistPath}`)
+        console.log(`IH] Removed URL whitelist file for ${siteKey}: ${whitelistPath}`)
       }
     } catch (whitelistError) {
       console.error(`Error removing URL whitelist file for ${siteKey}:`, whitelistError)

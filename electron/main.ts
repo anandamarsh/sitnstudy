@@ -15,7 +15,7 @@ app.on('web-contents-created', (_e, contents) => {
     webPreferences.contextIsolation = true
     webPreferences.nodeIntegration = false
     // Keep other hardening as needed
-    console.log('🔧 will-attach-webview: Set preload to:', webPreferences.preload)
+    console.log('[MN] will-attach-webview: Set preload to:', webPreferences.preload)
   })
 })
 

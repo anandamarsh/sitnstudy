@@ -22,7 +22,7 @@
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": true,
-    "allowExternalNavigation": true,
+    "allowExternalNavigation": false,
     "showAddressBar": true,
     "allowInternalNavigation": false
   },
@@ -50,8 +50,8 @@
     "iconPath": "/icons/youtube.svg",
     "description": "Watch educational videos and tutorials on a wide range of topics.",
     "urlLogging": true,
-    "allowExternalNavigation": true,
-    "showAddressBar": false,
+    "allowExternalNavigation": false,
+    "showAddressBar": true,
     "allowInternalNavigation": false
   }
 ]

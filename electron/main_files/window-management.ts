@@ -223,27 +223,72 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         }
       }
         
-      // Inject common script first
-      const commonScriptPath = path.join(__dirname, '../app_injections/common.js');
+      // Inject common modules first
       try {
-        const commonScript = readFileSync(commonScriptPath, 'utf8');
-        // Replace the placeholder with the actual current domain
-        let scriptWithDomain = commonScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
-        
         // Get webview ID and site key
         const webviewId = String(webContents.id);
         let siteKey = webviewSiteMap.get(webviewId);
         
-        // Inject the internal navigation setting
+        // First, inject the navigation settings and whitelist
+        let allScriptContent = '';
+        
         if (siteKey) {
           const site = configManager.getSite(siteKey);
           if (site) {
             const allowInternalNav = site.allowInternalNavigation !== false; // Default to true if not set
-            scriptWithDomain += `\nwindow.allowInternalNavigation = ${allowInternalNav};`;
+            allScriptContent += `window.allowInternalNavigation = ${allowInternalNav};\n`;
+            
+            // Inject whitelisted URLs if internal navigation is blocked
+            if (!allowInternalNav) {
+              try {
+                const whitelistPath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`);
+                if (existsSync(whitelistPath)) {
+                  const whitelistContent = readFileSync(whitelistPath, 'utf8');
+                  const whitelistedUrls = JSON.parse(whitelistContent);
+                  allScriptContent += `window.whitelistedUrls = ${JSON.stringify(whitelistedUrls)};\n`;
+                } else {
+                  allScriptContent += `window.whitelistedUrls = [];\n`;
+                }
+              } catch (error) {
+                console.error(`Error loading whitelist for ${siteKey}:`, error);
+                allScriptContent += `window.whitelistedUrls = [];\n`;
+              }
+            } else {
+              allScriptContent += `window.whitelistedUrls = [];\n`;
+            }
           }
         }
         
-        webContents.executeJavaScript(scriptWithDomain);
+        // Load and inject each common module
+        const commonDir = path.join(__dirname, '../app_injections/common');
+        const commonFiles = [
+          'navigation-blocking.js',
+          'history-api.js', 
+          'location-override.js',
+          'media-control.js',
+          'webview-state.js',
+          'index.js'
+        ];
+        
+        for (const fileName of commonFiles) {
+          try {
+            const filePath = path.join(commonDir, fileName);
+            if (existsSync(filePath)) {
+              let scriptContent = readFileSync(filePath, 'utf8');
+              
+              // Replace the domain placeholder with the actual current domain
+              scriptContent = scriptContent.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
+              
+              allScriptContent += scriptContent + '\n';
+              console.log(`[WM] Loaded common module: ${fileName}`);
+            }
+          } catch (moduleError) {
+            console.error(`Error loading common module ${fileName}:`, moduleError);
+          }
+        }
+        
+        // Execute all the combined scripts
+        webContents.executeJavaScript(allScriptContent);
         
         // Now inject site-specific scripts
         if (!siteKey) {
@@ -292,8 +337,8 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         }
         
       } catch (error) {
-        console.error('Error loading common.js script:', error);
-        // Fallback to basic injection if file can't be loaded
+        console.error('Error loading common modules:', error);
+        // Fallback to basic injection if files can't be loaded
         webContents.executeJavaScript(`
           console.log('URL_CHANGE:' + JSON.stringify({
             url: window.location.href,
