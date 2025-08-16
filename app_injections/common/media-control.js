@@ -75,5 +75,62 @@
     }
   };
 
+  // Event listeners for automatic media control
+  let wasPlayingBeforeBlur = false;
+
+  // Handle when webview loses focus (blur)
+  window.addEventListener('blur', function() {
+    // Check if any media is currently playing
+    const mediaElements = Array.from(document.querySelectorAll("video,audio"));
+    wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
+    
+    if (wasPlayingBeforeBlur) {
+      pauseAllMedia();
+    }
+  });
+
+  // Handle when webview gains focus (focus)
+  window.addEventListener('focus', function() {
+    if (wasPlayingBeforeBlur) {
+      resumeMedia();
+      wasPlayingBeforeBlur = false;
+    }
+  });
+
+  // Handle when tab becomes hidden/visible (visibilitychange)
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      // Tab is hidden, pause media
+      const mediaElements = Array.from(document.querySelectorAll("video,audio"));
+      wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
+      
+      if (wasPlayingBeforeBlur) {
+        pauseAllMedia();
+      }
+    } else {
+      // Tab is visible again, resume media if it was playing before
+      if (wasPlayingBeforeBlur) {
+        resumeMedia();
+        wasPlayingBeforeBlur = false;
+      }
+    }
+  });
+
+  // Also handle page focus/blur for better coverage
+  document.addEventListener('blur', function() {
+    const mediaElements = Array.from(document.querySelectorAll("video,audio"));
+    wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
+    
+    if (wasPlayingBeforeBlur) {
+      pauseAllMedia();
+    }
+  });
+
+  document.addEventListener('focus', function() {
+    if (wasPlayingBeforeBlur) {
+      resumeMedia();
+      wasPlayingBeforeBlur = false;
+    }
+  });
 
 })();
