@@ -36,11 +36,14 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [allowExternalNavigation, setAllowExternalNavigation] = useState(
     app.allowExternalNavigation || false // Default to false if not set
   );
+  const [allowInternalNavigation, setAllowInternalNavigation] = useState(false); // Default to false
   const [showAddressBar, setShowAddressBar] = useState(
     app.showAddressBar || false // Default to false if not set
   );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
   const [isTogglingNavigation, setIsTogglingNavigation] = useState(false);
+  const [isTogglingInternalNavigation, setIsTogglingInternalNavigation] =
+    useState(false);
   const [isTogglingAddressBar, setIsTogglingAddressBar] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
 
@@ -141,6 +144,25 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
       console.error("Error toggling external navigation:", error);
     } finally {
       setIsTogglingNavigation(false);
+    }
+  };
+
+  const toggleInternalNavigation = async (enabled: boolean) => {
+    setIsTogglingInternalNavigation(true);
+    try {
+      const result = await (window as any).ipcRenderer.toggleInternalNavigation(
+        app.key,
+        enabled
+      );
+      if (result.success) {
+        setAllowInternalNavigation(enabled);
+      } else {
+        console.error("Failed to toggle internal navigation:", result.error);
+      }
+    } catch (error) {
+      console.error("Error toggling internal navigation:", error);
+    } finally {
+      setIsTogglingInternalNavigation(false);
     }
   };
 
@@ -328,9 +350,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   }
                   label={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <HistoryIcon fontSize="small" />
                       <Typography variant="body2" fontWeight="medium">
-                        {isTogglingLogging ? "Updating..." : "URL Logging"}
+                        {isTogglingLogging ? "Updating..." : "Watch URLs"}
                       </Typography>
                     </Box>
                   }
@@ -380,6 +401,50 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   }
                 />
                 {!allowExternalNavigation && (
+                  <Chip
+                    label="Blocked"
+                    size="small"
+                    variant="outlined"
+                    color="warning"
+                  />
+                )}
+              </Box>
+
+              {/* Block Internal Navigation Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={!allowInternalNavigation}
+                      onChange={(e) =>
+                        toggleInternalNavigation(!e.target.checked)
+                      }
+                      disabled={isTogglingInternalNavigation}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingInternalNavigation
+                          ? "Updating..."
+                          : "Block Internal Navigation"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {!allowInternalNavigation && (
                   <Chip
                     label="Blocked"
                     size="small"
