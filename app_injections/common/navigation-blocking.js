@@ -41,7 +41,7 @@
 
   function logNavigationBlocked(blockedUrl, type) {
     console.log(
-      `[NB] internal-navigation-blocked: ${JSON.stringify({
+      `internal-navigation-blocked: ${JSON.stringify({
         blockedUrl: blockedUrl,
         currentDomain: currentDomain,
         targetDomain: currentDomain,
@@ -101,7 +101,7 @@
       const actionAttr =
         form && form.getAttribute && form.getAttribute("action");
       if (!actionAttr) return;
-
+internal-navigation-blocked:
       let targetUrlObj;
       try {
         targetUrlObj = new URL(actionAttr, window.location.href);

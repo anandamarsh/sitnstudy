@@ -52,6 +52,6 @@
     "urlLogging": true,
     "allowExternalNavigation": false,
     "showAddressBar": true,
-    "allowInternalNavigation": true
+    "allowInternalNavigation": false
   }
 ]
