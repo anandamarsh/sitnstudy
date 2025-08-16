@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
-  History as HistoryIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
 import { SiteConfig } from "../types";
@@ -36,7 +35,9 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [allowExternalNavigation, setAllowExternalNavigation] = useState(
     app.allowExternalNavigation || false // Default to false if not set
   );
-  const [allowInternalNavigation, setAllowInternalNavigation] = useState(false); // Default to false
+  const [allowInternalNavigation, setAllowInternalNavigation] = useState(
+    app.allowInternalNavigation || false // Default to false if not set
+  );
   const [showAddressBar, setShowAddressBar] = useState(
     app.showAddressBar || false // Default to false if not set
   );
@@ -189,6 +190,11 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   useEffect(() => {
     setUrlLoggingEnabled(app.urlLogging || false);
   }, [app.urlLogging]);
+
+  // Sync internal navigation state when app changes
+  useEffect(() => {
+    setAllowInternalNavigation(app.allowInternalNavigation || false);
+  }, [app.allowInternalNavigation]);
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>

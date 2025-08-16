@@ -202,13 +202,24 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       try {
         const commonScript = readFileSync(commonScriptPath, 'utf8');
         // Replace the placeholder with the actual current domain
-        const scriptWithDomain = commonScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
-        webContents.executeJavaScript(scriptWithDomain);
+        let scriptWithDomain = commonScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
         
-        // Now inject site-specific scripts
+        // Get webview ID and site key
         const webviewId = String(webContents.id);
         let siteKey = webviewSiteMap.get(webviewId);
         
+        // Inject the internal navigation setting
+        if (siteKey) {
+          const site = configManager.getSite(siteKey);
+          if (site) {
+            const allowInternalNav = site.allowInternalNavigation !== false; // Default to true if not set
+            scriptWithDomain += `\nwindow.allowInternalNavigation = ${allowInternalNav};`;
+          }
+        }
+        
+        webContents.executeJavaScript(scriptWithDomain);
+        
+        // Now inject site-specific scripts
         if (!siteKey) {
           // Try to find site by current domain
           const currentUrl = webContents.getURL();

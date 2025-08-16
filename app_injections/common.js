@@ -15,6 +15,13 @@
             // The main process will either allow or block based on the setting
             return true; // Don't prevent default, let main process decide
           } else if (target.href.startsWith("http")) {
+            // Check if internal navigation should be blocked
+            if (window.allowInternalNavigation === false) {
+              console.log("[IC] Blocked internal navigation to:", target.href);
+              e.preventDefault();
+              return false;
+            }
+
             // Log internal navigation immediately when link is clicked - only fully qualified URLs
             console.log(
               "[IC] URL_CHANGE:" +

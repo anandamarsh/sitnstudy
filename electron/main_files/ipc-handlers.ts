@@ -19,6 +19,22 @@ import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 
 import { configManager } from './config-manager'
 
+// Function to close webviews for a specific site
+function closeWebviewsForSite(siteKey: string) {
+  try {
+    const windows = BrowserWindow.getAllWindows()
+    windows.forEach(window => {
+      if (!window.isDestroyed()) {
+        // Send message to renderer to close tabs for this site
+        window.webContents.send('close-tabs-for-site', siteKey)
+      }
+    })
+    console.log(`Sent close-tabs-for-site message for site: ${siteKey}`)
+  } catch (error) {
+    console.error('Error closing webviews for site:', error)
+  }
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // IPC handlers for site management
@@ -138,6 +154,8 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
   try {
     const success = await configManager.updateExternalNavigation(siteKey, enabled)
     if (success) {
+      // Close any open webviews for this site so new settings take effect
+      closeWebviewsForSite(siteKey)
       return { success: true }
     } else {
       console.error(`Site ${siteKey} not found in app.json`)
@@ -145,6 +163,23 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
     }
   } catch (error) {
     console.error('Error toggling external navigation:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
+ipcMain.handle('toggle-internal-navigation', async (_event, siteKey: string, enabled: boolean) => {
+  try {
+    const success = await configManager.updateInternalNavigation(siteKey, enabled)
+    if (success) {
+      // Close any open webviews for this site so new settings take effect
+      closeWebviewsForSite(siteKey)
+      return { success: true }
+    } else {
+      console.error(`Site ${siteKey} not found in app.json`)
+      return { success: false, error: 'Site not found' }
+    }
+  } catch (error) {
+    console.error('Error toggling internal navigation:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 })

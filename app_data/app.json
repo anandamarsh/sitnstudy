@@ -11,7 +11,8 @@
     },
     "description": "Browse and manage your educational applications",
     "allowExternalNavigation": false,
-    "showAddressBar": false
+    "showAddressBar": false,
+    "allowInternalNavigation": false
   },
   {
     "key": "ixl",
@@ -22,7 +23,8 @@
     "description": "Interactive learning platform for math, language arts, science, and social studies",
     "urlLogging": true,
     "allowExternalNavigation": false,
-    "showAddressBar": true
+    "showAddressBar": true,
+    "allowInternalNavigation": false
   },
   {
     "key": "chatgpt",
@@ -37,7 +39,8 @@
     "description": "AI-powered chatbot for learning, problem-solving, and creative assistance",
     "urlLogging": true,
     "allowExternalNavigation": true,
-    "showAddressBar": true
+    "showAddressBar": true,
+    "allowInternalNavigation": false
   },
   {
     "key": "youtube",
@@ -48,7 +51,8 @@
     "description": "Watch educational videos and tutorials on a wide range of topics.",
     "urlLogging": true,
     "allowExternalNavigation": true,
-    "showAddressBar": false
+    "showAddressBar": false,
+    "allowInternalNavigation": false
   },
   {
     "key": "google_medpyak6",
@@ -57,6 +61,7 @@
     "iconPath": "https://google.com/favicon.ico",
     "iconType": "svg",
     "description": "Access google.com - a web application for productivity and learning.",
-    "allowExternalNavigation": false
+    "allowExternalNavigation": false,
+    "allowInternalNavigation": false
   }
 ]

@@ -10,6 +10,7 @@ export interface SiteConfig {
   svgContent?: string; // Temporary property for SVG content during creation
   urlLogging?: boolean; // Enable/disable URL logging for this app
   allowExternalNavigation?: boolean; // Enable/disable external navigation for this app
+  allowInternalNavigation?: boolean; // Enable/disable internal navigation for this app
   showAddressBar?: boolean; // Show/hide address bar above webview
 }
 

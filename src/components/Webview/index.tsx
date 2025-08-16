@@ -113,6 +113,28 @@ export default function Webview(props: WebviewProps): JSX.Element {
     };
   }, [tabs, webviewRefs]);
 
+  // Listen for close-tabs-for-site messages from main process
+  React.useEffect(() => {
+    const handleCloseTabsForSite = (_event: any, siteKey: string) => {
+      console.log(`🔒 Received close-tabs-for-site message for site: ${siteKey}`);
+      // Find and close all tabs for this site
+      const tabsToClose = tabs.filter(tab => tab.key === siteKey);
+      if (tabsToClose.length > 0) {
+        tabsToClose.forEach(tab => {
+          if (props.onCloseTab) {
+            props.onCloseTab(tab.key);
+          }
+        });
+      }
+    };
+
+    window.ipcRenderer.on('close-tabs-for-site', handleCloseTabsForSite);
+    
+    return () => {
+      window.ipcRenderer.off('close-tabs-for-site', handleCloseTabsForSite);
+    };
+  }, [tabs, props.onCloseTab]);
+
   // Update navigation state when webview refs change
   React.useEffect(() => {
     const updateNavigationState = () => {

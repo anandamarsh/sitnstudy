@@ -27,6 +27,7 @@ interface Site {
   description: string
   urlLogging?: boolean
   allowExternalNavigation?: boolean
+  allowInternalNavigation?: boolean
   showAddressBar?: boolean
 }
 
@@ -45,6 +46,20 @@ class ConfigManager {
       if (existsSync(this.configPath)) {
         const content = readFileSync(this.configPath, 'utf8')
         this.sites = JSON.parse(content)
+        
+        // Migrate existing sites to include new properties
+        let hasChanges = false
+        this.sites.forEach(site => {
+          if (site.allowInternalNavigation === undefined) {
+            site.allowInternalNavigation = false // Default to false
+            hasChanges = true
+          }
+        })
+        
+        // Save if we made changes
+        if (hasChanges) {
+          this.saveConfig()
+        }
       } else {
         this.sites = []
       }
@@ -145,6 +160,21 @@ class ConfigManager {
     await this.notifyListeners()
     
     console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
+    return true
+  }
+
+  // Update internal navigation preference
+  async updateInternalNavigation(siteKey: string, enabled: boolean): Promise<boolean> {
+    const siteIndex = this.sites.findIndex(site => site.key === siteKey)
+    if (siteIndex === -1) {
+      return false
+    }
+
+    this.sites[siteIndex].allowInternalNavigation = enabled
+    await this.saveConfig()
+    await this.notifyListeners()
+    
+    console.log(`Updated internal navigation for ${siteKey} to ${enabled}`)
     return true
   }
 
