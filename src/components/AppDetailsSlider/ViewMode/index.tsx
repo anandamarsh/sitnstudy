@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -55,6 +55,68 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [editingUrl, setEditingUrl] = useState<string>("");
   const [isAddingUrl, setIsAddingUrl] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
+  const previousWhitelistRef = useRef<string[]>([]);
+
+  // Load whitelisted URLs from file system
+  useEffect(() => {
+    const loadWhitelistedUrls = async () => {
+      try {
+        const result = await (window as any).ipcRenderer.getWhitelistedUrls(
+          app.key
+        );
+        if (result.success && Array.isArray(result.data)) {
+          setWhitelistedUrls(result.data);
+          // Initialize the ref with the loaded data
+          previousWhitelistRef.current = [...result.data];
+        }
+        setHasLoadedInitialData(true);
+      } catch (error) {
+        console.error("Error loading whitelisted URLs:", error);
+        setHasLoadedInitialData(true);
+      }
+    };
+
+    if (!allowInternalNavigation) {
+      loadWhitelistedUrls();
+    } else {
+      setHasLoadedInitialData(true);
+    }
+  }, [app.key, allowInternalNavigation, refreshTrigger]);
+
+  // Save whitelisted URLs to file system ONLY when the whitelist array actually changes
+  useEffect(() => {
+    // Only save after initial data has been loaded to prevent clearing on load
+    if (!hasLoadedInitialData) return;
+
+    // Check if the whitelist has actually changed from the previous state
+    const hasChanged =
+      JSON.stringify(whitelistedUrls) !==
+      JSON.stringify(previousWhitelistRef.current);
+
+    if (hasChanged) {
+      const saveWhitelistedUrls = async () => {
+        try {
+          // Only save if we have URLs to save - never save an empty array
+          // This prevents clearing the JSON file when the switch is off
+          if (whitelistedUrls.length > 0) {
+            await (window as any).ipcRenderer.saveWhitelistedUrls(
+              app.key,
+              whitelistedUrls
+            );
+          }
+          // If whitelist is empty, don't save anything - preserve existing file
+        } catch (error) {
+          console.error("Error saving whitelisted URLs:", error);
+        }
+      };
+
+      saveWhitelistedUrls();
+
+      // Update the ref to the current state
+      previousWhitelistRef.current = [...whitelistedUrls];
+    }
+  }, [whitelistedUrls, app.key, hasLoadedInitialData]);
 
   const handleRemoveClick = () => {
     setShowRemoveConfirm(true);

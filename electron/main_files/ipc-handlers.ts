@@ -114,6 +114,19 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
       console.error(`Error removing URL history file for ${siteKey}:`, historyError)
       // Don't fail the entire operation if history removal fails
     }
+
+    // Also remove the corresponding URL whitelist file
+    try {
+      const whitelistPath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`)
+      if (existsSync(whitelistPath)) {
+        const fs = await import('fs/promises')
+        await fs.unlink(whitelistPath)
+        console.log(`Removed URL whitelist file for ${siteKey}: ${whitelistPath}`)
+      }
+    } catch (whitelistError) {
+      console.error(`Error removing URL whitelist file for ${siteKey}:`, whitelistError)
+      // Don't fail the entire operation if whitelist removal fails
+    }
     
     return { 
       success: true, 
@@ -305,6 +318,45 @@ ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   } catch (error) {
     console.error('Error removing URL log file:', error)
     return { success: false, message: 'Failed to remove URL log file' }
+  }
+})
+
+// IPC handlers for URL whitelist management
+ipcMain.handle('save-whitelisted-urls', async (_event, siteKey: string, urls: string[]) => {
+  try {
+    const configDir = path.join(__dirname, '../app_data/url_whitelist')
+    const whitelistFilePath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`)
+    
+    // Create config directory if it doesn't exist
+    if (!existsSync(configDir)) {
+      mkdirSync(configDir, { recursive: true })
+    }
+    
+    // Write the whitelist to file
+    writeFileSync(whitelistFilePath, JSON.stringify(urls, null, 2), 'utf8')
+    
+    return { success: true, message: 'Whitelisted URLs saved successfully' }
+  } catch (error) {
+    console.error('Error saving whitelisted URLs:', error)
+    return { success: false, message: 'Failed to save whitelisted URLs' }
+  }
+})
+
+ipcMain.handle('get-whitelisted-urls', async (_event, siteKey: string) => {
+  try {
+    const whitelistFilePath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`)
+    
+    if (!existsSync(whitelistFilePath)) {
+      return { success: true, data: [] }
+    }
+    
+    const content = readFileSync(whitelistFilePath, 'utf8')
+    const whitelistedUrls = JSON.parse(content)
+    
+    return { success: true, data: whitelistedUrls }
+  } catch (error) {
+    console.error('Error reading whitelisted URLs:', error)
+    return { success: false, message: 'Failed to read whitelisted URLs', data: [] }
   }
 })
 

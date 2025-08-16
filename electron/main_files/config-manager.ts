@@ -87,7 +87,7 @@ class ConfigManager {
       const windows = BrowserWindow.getAllWindows()
       windows.forEach((window: any) => {
         if (!window.isDestroyed()) {
-          console.log(`Broadcasting sites-updated to window: ${window.id}`)
+          console.log(`[CM] Broadcasting sites-updated to window: ${window.id}`)
           window.webContents.send('sites-updated', [...this.sites])
         }
       })
@@ -119,7 +119,7 @@ class ConfigManager {
       await this.saveConfig()
       await this.notifyListeners()
       
-      console.log(`Added new site: ${newSite.title} (${newSite.key})`)
+      console.log(`[CM] Added new site: ${newSite.title} (${newSite.key})`)
       return true
     } catch (error) {
       console.error('Error adding new site:', error)
@@ -140,7 +140,7 @@ class ConfigManager {
       await this.saveConfig()
       await this.notifyListeners()
       
-      console.log(`Removed site: ${siteKey}`)
+      console.log(`[CM] Removed site: ${siteKey}`)
       return true
     } catch (error) {
       console.error('Error removing site:', error)
@@ -159,7 +159,7 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated external navigation for ${siteKey} to ${enabled}`)
     return true
   }
 
@@ -174,7 +174,7 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated internal navigation for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated internal navigation for ${siteKey} to ${enabled}`)
     return true
   }
 
@@ -190,7 +190,7 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated address bar for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated address bar for ${siteKey} to ${enabled}`)
     return true
   }
 
@@ -205,7 +205,7 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated URL logging for ${siteKey} to ${enabled}`)
     return true
   }
 

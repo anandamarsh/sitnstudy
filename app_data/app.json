@@ -21,8 +21,8 @@
     "iconPath": "/icons/ixl.svg",
     "iconType": "svg",
     "description": "Interactive learning platform for math, language arts, science, and social studies",
-    "urlLogging": false,
-    "allowExternalNavigation": false,
+    "urlLogging": true,
+    "allowExternalNavigation": true,
     "showAddressBar": true,
     "allowInternalNavigation": false
   },
@@ -52,16 +52,6 @@
     "urlLogging": true,
     "allowExternalNavigation": true,
     "showAddressBar": false,
-    "allowInternalNavigation": false
-  },
-  {
-    "key": "google_medpyak6",
-    "title": "google.com",
-    "url": "https://google.com",
-    "iconPath": "https://google.com/favicon.ico",
-    "iconType": "svg",
-    "description": "Access google.com - a web application for productivity and learning.",
-    "allowExternalNavigation": false,
     "allowInternalNavigation": false
   }
 ]
