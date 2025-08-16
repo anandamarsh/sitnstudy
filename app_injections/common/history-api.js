@@ -51,9 +51,16 @@
   }
 
   // Monitor pushState and replaceState
+  // Check if we've already overridden these to prevent conflicts
+  if (window._historyOverridden) {
+    console.log("[IC] History API already overridden, skipping...");
+    return;
+  }
+
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
 
+  // Override pushState
   history.pushState = function (...args) {
     // Check if internal navigation should be blocked for pushState
     const newUrl = args[2]; // The third argument is the URL
@@ -83,6 +90,7 @@
     lastUrl = window.location.href;
   };
 
+  // Override replaceState
   history.replaceState = function (...args) {
     // Check if internal navigation should be blocked for replaceState
     const newUrl = args[2]; // The third argument is the URL
@@ -164,5 +172,7 @@
     lastUrl = currentUrl;
   });
 
+  // Mark that we've successfully overridden the history API
+  window._historyOverridden = true;
   console.log("[IC] 🔗 History API module loaded");
 })();

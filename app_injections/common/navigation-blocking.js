@@ -1,4 +1,10 @@
 (function () {
+  // Check if we've already set up navigation blocking to prevent conflicts
+  if (window._navigationBlockingSetUp) {
+    console.log("[IC] Navigation blocking already set up, skipping...");
+    return;
+  }
+
   const currentDomain = "CURRENT_DOMAIN_PLACEHOLDER";
 
   // Helper function to check if URL is whitelisted
@@ -119,5 +125,7 @@
     true
   );
 
+  // Mark that we've successfully set up navigation blocking
+  window._navigationBlockingSetUp = true;
   console.log("[IC] 🔗 Navigation blocking module loaded");
 })();
