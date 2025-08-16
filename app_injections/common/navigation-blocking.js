@@ -1,7 +1,5 @@
 (function () {
-  if (window._navigationBlockingSetUp) {
-    return;
-  }
+  if (window._navigationBlockingSetUp) return;
 
   const here = new URL(window.location.href);
   const currentDomain = here.hostname;
@@ -14,58 +12,50 @@
     );
   }
 
+  function normPath(p) {
+    if (!p) return "/";
+    if (p === "/") return "/";
+    return p.replace(/\/+$/, "");
+  }
+
+  function strictUrlMatch(w, t) {
+    if (w.origin !== t.origin) return false;
+    if (normPath(w.pathname) !== normPath(t.pathname)) return false;
+
+    const wSearch = w.search || "";
+    const tSearch = t.search || "";
+    if (wSearch) {
+      if (wSearch !== tSearch) return false;
+    } else {
+      if (tSearch) return false;
+    }
+
+    const wHash = w.hash || "";
+    const tHash = t.hash || "";
+    if (wHash) {
+      if (wHash !== tHash) return false;
+    }
+    return true;
+  }
+
   function isUrlWhitelisted(targetUrl) {
     try {
       const targetUrlObj = new URL(targetUrl, window.location.href);
 
-      // Debug logging
-      console.log("[NB] Checking URL:", targetUrl);
-      console.log(
-        "[NB] allowInternalNavigation:",
-        window.allowInternalNavigation
-      );
-      console.log("[NB] whitelistedUrls:", window.whitelistedUrls);
-      console.log("[NB] whitelistedUrls type:", typeof window.whitelistedUrls);
-      console.log(
-        "[NB] whitelistedUrls length:",
-        window.whitelistedUrls?.length
-      );
+      if (window.allowInternalNavigation !== false) return true;
 
-      // If internal navigation is NOT being blocked, or no whitelist exists → allow
-      if (window.allowInternalNavigation !== false || !window.whitelistedUrls) {
-        console.log("[NB] Early return - navigation allowed or no whitelist");
-        return true;
-      }
+      const wl = window.whitelistedUrls;
+      if (!Array.isArray(wl)) return false;
+      if (wl.length === 0) return false;
 
-      // Check if whitelist is empty array
-      if (window.whitelistedUrls.length === 0) {
-        console.log("[NB] Whitelist is empty array - blocking all");
-        return false;
-      }
-
-      const result = window.whitelistedUrls.some((whitelistUrl) => {
+      for (let i = 0; i < wl.length; i++) {
         try {
-          const w = new URL(whitelistUrl, window.location.href);
-          const match =
-            w.origin === targetUrlObj.origin &&
-            w.pathname === targetUrlObj.pathname;
-          console.log(
-            "[NB] Checking whitelist URL:",
-            whitelistUrl,
-            "Match:",
-            match
-          );
-          return match;
-        } catch (error) {
-          console.log("[NB] Error parsing whitelist URL:", whitelistUrl, error);
-          return false;
-        }
-      });
-
-      console.log("[NB] Final result:", result);
-      return result;
-    } catch (error) {
-      console.log("[NB] Error in isUrlWhitelisted:", error);
+          const w = new URL(wl[i], window.location.href);
+          if (strictUrlMatch(w, targetUrlObj)) return true;
+        } catch {}
+      }
+      return false;
+    } catch {
       return false;
     }
   }
@@ -80,7 +70,6 @@
     );
   }
 
-  // Intercept link clicks (capture phase)
   document.addEventListener(
     "click",
     function (e) {
@@ -97,10 +86,7 @@
         return;
       }
 
-      if (!sameSite(targetUrlObj)) {
-        // Let main process handle external navigation policy
-        return true;
-      }
+      if (!sameSite(targetUrlObj)) return true;
 
       if (window.allowInternalNavigation === false) {
         if (!isUrlWhitelisted(targetUrlObj.href)) {
@@ -124,7 +110,6 @@
     true
   );
 
-  // Intercept form submissions (capture phase)
   document.addEventListener(
     "submit",
     function (e) {
@@ -140,10 +125,7 @@
         return;
       }
 
-      if (!sameSite(targetUrlObj)) {
-        // Let main process handle external navigation policy
-        return true;
-      }
+      if (!sameSite(targetUrlObj)) return true;
 
       if (window.allowInternalNavigation === false) {
         if (!isUrlWhitelisted(targetUrlObj.href)) {
@@ -165,7 +147,6 @@
     true
   );
 
-  // Optional: guard window.open used by some sites
   (function () {
     const _open = window.open;
     window.open = function (url, target, features) {
