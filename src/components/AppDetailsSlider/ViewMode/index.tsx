@@ -526,7 +526,9 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
               {!allowInternalNavigation && (
                 <Box
                   sx={{
-                    height: "calc((100vh - 120px) / 2)", // Fixed half height
+                    height: urlLoggingEnabled
+                      ? "calc((100vh - 120px) / 2)"
+                      : "calc(100vh - 120px)", // Half height when both visible, full height when only this visible
                     border: "1px solid",
                     borderColor: "divider",
                     borderRadius: 1,
@@ -733,32 +735,36 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 </Box>
               )}
 
-              {/* URL History Box */}
-              <Box
-                sx={{
-                  height: "calc((100vh - 120px) / 2)", // Fixed half height
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  backgroundColor: "background.paper",
-                  overflow: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  px: 2, // 1rem left and right padding
-                  pt: 2, // 1rem top padding
-                  pb: 1, // 0.5rem bottom padding
-                }}
-              >
-                <AccessHistory
-                  appKey={app.key}
-                  refreshTrigger={refreshTrigger}
-                  onAddToWhitelist={(url: string) => {
-                    if (url.trim() && !whitelistedUrls.includes(url.trim())) {
-                      setWhitelistedUrls((prev) => [...prev, url.trim()]); // Add to bottom
-                    }
+              {/* URL History Box - only show when URL logging is enabled */}
+              {urlLoggingEnabled && (
+                <Box
+                  sx={{
+                    height: allowInternalNavigation
+                      ? "calc(100vh - 120px)"
+                      : "calc((100vh - 120px) / 2)", // Full height when whitelist hidden, half when visible
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    backgroundColor: "background.paper",
+                    overflow: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    px: 2, // 1rem left and right padding
+                    pt: 2, // 1rem top padding
+                    pb: 1, // 0.5rem bottom padding
                   }}
-                />
-              </Box>
+                >
+                  <AccessHistory
+                    appKey={app.key}
+                    refreshTrigger={refreshTrigger}
+                    onAddToWhitelist={(url: string) => {
+                      if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+                        setWhitelistedUrls((prev) => [...prev, url.trim()]); // Add to bottom
+                      }
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
           </Box>
         </Box>
