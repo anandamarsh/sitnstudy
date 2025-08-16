@@ -119,12 +119,9 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
 
     // Block navigation to external domains
     webContents.on('will-navigate', async (event, navigationUrl) => {
-      console.log(`[WM] 🚫 will-navigate event fired: ${navigationUrl}`);
       const currentUrl = webContents.getURL();
       const currentDomain = new URL(currentUrl).hostname;
       const navigationDomain = new URL(navigationUrl).hostname;
-      
-      console.log(`[WM] 🌐 Navigation check: ${currentDomain} -> ${navigationDomain}`);
       
       if (currentDomain !== navigationDomain) {
         // Check if external navigation is allowed for the ORIGINAL site that created this webview
@@ -142,7 +139,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               
               // If external navigation is allowed for the original site, don't block
               if (originalSite && originalSite.allowExternalNavigation === true) {
-                console.log(`[WM] Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
                 return; // Allow the navigation
               }
             }
@@ -151,7 +147,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
             // Default to blocking if there's an error
           }
         
-        console.log(`[WM] Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
         event.preventDefault();
         
         // Send message to renderer to show error snackbar
@@ -191,11 +186,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           
           if (site) {
             webviewSiteMap.set(webviewId, site.key)
-            console.log(`[WM] Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
-          } else {
-            console.log(`[WM] Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
-            // Log available sites for debugging
-            console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
           }
         } catch (error) {
           console.error('Error mapping webview to site:', error)
@@ -215,36 +205,27 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           const site = configManager.getSite(siteKey);
           if (site) {
             const allowInternalNav = site.allowInternalNavigation !== false; // Default to true if not set
-            console.log(`[WM] 🚫 Injecting navigation settings for site ${siteKey}:`);
-            console.log(`[WM]   - allowInternalNavigation: ${allowInternalNav}`);
-            
             allScriptContent += `window.allowInternalNavigation = ${allowInternalNav};\n`;
             
             // Inject whitelisted URLs if internal navigation is blocked
             if (!allowInternalNav) {
-              console.log(`[WM] 🚫 Internal navigation is blocked, loading whitelist...`);
               try {
                 const whitelistPath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`);
                 if (existsSync(whitelistPath)) {
                   const whitelistContent = readFileSync(whitelistPath, 'utf8');
                   const whitelistedUrls = JSON.parse(whitelistContent);
-                  console.log(`[WM] 📋 Loaded whitelist with ${whitelistedUrls.length} URLs:`, whitelistedUrls);
                   allScriptContent += `window.whitelistedUrls = ${JSON.stringify(whitelistedUrls)};\n`;
                 } else {
-                  console.log(`[WM] 📋 No whitelist file found, using empty array`);
                   allScriptContent += `window.whitelistedUrls = [];\n`;
                 }
               } catch (error) {
-                console.error(`[WM] ❌ Error loading whitelist for ${siteKey}:`, error);
+                console.error(`Error loading whitelist for ${siteKey}:`, error);
                 allScriptContent += `window.whitelistedUrls = [];\n`;
               }
             } else {
-              console.log(`[WM] ✅ Internal navigation allowed, no whitelist needed`);
               allScriptContent += `window.whitelistedUrls = [];\n`;
             }
           }
-        } else {
-          console.log(`[WM] ⚠️ No site key found, using default navigation settings`);
         }
         
         // Load and inject each common module
@@ -258,9 +239,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           'index.js'
         ];
         
-        console.log(`[WM] 🔧 Loading common modules from: ${commonDir}`);
-        console.log(`[WM] 📁 Modules to load:`, commonFiles);
-        
         for (const fileName of commonFiles) {
           try {
             const filePath = path.join(commonDir, fileName);
@@ -271,29 +249,14 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               scriptContent = scriptContent.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
               
               allScriptContent += scriptContent + '\n';
-              console.log(`[WM] ✅ Loaded common module: ${fileName}`);
-            } else {
-              console.log(`[WM] ❌ Module file not found: ${fileName}`);
             }
           } catch (moduleError) {
-            console.error(`[WM] ❌ Error loading common module ${fileName}:`, moduleError);
+            console.error(`Error loading common module ${fileName}:`, moduleError);
           }
         }
         
         // Execute all the combined scripts
-        console.log(`[WM] 🚀 Executing combined scripts (${allScriptContent.length} characters)`);
-        console.log(`[WM] 📝 Script preview:`, allScriptContent.substring(0, 200) + '...');
-        
-        // Add a test message to verify injection is working
-        const testScript = `
-          console.log('[IC] 🧪 TEST: Script injection successful!');
-          console.log('[IC] 🧪 TEST: allowInternalNavigation =', window.allowInternalNavigation);
-          console.log('[IC] 🧪 TEST: whitelistedUrls =', window.whitelistedUrls);
-          console.log('[IC] 🧪 TEST: currentDomain =', '${currentDomain}');
-        `;
-        
-        const fullScript = allScriptContent + '\n' + testScript;
-        webContents.executeJavaScript(fullScript);
+        webContents.executeJavaScript(allScriptContent);
         
         // Now inject site-specific scripts
         if (!siteKey) {
@@ -358,8 +321,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
 
     // Listen for console messages from injected script
     webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
-      console.log(`[WM] 📨 Console message from webview: ${message}`);
-      
       if (message.startsWith('NAVIGATION_BLOCKED:')) {
         try {
           const data = JSON.parse(message.substring(19)); // Remove 'NAVIGATION_BLOCKED:' prefix

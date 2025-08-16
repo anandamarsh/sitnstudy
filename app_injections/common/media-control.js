@@ -75,5 +75,5 @@
     }
   };
 
-  console.log("[IC] 🔗 Media control module loaded");
+
 })();

@@ -35,5 +35,5 @@
     }
   };
 
-  console.log("[IC] 🔗 Webview state management module loaded");
+
 })();
