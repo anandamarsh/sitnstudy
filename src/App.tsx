@@ -23,9 +23,16 @@ function App() {
       currentDomain: string;
       targetDomain: string;
     }) => {
+      // Determine if this is internal or external navigation blocking
+      const isInternalBlocking = data.currentDomain === data.targetDomain;
+      
+      const message = isInternalBlocking
+        ? "Sorry! Internal navigation is currently blocked for this app."
+        : "Sorry! You can only visit websites within this app.";
+      
       setErrorSnackbar({
         open: true,
-        message: "Sorry! You can only visit websites within this app.",
+        message: message,
         details: data.blockedUrl,
       });
     };
