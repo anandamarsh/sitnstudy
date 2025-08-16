@@ -6,10 +6,12 @@ import {
   Chip,
   Switch,
   FormControlLabel,
+  IconButton,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
   History as HistoryIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { SiteConfig } from "../types";
 import { getIconComponent } from "../utils";
@@ -168,8 +170,28 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ p: 3, pb: 2 }}
+      >
+        <Typography variant="h5" component="h2"></Typography>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
       {/* Main Content */}
-      <Box sx={{ flex: 1, position: "relative", padding: "3rem 4rem" }}>
+      <Box
+        sx={{
+          flex: 1,
+          position: "relative",
+          padding: "0 4rem",
+          height: "calc(100vh - 120px)",
+        }}
+      >
         <Box
           sx={{
             display: "flex",
@@ -265,9 +287,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                     />
                   }
                   label={
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="body2" fontWeight="medium">
                         {isTogglingNavigation
                           ? "Updating..."
@@ -303,17 +323,13 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   control={
                     <Switch
                       checked={showAddressBar}
-                      onChange={(e) =>
-                        toggleAddressBar(e.target.checked)
-                      }
+                      onChange={(e) => toggleAddressBar(e.target.checked)}
                       disabled={isTogglingAddressBar}
                       color="primary"
                     />
                   }
                   label={
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="body2" fontWeight="medium">
                         {isTogglingAddressBar
                           ? "Updating..."
@@ -331,68 +347,80 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   />
                 )}
               </Box>
+
+              {/* URL Logging Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={urlLoggingEnabled}
+                      onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
+                      disabled={isTogglingLogging}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <HistoryIcon fontSize="small" />
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingLogging ? "Updating..." : "URL Logging"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {urlLoggingEnabled && (
+                  <Chip
+                    label="Active"
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                  />
+                )}
+              </Box>
             </Box>
 
             {/* Divider between left and right columns */}
             <Box
               sx={{
                 width: "1px",
-                backgroundColor: "divider",
+                backgroundColor: "transparent",
                 mx: 1,
               }}
             />
 
-            {/* Right column: Access History in its own scrollable pane - 50% width */}
+            {/* Right column: Access History in a contained scrollable box - 50% width */}
             <Box sx={{ width: "50%" }}>
-              <AccessHistory
-                appKey={app.key}
-                refreshTrigger={refreshTrigger}
-                urlLoggingSwitch={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 2,
-                      backgroundColor: "background.paper",
-                      borderRadius: 1,
-                      border: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={urlLoggingEnabled}
-                          onChange={(e) =>
-                            handleUrlLoggingToggle(e.target.checked)
-                          }
-                          disabled={isTogglingLogging}
-                          color="primary"
-                        />
-                      }
-                      label={
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <HistoryIcon fontSize="small" />
-                          <Typography variant="body2" fontWeight="medium">
-                            {isTogglingLogging ? "Updating..." : "URL Logging"}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    {urlLoggingEnabled && (
-                      <Chip
-                        label="Active"
-                        size="small"
-                        variant="outlined"
-                        color="success"
-                      />
-                    )}
-                  </Box>
-                }
-              />
+              <Box
+                sx={{
+                  maxHeight: "90vh",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  backgroundColor: "background.paper",
+                  overflow: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  px: 2, // 1rem left and right padding
+                  pt: 2, // 1rem top padding
+                  pb: 1, // 0.5rem bottom padding
+                }}
+              >
+                <AccessHistory
+                  appKey={app.key}
+                  refreshTrigger={refreshTrigger}
+                />
+              </Box>
             </Box>
           </Box>
         </Box>

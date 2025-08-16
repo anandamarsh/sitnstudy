@@ -26,7 +26,7 @@ const AppDetailsSlider: React.FC<AppDetailsSliderProps> = ({
       PaperProps={{
         sx: {
           width: "100vw",
-          height: isAddMode ? "100vh" : "60vh",
+          height: "100vh",
         },
       }}
     >
