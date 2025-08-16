@@ -162,6 +162,32 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
     });
 
+    // Listen for internal navigation blocked messages from the webview
+    webContents.on('console-message', (_event, _level, message, _line, _sourceId) => {
+      // Check if the message contains our internal navigation blocked data
+      if (message.includes('internal-navigation-blocked')) {
+        try {
+          // Extract the data from the console message
+          const match = message.match(/internal-navigation-blocked: (.+)/);
+          if (match) {
+            const data = JSON.parse(match[1]);
+            console.log(`[WM] Internal navigation blocked to: ${data.blockedUrl} from ${data.currentDomain}`);
+            
+            // Send message to renderer to show error snackbar (same as external navigation)
+            if (win) {
+              win.webContents.send('navigation-blocked', {
+                blockedUrl: data.blockedUrl,
+                currentDomain: data.currentDomain,
+                targetDomain: data.targetDomain
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing internal navigation blocked message:', error);
+        }
+      }
+    });
+
     // Inject JavaScript to intercept link clicks and form submissions
     webContents.on('did-finish-load', () => {
       const currentUrl = webContents.getURL();

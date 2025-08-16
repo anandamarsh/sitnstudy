@@ -19,6 +19,15 @@
             if (window.allowInternalNavigation === false) {
               console.log("[IC] Blocked internal navigation to:", target.href);
               e.preventDefault();
+              
+              // Send message to main process to show error snackbar (same as external navigation)
+              // Log a special message that the main process can capture
+              console.log(`internal-navigation-blocked: ${JSON.stringify({
+                blockedUrl: target.href,
+                currentDomain: currentDomain,
+                targetDomain: currentDomain
+              })}`);
+              
               return false;
             }
 
