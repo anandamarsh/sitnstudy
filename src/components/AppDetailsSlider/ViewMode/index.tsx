@@ -7,10 +7,12 @@ import {
   Switch,
   FormControlLabel,
   IconButton,
+  TextField,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
   Close as CloseIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import { SiteConfig } from "../types";
 import { getIconComponent } from "../utils";
@@ -47,6 +49,12 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     useState(false);
   const [isTogglingAddressBar, setIsTogglingAddressBar] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
+
+  // Whitelist state
+  const [whitelistedUrls, setWhitelistedUrls] = useState<string[]>([]);
+  const [editingUrl, setEditingUrl] = useState<string>("");
+  const [isAddingUrl, setIsAddingUrl] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const handleRemoveClick = () => {
     setShowRemoveConfirm(true);
@@ -184,6 +192,41 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     } finally {
       setIsTogglingAddressBar(false);
     }
+  };
+
+  // Whitelist functions
+  const startAddingUrl = () => {
+    setIsAddingUrl(true);
+    setEditingUrl("");
+  };
+
+  const saveUrl = (url: string) => {
+    if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+      setWhitelistedUrls((prev) => [...prev, url.trim()]); // Add to bottom
+    }
+    setIsAddingUrl(false);
+    setEditingUrl("");
+  };
+
+  const startEditingUrl = (index: number, url: string) => {
+    setEditingIndex(index);
+    setEditingUrl(url);
+  };
+
+  const saveEditedUrl = (index: number, url: string) => {
+    if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+      setWhitelistedUrls((prev) => {
+        const newUrls = [...prev];
+        newUrls[index] = url.trim();
+        return newUrls;
+      });
+    }
+    setEditingIndex(null);
+    setEditingUrl("");
+  };
+
+  const removeWhitelistedUrl = (index: number) => {
+    setWhitelistedUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Sync URL logging state when app changes
@@ -471,10 +514,229 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             />
 
             {/* Right column: Access History in a contained scrollable box - 50% width */}
-            <Box sx={{ width: "50%" }}>
+            <Box
+              sx={{
+                width: "50%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Internal Navigation Whitelist URLs - only show when internal navigation is blocked */}
+              {!allowInternalNavigation && (
+                <Box
+                  sx={{
+                    height: "calc((100vh - 120px) / 2)", // Fixed half height
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    backgroundColor: "background.paper",
+                    display: "flex",
+                    flexDirection: "column",
+                    px: 2,
+                    pt: 2,
+                    pb: 1,
+                    mb: 2,
+                  }}
+                >
+                  {/* Static Header - Non-scrollable */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      mb: 2,
+                      flexShrink: 0, // Prevent shrinking
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight="medium"
+                      sx={{ pl: 1 }}
+                    >
+                      Allowed Internal URLs
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={startAddingUrl}
+                      sx={{
+                        border: "1px solid",
+                        borderColor: "divider",
+                        "&:hover": {
+                          borderColor: "primary.main",
+                        },
+                      }}
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  </Box>
+
+                  {/* Scrollable Content Container */}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflow: "auto",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {/* Inline URL Input Row */}
+                    {isAddingUrl && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          p: 1.5,
+                          borderRadius: 1,
+                          mb: 1,
+                          border: "1px solid",
+                          borderColor: "primary.main",
+                          backgroundColor: "primary.50",
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          size="small"
+                          placeholder="Enter URL to whitelist..."
+                          value={editingUrl}
+                          onChange={(e) => setEditingUrl(e.target.value)}
+                          onBlur={() => saveUrl(editingUrl)}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              saveUrl(editingUrl);
+                            }
+                          }}
+                          autoFocus
+                          variant="standard"
+                          sx={{
+                            "& .MuiInput-root": {
+                              fontSize: "0.875rem",
+                              fontFamily: "monospace",
+                              "&:before": {
+                                borderBottom: "none",
+                              },
+                              "&:after": {
+                                borderBottom: "none",
+                              },
+                              "&:hover:before": {
+                                borderBottom: "none",
+                              },
+                            },
+                          }}
+                        />
+                      </Box>
+                    )}
+
+                    {whitelistedUrls.length === 0 ? (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontStyle: "italic" }}
+                      >
+                        No whitelisted URLs yet. Add URLs to allow specific
+                        internal navigation.
+                      </Typography>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        {whitelistedUrls.map((url, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              p: 1.5,
+                              borderRadius: 1,
+                              cursor: "pointer",
+                              "&:hover": {
+                                backgroundColor: "action.hover",
+                                "& .delete-button": {
+                                  opacity: 1,
+                                },
+                              },
+                            }}
+                            onClick={() => {
+                              if (editingIndex !== index) {
+                                startEditingUrl(index, url);
+                              }
+                            }}
+                          >
+                            {editingIndex === index ? (
+                              <TextField
+                                fullWidth
+                                size="small"
+                                value={editingUrl}
+                                onChange={(e) => setEditingUrl(e.target.value)}
+                                onBlur={() => saveEditedUrl(index, editingUrl)}
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter") {
+                                    saveEditedUrl(index, editingUrl);
+                                  }
+                                }}
+                                autoFocus
+                                variant="standard"
+                                sx={{
+                                  "& .MuiInput-root": {
+                                    fontSize: "0.875rem",
+                                    fontFamily: "monospace",
+                                    "&:before": {
+                                      borderBottom: "none",
+                                    },
+                                    "&:after": {
+                                      borderBottom: "none",
+                                    },
+                                    "&:hover:before": {
+                                      borderBottom: "none",
+                                    },
+                                  },
+                                }}
+                              />
+                            ) : (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontFamily: "monospace",
+                                  fontSize: "0.875rem",
+                                  userSelect: "none",
+                                }}
+                              >
+                                {url}
+                              </Typography>
+                            )}
+                            <IconButton
+                              className="delete-button"
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent row click when clicking delete button
+                                removeWhitelistedUrl(index);
+                              }}
+                              color="error"
+                              sx={{
+                                opacity: 0,
+                                transition: "opacity 0.2s ease",
+                              }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {/* URL History Box */}
               <Box
                 sx={{
-                  maxHeight: "90vh",
+                  height: "calc((100vh - 120px) / 2)", // Fixed half height
                   border: "1px solid",
                   borderColor: "divider",
                   borderRadius: 1,
@@ -490,6 +752,11 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 <AccessHistory
                   appKey={app.key}
                   refreshTrigger={refreshTrigger}
+                  onAddToWhitelist={(url: string) => {
+                    if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+                      setWhitelistedUrls((prev) => [...prev, url.trim()]); // Add to bottom
+                    }
+                  }}
                 />
               </Box>
             </Box>

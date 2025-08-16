@@ -7,7 +7,9 @@ import {
   ListItemText,
   ListItemButton,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 
 interface UrlLogEntry {
   url: string;
@@ -19,6 +21,7 @@ interface AccessHistoryProps {
   refreshTrigger?: number; // Add refresh trigger prop
   externalNavigationSwitch?: React.ReactNode; // Add external navigation switch prop
   urlLoggingSwitch?: React.ReactNode; // Add URL logging switch prop
+  onAddToWhitelist?: (url: string) => void; // Add function to add URLs to whitelist
 }
 
 const AccessHistory: React.FC<AccessHistoryProps> = ({
@@ -26,6 +29,7 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
   refreshTrigger,
   externalNavigationSwitch,
   urlLoggingSwitch,
+  onAddToWhitelist,
 }) => {
   const [accessHistory, setAccessHistory] = useState<UrlLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -141,13 +145,29 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
                 sx={{
                   px: 0,
                   py: 0.5,
-                  "&:hover": { backgroundColor: "action.hover" },
                   borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                    "& .add-to-whitelist-button": {
+                      opacity: 1,
+                    },
+                  },
                 }}
               >
                 <ListItemButton
                   onClick={() => handleUrlClick(entry.url)}
-                  sx={{ px: 1, py: 0.5, borderRadius: 1 }}
+                  sx={{
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    flex: 1,
+                    "&:hover": {
+                      backgroundColor: "transparent", // Remove ListItemButton hover effect
+                    },
+                  }}
                 >
                   <ListItemText
                     primary={
@@ -177,6 +197,27 @@ const AccessHistory: React.FC<AccessHistoryProps> = ({
                     }
                   />
                 </ListItemButton>
+                {/* Add to Whitelist Button - Only show on hover */}
+                {onAddToWhitelist && (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddToWhitelist(entry.url);
+                    }}
+                    sx={{
+                      opacity: 0,
+                      transition: "opacity 0.2s ease",
+                      mr: 1,
+                      "&:hover": {
+                        backgroundColor: "action.hover",
+                      },
+                    }}
+                    className="add-to-whitelist-button"
+                  >
+                    <AddIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                )}
               </ListItem>
             ))}
           </List>
