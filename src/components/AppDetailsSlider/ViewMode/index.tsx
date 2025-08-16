@@ -394,7 +394,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             <Box
               sx={{
                 width: "1px",
-                backgroundColor: "divider",
+                backgroundColor: "transparent",
                 mx: 1,
               }}
             />
@@ -411,6 +411,9 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   overflow: "auto",
                   display: "flex",
                   flexDirection: "column",
+                  px: 2, // 1rem left and right padding
+                  pt: 2, // 1rem top padding
+                  pb: 1, // 0.5rem bottom padding
                 }}
               >
                 <AccessHistory
