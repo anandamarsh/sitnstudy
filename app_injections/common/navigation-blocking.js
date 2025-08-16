@@ -41,7 +41,7 @@
 
   function logNavigationBlocked(blockedUrl, type) {
     console.log(
-      `internal-navigation-blocked: ${JSON.stringify({
+      `[NB] internal-navigation-blocked: ${JSON.stringify({
         blockedUrl: blockedUrl,
         currentDomain: currentDomain,
         targetDomain: currentDomain,

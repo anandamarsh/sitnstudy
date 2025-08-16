@@ -86,12 +86,10 @@
       // Store the interval ID so we can clean it up if needed
       window._locationMonitorInterval = locationMonitor;
 
-              // Mark that we've successfully set up location monitoring
-        window._locationOverridden = true;
+      // Mark that we've successfully set up location monitoring
+      window._locationOverridden = true;
     } catch (error) {
       console.log("[IC] Error setting up location monitoring:", error);
     }
   }
-
-
 })();
