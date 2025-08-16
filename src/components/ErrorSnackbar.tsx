@@ -51,7 +51,7 @@ export default function ErrorSnackbar({ open, message, details, onClose }: Error
         onClick={handleClick}
         sx={{
           width: '100%',
-          maxWidth: '500px',
+          maxWidth: '700px',
           cursor: details ? 'pointer' : 'default',
           '& .MuiAlert-message': {
             width: '100%',
