@@ -236,27 +236,36 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           const site = configManager.getSite(siteKey);
           if (site) {
             const allowInternalNav = site.allowInternalNavigation !== false; // Default to true if not set
+            console.log(`[WM] 🚫 Injecting navigation settings for site ${siteKey}:`);
+            console.log(`[WM]   - allowInternalNavigation: ${allowInternalNav}`);
+            
             allScriptContent += `window.allowInternalNavigation = ${allowInternalNav};\n`;
             
             // Inject whitelisted URLs if internal navigation is blocked
             if (!allowInternalNav) {
+              console.log(`[WM] 🚫 Internal navigation is blocked, loading whitelist...`);
               try {
                 const whitelistPath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`);
                 if (existsSync(whitelistPath)) {
                   const whitelistContent = readFileSync(whitelistPath, 'utf8');
                   const whitelistedUrls = JSON.parse(whitelistContent);
+                  console.log(`[WM] 📋 Loaded whitelist with ${whitelistedUrls.length} URLs:`, whitelistedUrls);
                   allScriptContent += `window.whitelistedUrls = ${JSON.stringify(whitelistedUrls)};\n`;
                 } else {
+                  console.log(`[WM] 📋 No whitelist file found, using empty array`);
                   allScriptContent += `window.whitelistedUrls = [];\n`;
                 }
               } catch (error) {
-                console.error(`Error loading whitelist for ${siteKey}:`, error);
+                console.error(`[WM] ❌ Error loading whitelist for ${siteKey}:`, error);
                 allScriptContent += `window.whitelistedUrls = [];\n`;
               }
             } else {
+              console.log(`[WM] ✅ Internal navigation allowed, no whitelist needed`);
               allScriptContent += `window.whitelistedUrls = [];\n`;
             }
           }
+        } else {
+          console.log(`[WM] ⚠️ No site key found, using default navigation settings`);
         }
         
         // Load and inject each common module
@@ -270,6 +279,9 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           'index.js'
         ];
         
+        console.log(`[WM] 🔧 Loading common modules from: ${commonDir}`);
+        console.log(`[WM] 📁 Modules to load:`, commonFiles);
+        
         for (const fileName of commonFiles) {
           try {
             const filePath = path.join(commonDir, fileName);
@@ -280,14 +292,19 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               scriptContent = scriptContent.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
               
               allScriptContent += scriptContent + '\n';
-              console.log(`[WM] Loaded common module: ${fileName}`);
+              console.log(`[WM] ✅ Loaded common module: ${fileName}`);
+            } else {
+              console.log(`[WM] ❌ Module file not found: ${fileName}`);
             }
           } catch (moduleError) {
-            console.error(`Error loading common module ${fileName}:`, moduleError);
+            console.error(`[WM] ❌ Error loading common module ${fileName}:`, moduleError);
           }
         }
         
         // Execute all the combined scripts
+        console.log(`[WM] 🚀 Executing combined scripts (${allScriptContent.length} characters)`);
+        console.log(`[WM] 📝 Script preview:`, allScriptContent.substring(0, 200) + '...');
+        
         webContents.executeJavaScript(allScriptContent);
         
         // Now inject site-specific scripts

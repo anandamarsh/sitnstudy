@@ -4,7 +4,12 @@
 
   // Helper function to check if URL is whitelisted
   function isUrlWhitelisted(targetUrl) {
+    console.log(`[IC] 🔍 History API: Checking if URL is whitelisted: ${targetUrl}`);
+    console.log(`[IC] 📋 History API: Current whitelist:`, window.whitelistedUrls);
+    console.log(`[IC] 🚫 History API: Internal navigation blocked:`, window.allowInternalNavigation === false);
+    
     if (!window.whitelistedUrls || !window.allowInternalNavigation === false) {
+      console.log(`[IC] ✅ History API: URL allowed - no whitelist or internal navigation enabled`);
       return true; // Allow if no whitelist or internal navigation is enabled
     }
 
@@ -65,21 +70,31 @@
     // Check if internal navigation should be blocked for pushState
     const newUrl = args[2]; // The third argument is the URL
     if (newUrl && newUrl.startsWith("http")) {
+      console.log(`[IC] 🔄 pushState called with URL: ${newUrl}`);
+      console.log(`[IC] 🌐 Current domain: ${currentDomain}, Target domain: ${new URL(newUrl).hostname}`);
+      
       if (window.allowInternalNavigation === false) {
+        console.log(`[IC] 🚫 Internal navigation is blocked, checking whitelist...`);
         if (!isUrlWhitelisted(newUrl)) {
+          console.log(`[IC] ❌ pushState blocked - not in whitelist`);
           logNavigationBlocked(newUrl, "pushState");
 
           // Force revert the URL change by immediately calling replaceState with the original URL
           setTimeout(() => {
             try {
               originalReplaceState.call(history, ...args.slice(0, 2), lastUrl);
+              console.log(`[IC] ✅ pushState reverted to: ${lastUrl}`);
             } catch (e) {
               console.log("[IC] Could not revert URL change");
             }
           }, 0);
 
           return; // Don't execute the navigation
+        } else {
+          console.log(`[IC] ✅ pushState allowed - in whitelist`);
         }
+      } else {
+        console.log(`[IC] ✅ Internal navigation allowed`);
       }
 
       // Log the new URL immediately when pushState is called - only fully qualified URLs
@@ -95,11 +110,20 @@
     // Check if internal navigation should be blocked for replaceState
     const newUrl = args[2]; // The third argument is the URL
     if (newUrl && newUrl.startsWith("http")) {
+      console.log(`[IC] 🔄 replaceState called with URL: ${newUrl}`);
+      console.log(`[IC] 🌐 Current domain: ${currentDomain}, Target domain: ${new URL(newUrl).hostname}`);
+      
       if (window.allowInternalNavigation === false) {
+        console.log(`[IC] 🚫 Internal navigation is blocked, checking whitelist...`);
         if (!isUrlWhitelisted(newUrl)) {
+          console.log(`[IC] ❌ replaceState blocked - not in whitelist`);
           logNavigationBlocked(newUrl, "replaceState");
           return; // Don't execute the navigation
+        } else {
+          console.log(`[IC] ✅ replaceState allowed - in whitelist`);
         }
+      } else {
+        console.log(`[IC] ✅ Internal navigation allowed`);
       }
 
       // Log the new URL immediately when replaceState is called - only fully qualified URLs
