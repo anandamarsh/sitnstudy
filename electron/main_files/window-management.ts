@@ -16,11 +16,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { configManager } from './config-manager'
+import { storeWebviewReference, webviewSiteMap } from './webview-manager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// Map to track which site each webview belongs to
-const webviewSiteMap = new Map<string, string>()
 
 export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_URL: string | undefined, RENDERER_DIST: string) {
   let win: BrowserWindow | null
@@ -160,9 +158,11 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
     });
 
-    // Note: Console message handling is now consolidated in the main console-message handler above
+      // Note: Console message handling is now consolidated in the main console-message handler above
 
-    // Inject JavaScript to intercept link clicks and form submissions
+
+
+  // Inject JavaScript to intercept link clicks and form submissions
     webContents.on('did-finish-load', () => {
       const currentUrl = webContents.getURL();
       const currentDomain = new URL(currentUrl).hostname;
@@ -257,6 +257,9 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         
         // Execute all the combined scripts
         webContents.executeJavaScript(allScriptContent);
+        
+        // Store the webview reference for potential whitelist updates
+        storeWebviewReference(webviewId, siteKey || 'unknown', webContents);
         
         // Now inject site-specific scripts
         if (!siteKey) {

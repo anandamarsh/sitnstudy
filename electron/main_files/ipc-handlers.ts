@@ -18,6 +18,7 @@ import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 
 import { configManager } from './config-manager'
+import { updateWhitelistInWebviews } from './webview-manager'
 
 // Function to close webviews for a specific site
 function closeWebviewsForSite(siteKey: string) {
@@ -334,6 +335,9 @@ ipcMain.handle('save-whitelisted-urls', async (_event, siteKey: string, urls: st
     
     // Write the whitelist to file
     writeFileSync(whitelistFilePath, JSON.stringify(urls, null, 2), 'utf8')
+    
+    // Update whitelist in all existing webviews for this site
+    updateWhitelistInWebviews(siteKey)
     
     return { success: true, message: 'Whitelisted URLs saved successfully' }
   } catch (error) {
