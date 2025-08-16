@@ -1,156 +1,133 @@
 (function () {
-  // Media control functions
-  window.pauseAllMedia = function () {
-    try {
-      // Pause all audio and video
-      Array.from(document.querySelectorAll("video,audio")).forEach((m) => {
-        try {
-          m.pause();
-          m.muted = true;
-        } catch (e) {
-          // Ignore errors
-        }
-      });
+  if (window._mediaControlSetUp) return;
 
-      // Stop any running game loops or animations
-      if (window.requestAnimationFrame) {
-        // Cancel any pending animation frames
-        for (let i = 1; i <= 1000; i++) {
-          try {
-            window.cancelAnimationFrame(i);
-          } catch (e) {
-            // Ignore errors
-          }
-        }
-      }
+  let blocked = false;
+  const wasPlaying = new WeakMap();
+  const wasMuted = new WeakMap();
 
-      // Pause any running intervals or timeouts that might be game loops
+  function mediaListDeep(root = document) {
+    const out = new Set();
+    function walk(node) {
       try {
-        const highestId = setTimeout(() => {}, 0);
-        for (let i = 1; i <= highestId; i++) {
-          try {
-            clearTimeout(i);
-            clearInterval(i);
-          } catch (e) {
-            // Ignore errors
-          }
+        if (node.querySelectorAll) {
+          node.querySelectorAll("video,audio").forEach((m) => out.add(m));
+          node.querySelectorAll("iframe").forEach((f) => {
+            try {
+              if (f.contentDocument) walk(f.contentDocument);
+            } catch {}
+          });
         }
-      } catch (e) {
-        // Ignore errors
+        if (node.shadowRoot) walk(node.shadowRoot);
+      } catch {}
+    }
+    walk(root);
+    return Array.from(out);
+  }
+
+  function pauseOne(m) {
+    try {
+      wasPlaying.set(m, !m.paused && m.readyState > 2);
+      wasMuted.set(m, m.muted);
+      m.autoplay = false;
+      m.removeAttribute("autoplay");
+      m.muted = true;
+      m.pause();
+      m.setAttribute("data-media-blocked", "1");
+    } catch {}
+  }
+
+  function resumeOne(m) {
+    try {
+      const shouldPlay = wasPlaying.get(m);
+      const prevMuted = wasMuted.get(m);
+      if (prevMuted !== undefined) m.muted = prevMuted;
+      if (shouldPlay) m.play().catch(() => {});
+    } catch {}
+  }
+
+  function pauseAll() {
+    mediaListDeep().forEach(pauseOne);
+    try {
+      if (document.pictureInPictureElement) {
+        document.exitPictureInPicture().catch(() => {});
       }
-    } catch (e) {
-      // Ignore errors
-    }
-  };
+    } catch {}
+  }
 
-  window.pauseMediaOnly = function () {
-    try {
-      Array.from(document.querySelectorAll("video,audio")).forEach((m) => {
-        try {
-          m.pause();
-          m.muted = true;
-        } catch (e) {
-          // Ignore errors
+  function resumeAll() {
+    mediaListDeep().forEach(resumeOne);
+  }
+
+  document.addEventListener(
+    "play",
+    (ev) => {
+      if (!blocked) return;
+      const t = ev.target;
+      if (!t || (t.tagName !== "VIDEO" && t.tagName !== "AUDIO")) return;
+      try {
+        t.muted = true;
+        t.pause();
+      } catch {}
+    },
+    true
+  );
+
+  (function () {
+    const origPlay = HTMLMediaElement.prototype.play;
+    if (!origPlay.__wrapped) {
+      HTMLMediaElement.prototype.play = function () {
+        if (blocked) {
+          try {
+            this.muted = true;
+            this.pause();
+          } catch {}
+          return Promise.resolve();
         }
-      });
-    } catch (e) {
-      // Ignore errors
+        return origPlay.apply(this, arguments);
+      };
+      HTMLMediaElement.prototype.play.__wrapped = true;
     }
-  };
+  })();
 
-  window.resumeMedia = function () {
-    try {
-      Array.from(document.querySelectorAll("video,audio")).forEach((m) => {
-        try {
-          m.muted = false;
-          if (m.paused) {
-            m.play().catch(() => {});
-          }
-        } catch (e) {
-          // Ignore errors
-        }
-      });
-    } catch (e) {
-      // Ignore errors
-    }
-  };
+  const mo = new MutationObserver(() => {
+    if (!blocked) return;
+    mediaListDeep().forEach((m) => {
+      if (!m.paused) pauseOne(m);
+    });
+  });
+  try {
+    mo.observe(document, { subtree: true, childList: true });
+  } catch {}
 
-  // Event listeners for automatic media control
-  let wasPlayingBeforeBlur = false;
+  function setActive(active) {
+    const newBlocked = !active;
+    if (newBlocked === blocked) return;
+    blocked = newBlocked;
+    if (blocked) pauseAll();
+    else resumeAll();
+  }
 
-  // Function to check if webview is active/focused
-  function isWebviewActive() {
-    // Check if the webview has focus within the Electron app
+  function computeActive() {
     return document.hasFocus() && !document.hidden;
   }
 
-  // Function to pause media when webview loses focus
-  function pauseMediaIfNeeded() {
-    const mediaElements = Array.from(document.querySelectorAll("video,audio"));
-    wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
-    
-    if (wasPlayingBeforeBlur) {
-      pauseAllMedia();
+  let lastActive = computeActive();
+  const interval = setInterval(() => {
+    const a = computeActive();
+    if (a !== lastActive) {
+      setActive(a);
+      lastActive = a;
     }
-  }
+  }, 250);
 
-  // Function to resume media when webview gains focus
-  function resumeMediaIfNeeded() {
-    if (wasPlayingBeforeBlur) {
-      resumeMedia();
-      wasPlayingBeforeBlur = false;
-    }
-  }
+  document.addEventListener("visibilitychange", () =>
+    setActive(!document.hidden)
+  );
+  window.addEventListener("blur", () => setActive(false));
+  window.addEventListener("focus", () => setActive(true));
 
-  // Monitor webview focus state continuously
-  let focusCheckInterval;
-  
-  function startFocusMonitoring() {
-    let wasActive = isWebviewActive();
-    
-    focusCheckInterval = setInterval(() => {
-      const isActive = isWebviewActive();
-      
-      if (wasActive && !isActive) {
-        // Webview just lost focus
-        pauseMediaIfNeeded();
-      } else if (!wasActive && isActive) {
-        // Webview just gained focus
-        resumeMediaIfNeeded();
-      }
-      
-      wasActive = isActive;
-    }, 100); // Check every 100ms
-  }
+  window.__setWebviewActive = (active) => setActive(!!active);
 
-  // Start monitoring when the page loads
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startFocusMonitoring);
-  } else {
-    startFocusMonitoring();
-  }
-
-  // Also handle traditional focus events as fallbacks
-  window.addEventListener('blur', pauseMediaIfNeeded);
-  window.addEventListener('focus', resumeMediaIfNeeded);
-  
-  document.addEventListener('blur', pauseMediaIfNeeded);
-  document.addEventListener('focus', resumeMediaIfNeeded);
-
-  // Handle when tab becomes hidden/visible
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-      pauseMediaIfNeeded();
-    } else {
-      resumeMediaIfNeeded();
-    }
-  });
-
-  // Clean up interval when page unloads
-  window.addEventListener('beforeunload', function() {
-    if (focusCheckInterval) {
-      clearInterval(focusCheckInterval);
-    }
-  });
-
+  window._mediaControlSetUp = true;
+  console.log("[IC] 🎚 Media control module loaded");
 })();
