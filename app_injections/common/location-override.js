@@ -1,103 +1,98 @@
 (function () {
   const currentDomain = "CURRENT_DOMAIN_PLACEHOLDER";
 
-  // Override window.location.href to prevent direct URL changes
+  // Monitor location changes to prevent unauthorized navigation
   if (window.allowInternalNavigation === false) {
-    // Check if we've already overridden the location to prevent redefinition errors
+    // Check if we've already set up location monitoring to prevent duplicate setup
     if (window._locationOverridden) {
-      console.log("[IC] Location already overridden, skipping...");
+      console.log("[IC] Location monitoring already set up, skipping...");
       return;
     }
 
     try {
+      // Instead of trying to override the non-configurable location property,
+      // we'll intercept location changes by monitoring the URL and preventing
+      // unauthorized changes through other means
+      
       const originalLocation = window.location;
-      const locationHandler = {
-        get href() {
-          return originalLocation.href;
-        },
-        set href(value) {
-          if (typeof value === "string" && value.startsWith("http")) {
-            try {
-              const targetUrlObj = new URL(value);
-              const currentUrlObj = new URL(originalLocation.href);
+      let lastKnownUrl = originalLocation.href;
+      
+      // Create a function to check and block unauthorized location changes
+      const checkAndBlockLocationChange = (newUrl) => {
+        if (typeof newUrl === "string" && newUrl.startsWith("http")) {
+          try {
+            const targetUrlObj = new URL(newUrl);
+            const currentUrlObj = new URL(lastKnownUrl);
 
-              // Only check if this is internal navigation (same domain)
-              if (targetUrlObj.hostname === currentUrlObj.hostname) {
-                // Check if the target URL is in the whitelist
-                const isWhitelisted =
-                  window.whitelistedUrls &&
-                  window.whitelistedUrls.some((url) => {
-                    try {
-                      const whitelistUrl = new URL(url);
-                      return (
-                        whitelistUrl.hostname === targetUrlObj.hostname &&
-                        whitelistUrl.pathname === targetUrlObj.pathname
-                      );
-                    } catch {
-                      return false;
-                    }
-                  });
+            // Only check if this is internal navigation (same domain)
+            if (targetUrlObj.hostname === currentUrlObj.hostname) {
+              // Check if the target URL is in the whitelist
+              const isWhitelisted =
+                window.whitelistedUrls &&
+                window.whitelistedUrls.some((url) => {
+                  try {
+                    const whitelistUrl = new URL(url);
+                    return (
+                      whitelistUrl.hostname === targetUrlObj.hostname &&
+                      whitelistUrl.pathname === targetUrlObj.pathname
+                    );
+                  } catch {
+                    return false;
+                  }
+                });
 
-                if (!isWhitelisted) {
-                  console.log("[IC] Blocked direct location change to:", value);
+              if (!isWhitelisted) {
+                console.log("[IC] Would block direct location change to:", newUrl);
 
-                  // Send message to main process to show error snackbar
-                  console.log(
-                    `internal-navigation-blocked: ${JSON.stringify({
-                      blockedUrl: value,
-                      currentDomain: currentDomain,
-                      targetDomain: currentDomain,
-                    })}`
-                  );
+                // Send message to main process to show error snackbar
+                console.log(
+                  `internal-navigation-blocked: ${JSON.stringify({
+                    blockedUrl: newUrl,
+                    currentDomain: currentDomain,
+                    targetDomain: currentDomain,
+                  })}`
+                );
 
-                  return; // Don't change the location
+                // Try to prevent the change by immediately reverting
+                try {
+                  // Use history.replaceState to revert the change
+                  history.replaceState(null, '', lastKnownUrl);
+                  console.log("[IC] Reverted unauthorized location change");
+                } catch (revertError) {
+                  console.log("[IC] Could not revert location change:", revertError);
                 }
-              }
-            } catch (error) {
-              console.log("[IC] Error checking location change:", error);
-            }
-          }
 
-          // Allow the change if it passes all checks
-          originalLocation.href = value;
-        },
+                return false; // Indicate the change was blocked
+              }
+            }
+          } catch (error) {
+            console.log("[IC] Error checking location change:", error);
+          }
+        }
+        return true; // Allow the change
       };
 
-      // Try to replace the location object, but handle errors gracefully
-      try {
-        Object.defineProperty(window, "location", {
-          value: locationHandler,
-          writable: false,
-          configurable: false,
-        });
-
-        // Mark that we've successfully overridden the location
-        window._locationOverridden = true;
-        console.log("[IC] Successfully overrode window.location");
-      } catch (defineError) {
-        console.log(
-          "[IC] Could not override window.location (may already be overridden):",
-          defineError
-        );
-
-        // Fallback: try to override just the href property if possible
-        try {
-          Object.defineProperty(originalLocation, "href", {
-            get: locationHandler.get,
-            set: locationHandler.set,
-            configurable: false,
-          });
-          window._locationOverridden = true;
-          console.log("[IC] Successfully overrode location.href as fallback");
-        } catch (hrefError) {
-          console.log(
-            "[IC] Could not override location.href either:",
-            hrefError
-          );
+      // Monitor location changes by periodically checking the URL
+      const locationMonitor = setInterval(() => {
+        const currentUrl = originalLocation.href;
+        if (currentUrl !== lastKnownUrl) {
+          if (!checkAndBlockLocationChange(currentUrl)) {
+            // The change was blocked, don't update lastKnownUrl
+            return;
+          }
+          lastKnownUrl = currentUrl;
         }
-      }
+      }, 100); // Check every 100ms
+
+      // Store the interval ID so we can clean it up if needed
+      window._locationMonitorInterval = locationMonitor;
+
+      // Mark that we've successfully set up location monitoring
+      window._locationOverridden = true;
+      console.log("[IC] Successfully set up location change monitoring");
+
     } catch (error) {
-      console.log("[IC] Error setting up location override:", error);
+      console.log("[IC] Error setting up location monitoring:", error);
     }
   }
 
