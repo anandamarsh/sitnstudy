@@ -6,10 +6,12 @@ import {
   Chip,
   Switch,
   FormControlLabel,
+  IconButton,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
   History as HistoryIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { SiteConfig } from "../types";
 import { getIconComponent } from "../utils";
@@ -168,8 +170,28 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ p: 3, pb: 2 }}
+      >
+        <Typography variant="h5" component="h2"></Typography>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
       {/* Main Content */}
-      <Box sx={{ flex: 1, position: "relative", padding: "3rem 4rem" }}>
+      <Box
+        sx={{
+          flex: 1,
+          position: "relative",
+          padding: "3rem 4rem",
+          height: "calc(100vh - 120px)",
+        }}
+      >
         <Box
           sx={{
             display: "flex",
@@ -265,9 +287,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                     />
                   }
                   label={
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="body2" fontWeight="medium">
                         {isTogglingNavigation
                           ? "Updating..."
@@ -303,17 +323,13 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   control={
                     <Switch
                       checked={showAddressBar}
-                      onChange={(e) =>
-                        toggleAddressBar(e.target.checked)
-                      }
+                      onChange={(e) => toggleAddressBar(e.target.checked)}
                       disabled={isTogglingAddressBar}
                       color="primary"
                     />
                   }
                   label={
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                    >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography variant="body2" fontWeight="medium">
                         {isTogglingAddressBar
                           ? "Updating..."
