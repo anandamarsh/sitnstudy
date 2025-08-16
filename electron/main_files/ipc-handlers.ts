@@ -18,6 +18,23 @@ import path from 'node:path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
 
 import { configManager } from './config-manager'
+import { updateWhitelistInWebviews } from './webview-manager'
+
+// Function to close webviews for a specific site
+function closeWebviewsForSite(siteKey: string) {
+  try {
+    const windows = BrowserWindow.getAllWindows()
+    windows.forEach(window => {
+      if (!window.isDestroyed()) {
+        // Send message to renderer to close tabs for this site
+        window.webContents.send('close-tabs-for-site', siteKey)
+      }
+    })
+    console.log(`IH] Sent close-tabs-for-site message for site: ${siteKey}`)
+  } catch (error) {
+    console.error('Error closing webviews for site:', error)
+  }
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -43,7 +60,7 @@ ipcMain.handle('add-new-site', async (_event, newSite) => {
         // Update the iconPath to point to the local file
         newSite.iconPath = `/icons/${iconFilename}`
         
-        console.log(`Saved SVG icon to: ${iconPath}`)
+        console.log(`IH] Saved SVG icon to: ${iconPath}`)
       } catch (iconError) {
         console.error('Error saving SVG icon:', iconError)
         // Continue with the original iconPath if SVG saving fails
@@ -92,11 +109,24 @@ ipcMain.handle('remove-site', async (_event, siteKey) => {
       if (existsSync(urlHistoryPath)) {
         const fs = await import('fs/promises')
         await fs.unlink(urlHistoryPath)
-        console.log(`Removed URL history file for ${siteKey}: ${urlHistoryPath}`)
+        console.log(`IH] Removed URL history file for ${siteKey}: ${urlHistoryPath}`)
       }
     } catch (historyError) {
       console.error(`Error removing URL history file for ${siteKey}:`, historyError)
       // Don't fail the entire operation if history removal fails
+    }
+
+    // Also remove the corresponding URL whitelist file
+    try {
+      const whitelistPath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`)
+      if (existsSync(whitelistPath)) {
+        const fs = await import('fs/promises')
+        await fs.unlink(whitelistPath)
+        console.log(`IH] Removed URL whitelist file for ${siteKey}: ${whitelistPath}`)
+      }
+    } catch (whitelistError) {
+      console.error(`Error removing URL whitelist file for ${siteKey}:`, whitelistError)
+      // Don't fail the entire operation if whitelist removal fails
     }
     
     return { 
@@ -138,6 +168,8 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
   try {
     const success = await configManager.updateExternalNavigation(siteKey, enabled)
     if (success) {
+      // Close any open webviews for this site so new settings take effect
+      closeWebviewsForSite(siteKey)
       return { success: true }
     } else {
       console.error(`Site ${siteKey} not found in app.json`)
@@ -145,6 +177,23 @@ ipcMain.handle('toggle-external-navigation', async (_event, siteKey: string, ena
     }
   } catch (error) {
     console.error('Error toggling external navigation:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
+ipcMain.handle('toggle-internal-navigation', async (_event, siteKey: string, enabled: boolean) => {
+  try {
+    const success = await configManager.updateInternalNavigation(siteKey, enabled)
+    if (success) {
+      // Close any open webviews for this site so new settings take effect
+      closeWebviewsForSite(siteKey)
+      return { success: true }
+    } else {
+      console.error(`Site ${siteKey} not found in app.json`)
+      return { success: false, error: 'Site not found' }
+    }
+  } catch (error) {
+    console.error('Error toggling internal navigation:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 })
@@ -270,6 +319,48 @@ ipcMain.handle('remove-url-log-file', async (_event, appKey: string) => {
   } catch (error) {
     console.error('Error removing URL log file:', error)
     return { success: false, message: 'Failed to remove URL log file' }
+  }
+})
+
+// IPC handlers for URL whitelist management
+ipcMain.handle('save-whitelisted-urls', async (_event, siteKey: string, urls: string[]) => {
+  try {
+    const configDir = path.join(__dirname, '../app_data/url_whitelist')
+    const whitelistFilePath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`)
+    
+    // Create config directory if it doesn't exist
+    if (!existsSync(configDir)) {
+      mkdirSync(configDir, { recursive: true })
+    }
+    
+    // Write the whitelist to file
+    writeFileSync(whitelistFilePath, JSON.stringify(urls, null, 2), 'utf8')
+    
+    // Update whitelist in all existing webviews for this site
+    updateWhitelistInWebviews(siteKey)
+    
+    return { success: true, message: 'Whitelisted URLs saved successfully' }
+  } catch (error) {
+    console.error('Error saving whitelisted URLs:', error)
+    return { success: false, message: 'Failed to save whitelisted URLs' }
+  }
+})
+
+ipcMain.handle('get-whitelisted-urls', async (_event, siteKey: string) => {
+  try {
+    const whitelistFilePath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`)
+    
+    if (!existsSync(whitelistFilePath)) {
+      return { success: true, data: [] }
+    }
+    
+    const content = readFileSync(whitelistFilePath, 'utf8')
+    const whitelistedUrls = JSON.parse(content)
+    
+    return { success: true, data: whitelistedUrls }
+  } catch (error) {
+    console.error('Error reading whitelisted URLs:', error)
+    return { success: false, message: 'Failed to read whitelisted URLs', data: [] }
   }
 })
 

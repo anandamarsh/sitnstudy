@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -7,11 +7,12 @@ import {
   Switch,
   FormControlLabel,
   IconButton,
+  TextField,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
-  History as HistoryIcon,
   Close as CloseIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import { SiteConfig } from "../types";
 import { getIconComponent } from "../utils";
@@ -36,13 +37,86 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
   const [allowExternalNavigation, setAllowExternalNavigation] = useState(
     app.allowExternalNavigation || false // Default to false if not set
   );
+  const [allowInternalNavigation, setAllowInternalNavigation] = useState(
+    app.allowInternalNavigation || false // Default to false if not set
+  );
   const [showAddressBar, setShowAddressBar] = useState(
     app.showAddressBar || false // Default to false if not set
   );
   const [isTogglingLogging, setIsTogglingLogging] = useState(false);
   const [isTogglingNavigation, setIsTogglingNavigation] = useState(false);
+  const [isTogglingInternalNavigation, setIsTogglingInternalNavigation] =
+    useState(false);
   const [isTogglingAddressBar, setIsTogglingAddressBar] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0); // Add refresh trigger state
+
+  // Whitelist state
+  const [whitelistedUrls, setWhitelistedUrls] = useState<string[]>([]);
+  const [editingUrl, setEditingUrl] = useState<string>("");
+  const [isAddingUrl, setIsAddingUrl] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
+  const previousWhitelistRef = useRef<string[]>([]);
+
+  // Load whitelisted URLs from file system
+  useEffect(() => {
+    const loadWhitelistedUrls = async () => {
+      try {
+        const result = await (window as any).ipcRenderer.getWhitelistedUrls(
+          app.key
+        );
+        if (result.success && Array.isArray(result.data)) {
+          setWhitelistedUrls(result.data);
+          // Initialize the ref with the loaded data
+          previousWhitelistRef.current = [...result.data];
+        }
+        setHasLoadedInitialData(true);
+      } catch (error) {
+        console.error("Error loading whitelisted URLs:", error);
+        setHasLoadedInitialData(true);
+      }
+    };
+
+    if (!allowInternalNavigation) {
+      loadWhitelistedUrls();
+    } else {
+      setHasLoadedInitialData(true);
+    }
+  }, [app.key, allowInternalNavigation, refreshTrigger]);
+
+  // Save whitelisted URLs to file system ONLY when the whitelist array actually changes
+  useEffect(() => {
+    // Only save after initial data has been loaded to prevent clearing on load
+    if (!hasLoadedInitialData) return;
+
+    // Check if the whitelist has actually changed from the previous state
+    const hasChanged =
+      JSON.stringify(whitelistedUrls) !==
+      JSON.stringify(previousWhitelistRef.current);
+
+    if (hasChanged) {
+      const saveWhitelistedUrls = async () => {
+        try {
+          // Only save if we have URLs to save - never save an empty array
+          // This prevents clearing the JSON file when the switch is off
+          if (whitelistedUrls.length > 0) {
+            await (window as any).ipcRenderer.saveWhitelistedUrls(
+              app.key,
+              whitelistedUrls
+            );
+          }
+          // If whitelist is empty, don't save anything - preserve existing file
+        } catch (error) {
+          console.error("Error saving whitelisted URLs:", error);
+        }
+      };
+
+      saveWhitelistedUrls();
+
+      // Update the ref to the current state
+      previousWhitelistRef.current = [...whitelistedUrls];
+    }
+  }, [whitelistedUrls, app.key, hasLoadedInitialData]);
 
   const handleRemoveClick = () => {
     setShowRemoveConfirm(true);
@@ -144,6 +218,25 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     }
   };
 
+  const toggleInternalNavigation = async (enabled: boolean) => {
+    setIsTogglingInternalNavigation(true);
+    try {
+      const result = await (window as any).ipcRenderer.toggleInternalNavigation(
+        app.key,
+        enabled
+      );
+      if (result.success) {
+        setAllowInternalNavigation(enabled);
+      } else {
+        console.error("Failed to toggle internal navigation:", result.error);
+      }
+    } catch (error) {
+      console.error("Error toggling internal navigation:", error);
+    } finally {
+      setIsTogglingInternalNavigation(false);
+    }
+  };
+
   const toggleAddressBar = async (enabled: boolean) => {
     setIsTogglingAddressBar(true);
     try {
@@ -163,10 +256,50 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
     }
   };
 
+  // Whitelist functions
+  const startAddingUrl = () => {
+    setIsAddingUrl(true);
+    setEditingUrl("");
+  };
+
+  const saveUrl = (url: string) => {
+    if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+      setWhitelistedUrls((prev) => [...prev, url.trim()]); // Add to bottom
+    }
+    setIsAddingUrl(false);
+    setEditingUrl("");
+  };
+
+  const startEditingUrl = (index: number, url: string) => {
+    setEditingIndex(index);
+    setEditingUrl(url);
+  };
+
+  const saveEditedUrl = (index: number, url: string) => {
+    if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+      setWhitelistedUrls((prev) => {
+        const newUrls = [...prev];
+        newUrls[index] = url.trim();
+        return newUrls;
+      });
+    }
+    setEditingIndex(null);
+    setEditingUrl("");
+  };
+
+  const removeWhitelistedUrl = (index: number) => {
+    setWhitelistedUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // Sync URL logging state when app changes
   useEffect(() => {
     setUrlLoggingEnabled(app.urlLogging || false);
   }, [app.urlLogging]);
+
+  // Sync internal navigation state when app changes
+  useEffect(() => {
+    setAllowInternalNavigation(app.allowInternalNavigation || false);
+  }, [app.allowInternalNavigation]);
 
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -262,50 +395,6 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                 </Button>
               </Box>
 
-              {/* External Navigation Toggle */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  p: 2,
-                  backgroundColor: "background.paper",
-                  borderRadius: 1,
-                  border: "1px solid",
-                  borderColor: "divider",
-                }}
-              >
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={allowExternalNavigation}
-                      onChange={(e) =>
-                        toggleExternalNavigation(e.target.checked)
-                      }
-                      disabled={isTogglingNavigation}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="body2" fontWeight="medium">
-                        {isTogglingNavigation
-                          ? "Updating..."
-                          : "Allow External Navigation"}
-                      </Typography>
-                    </Box>
-                  }
-                />
-                {allowExternalNavigation && (
-                  <Chip
-                    label="Enabled"
-                    size="small"
-                    variant="outlined"
-                    color="success"
-                  />
-                )}
-              </Box>
-
               {/* Address Bar Toggle */}
               <Box
                 sx={{
@@ -372,9 +461,8 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   }
                   label={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <HistoryIcon fontSize="small" />
                       <Typography variant="body2" fontWeight="medium">
-                        {isTogglingLogging ? "Updating..." : "URL Logging"}
+                        {isTogglingLogging ? "Updating..." : "Watch URLs"}
                       </Typography>
                     </Box>
                   }
@@ -385,6 +473,94 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                     size="small"
                     variant="outlined"
                     color="success"
+                  />
+                )}
+              </Box>
+
+              {/* Block External Navigation Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={!allowExternalNavigation}
+                      onChange={(e) =>
+                        toggleExternalNavigation(!e.target.checked)
+                      }
+                      disabled={isTogglingNavigation}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingNavigation
+                          ? "Updating..."
+                          : "Block External Navigation"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {!allowExternalNavigation && (
+                  <Chip
+                    label="Blocked"
+                    size="small"
+                    variant="outlined"
+                    color="warning"
+                  />
+                )}
+              </Box>
+
+              {/* Block Internal Navigation Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={!allowInternalNavigation}
+                      onChange={(e) =>
+                        toggleInternalNavigation(!e.target.checked)
+                      }
+                      disabled={isTogglingInternalNavigation}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingInternalNavigation
+                          ? "Updating..."
+                          : "Block Internal Navigation"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {!allowInternalNavigation && (
+                  <Chip
+                    label="Blocked"
+                    size="small"
+                    variant="outlined"
+                    color="warning"
                   />
                 )}
               </Box>
@@ -400,27 +576,257 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
             />
 
             {/* Right column: Access History in a contained scrollable box - 50% width */}
-            <Box sx={{ width: "50%" }}>
-              <Box
-                sx={{
-                  maxHeight: "90vh",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  backgroundColor: "background.paper",
-                  overflow: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  px: 2, // 1rem left and right padding
-                  pt: 2, // 1rem top padding
-                  pb: 1, // 0.5rem bottom padding
-                }}
-              >
-                <AccessHistory
-                  appKey={app.key}
-                  refreshTrigger={refreshTrigger}
-                />
-              </Box>
+            <Box
+              sx={{
+                width: "50%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Internal Navigation Whitelist URLs - only show when internal navigation is blocked */}
+              {!allowInternalNavigation && (
+                <Box
+                  sx={{
+                    height: urlLoggingEnabled
+                      ? "calc((100vh - 120px) / 2)"
+                      : "calc(100vh - 120px)", // Half height when both visible, full height when only this visible
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    backgroundColor: "background.paper",
+                    display: "flex",
+                    flexDirection: "column",
+                    px: 2,
+                    pt: 2,
+                    pb: 1,
+                    mb: 2,
+                  }}
+                >
+                  {/* Static Header - Non-scrollable */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      mb: 2,
+                      flexShrink: 0, // Prevent shrinking
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight="medium"
+                      sx={{ pl: 1 }}
+                    >
+                      Allowed Internal URLs
+                    </Typography>
+                    <IconButton
+                      size="small"
+                      onClick={startAddingUrl}
+                      sx={{
+                        border: "1px solid",
+                        borderColor: "divider",
+                        "&:hover": {
+                          borderColor: "primary.main",
+                        },
+                      }}
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  </Box>
+
+                  {/* Scrollable Content Container */}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflow: "auto",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {/* Inline URL Input Row */}
+                    {isAddingUrl && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          p: 1.5,
+                          borderRadius: 1,
+                          mb: 1,
+                          border: "1px solid",
+                          borderColor: "primary.main",
+                          backgroundColor: "primary.50",
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          size="small"
+                          placeholder="Enter URL to whitelist..."
+                          value={editingUrl}
+                          onChange={(e) => setEditingUrl(e.target.value)}
+                          onBlur={() => saveUrl(editingUrl)}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              saveUrl(editingUrl);
+                            }
+                          }}
+                          autoFocus
+                          variant="standard"
+                          sx={{
+                            "& .MuiInput-root": {
+                              fontSize: "0.875rem",
+                              fontFamily: "monospace",
+                              "&:before": {
+                                borderBottom: "none",
+                              },
+                              "&:after": {
+                                borderBottom: "none",
+                              },
+                              "&:hover:before": {
+                                borderBottom: "none",
+                              },
+                            },
+                          }}
+                        />
+                      </Box>
+                    )}
+
+                    {whitelistedUrls.length === 0 ? (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontStyle: "italic" }}
+                      >
+                        No whitelisted URLs yet. Add URLs to allow specific
+                        internal navigation.
+                      </Typography>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1,
+                        }}
+                      >
+                        {whitelistedUrls.map((url, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              p: 1.5,
+                              borderRadius: 1,
+                              cursor: "pointer",
+                              "&:hover": {
+                                backgroundColor: "action.hover",
+                                "& .delete-button": {
+                                  opacity: 1,
+                                },
+                              },
+                            }}
+                            onClick={() => {
+                              if (editingIndex !== index) {
+                                startEditingUrl(index, url);
+                              }
+                            }}
+                          >
+                            {editingIndex === index ? (
+                              <TextField
+                                fullWidth
+                                size="small"
+                                value={editingUrl}
+                                onChange={(e) => setEditingUrl(e.target.value)}
+                                onBlur={() => saveEditedUrl(index, editingUrl)}
+                                onKeyPress={(e) => {
+                                  if (e.key === "Enter") {
+                                    saveEditedUrl(index, editingUrl);
+                                  }
+                                }}
+                                autoFocus
+                                variant="standard"
+                                sx={{
+                                  "& .MuiInput-root": {
+                                    fontSize: "0.875rem",
+                                    fontFamily: "monospace",
+                                    "&:before": {
+                                      borderBottom: "none",
+                                    },
+                                    "&:after": {
+                                      borderBottom: "none",
+                                    },
+                                    "&:hover:before": {
+                                      borderBottom: "none",
+                                    },
+                                  },
+                                }}
+                              />
+                            ) : (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontFamily: "monospace",
+                                  fontSize: "0.875rem",
+                                  userSelect: "none",
+                                }}
+                              >
+                                {url}
+                              </Typography>
+                            )}
+                            <IconButton
+                              className="delete-button"
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent row click when clicking delete button
+                                removeWhitelistedUrl(index);
+                              }}
+                              color="error"
+                              sx={{
+                                opacity: 0,
+                                transition: "opacity 0.2s ease",
+                              }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {/* URL History Box - only show when URL logging is enabled */}
+              {urlLoggingEnabled && (
+                <Box
+                  sx={{
+                    height: allowInternalNavigation
+                      ? "calc(100vh - 120px)"
+                      : "calc((100vh - 120px) / 2)", // Full height when whitelist hidden, half when visible
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    backgroundColor: "background.paper",
+                    overflow: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    px: 2, // 1rem left and right padding
+                    pt: 2, // 1rem top padding
+                    pb: 1, // 0.5rem bottom padding
+                  }}
+                >
+                  <AccessHistory
+                    appKey={app.key}
+                    refreshTrigger={refreshTrigger}
+                    onAddToWhitelist={(url: string) => {
+                      if (url.trim() && !whitelistedUrls.includes(url.trim())) {
+                        setWhitelistedUrls((prev) => [...prev, url.trim()]); // Add to bottom
+                      }
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
           </Box>
         </Box>

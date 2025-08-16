@@ -16,11 +16,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { writeFileSync, readFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { configManager } from './config-manager'
+import { storeWebviewReference, webviewSiteMap } from './webview-manager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// Map to track which site each webview belongs to
-const webviewSiteMap = new Map<string, string>()
 
 export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_URL: string | undefined, RENDERER_DIST: string) {
   let win: BrowserWindow | null
@@ -139,7 +137,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
               
               // If external navigation is allowed for the original site, don't block
               if (originalSite && originalSite.allowExternalNavigation === true) {
-                console.log(`[WM] Allowing external navigation to: ${navigationDomain} from ${currentDomain} (original site: ${originalSiteKey})`);
                 return; // Allow the navigation
               }
             }
@@ -148,7 +145,6 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
             // Default to blocking if there's an error
           }
         
-        console.log(`[WM] Blocked navigation to external domain: ${navigationDomain} from ${currentDomain}`);
         event.preventDefault();
         
         // Send message to renderer to show error snackbar
@@ -162,7 +158,11 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
       }
     });
 
-    // Inject JavaScript to intercept link clicks and form submissions
+      // Note: Console message handling is now consolidated in the main console-message handler above
+
+
+
+  // Inject JavaScript to intercept link clicks and form submissions
     webContents.on('did-finish-load', () => {
       const currentUrl = webContents.getURL();
       const currentDomain = new URL(currentUrl).hostname;
@@ -186,29 +186,82 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           
           if (site) {
             webviewSiteMap.set(webviewId, site.key)
-            console.log(`[WM] Mapped webview ${webviewId} to site: ${site.key} (domain: ${currentDomain})`)
-          } else {
-            console.log(`[WM] Could not map webview ${webviewId} to any site. Current domain: ${currentDomain}`)
-            // Log available sites for debugging
-            console.log('Available sites:', sites.map((s: any) => ({ key: s.key, url: s.url, domain: new URL(s.url).hostname })))
           }
         } catch (error) {
           console.error('Error mapping webview to site:', error)
         }
       }
         
-      // Inject common script first
-      const commonScriptPath = path.join(__dirname, '../app_injections/common.js');
+      // Inject common modules first
       try {
-        const commonScript = readFileSync(commonScriptPath, 'utf8');
-        // Replace the placeholder with the actual current domain
-        const scriptWithDomain = commonScript.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
-        webContents.executeJavaScript(scriptWithDomain);
-        
-        // Now inject site-specific scripts
+        // Get webview ID and site key
         const webviewId = String(webContents.id);
         let siteKey = webviewSiteMap.get(webviewId);
         
+        // First, inject the navigation settings and whitelist
+        let allScriptContent = '';
+        
+        if (siteKey) {
+          const site = configManager.getSite(siteKey);
+          if (site) {
+            const allowInternalNav = site.allowInternalNavigation !== false; // Default to true if not set
+            allScriptContent += `window.allowInternalNavigation = ${allowInternalNav};\n`;
+            
+            // Inject whitelisted URLs if internal navigation is blocked
+            if (!allowInternalNav) {
+              try {
+                const whitelistPath = path.join(__dirname, '../app_data/url_whitelist', `${siteKey}.json`);
+                if (existsSync(whitelistPath)) {
+                  const whitelistContent = readFileSync(whitelistPath, 'utf8');
+                  const whitelistedUrls = JSON.parse(whitelistContent);
+                  allScriptContent += `window.whitelistedUrls = ${JSON.stringify(whitelistedUrls)};\n`;
+                } else {
+                  allScriptContent += `window.whitelistedUrls = [];\n`;
+                }
+              } catch (error) {
+                console.error(`Error loading whitelist for ${siteKey}:`, error);
+                allScriptContent += `window.whitelistedUrls = [];\n`;
+              }
+            } else {
+              allScriptContent += `window.whitelistedUrls = [];\n`;
+            }
+          }
+        }
+        
+        // Load and inject each common module
+        const commonDir = path.join(__dirname, '../app_injections/common');
+        const commonFiles = [
+          'navigation-blocking.js',
+          'history-api.js', 
+          'location-override.js',
+          'media-control.js',
+          'webview-state.js',
+          'index.js'
+        ];
+        
+        for (const fileName of commonFiles) {
+          try {
+            const filePath = path.join(commonDir, fileName);
+            if (existsSync(filePath)) {
+              let scriptContent = readFileSync(filePath, 'utf8');
+              
+              // Replace the domain placeholder with the actual current domain
+              scriptContent = scriptContent.replace('CURRENT_DOMAIN_PLACEHOLDER', currentDomain);
+              
+              allScriptContent += scriptContent + '\n';
+            }
+          } catch (moduleError) {
+            console.error(`Error loading common module ${fileName}:`, moduleError);
+          }
+        }
+        
+        // Execute all the combined scripts
+        webContents.executeJavaScript(allScriptContent);
+        
+        // Store the webview reference for potential whitelist updates
+        storeWebviewReference(webviewId, siteKey || 'unknown', webContents);
+        
+        // Now inject site-specific scripts
         if (!siteKey) {
           // Try to find site by current domain
           const currentUrl = webContents.getURL();
@@ -255,8 +308,8 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
         }
         
       } catch (error) {
-        console.error('Error loading common.js script:', error);
-        // Fallback to basic injection if file can't be loaded
+        console.error('Error loading common modules:', error);
+        // Fallback to basic injection if files can't be loaded
         webContents.executeJavaScript(`
           console.log('URL_CHANGE:' + JSON.stringify({
             url: window.location.href,
@@ -284,6 +337,22 @@ export function createWindow(sharedSession: Electron.Session, VITE_DEV_SERVER_UR
           }
         } catch (error) {
           console.error('Error parsing navigation blocked message:', error)
+        }
+      } else if (message.startsWith('internal-navigation-blocked:')) {
+        try {
+          const data = JSON.parse(message.substring(28)); // Remove 'internal-navigation-blocked:' prefix
+          console.log(`[WM] 🚫 Internal navigation blocked:`, data);
+          
+          if (win) {
+            // Send navigation blocked message to renderer
+            win.webContents.send('navigation-blocked', {
+              blockedUrl: data.blockedUrl || '',
+              currentDomain: data.currentDomain || '',
+              targetDomain: data.targetDomain || ''
+            });
+          }
+        } catch (error) {
+          console.error('Error parsing internal navigation blocked message:', error)
         }
       } else if (message.startsWith('URL_CHANGE:')) {
         try {

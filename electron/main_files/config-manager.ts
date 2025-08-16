@@ -27,6 +27,7 @@ interface Site {
   description: string
   urlLogging?: boolean
   allowExternalNavigation?: boolean
+  allowInternalNavigation?: boolean
   showAddressBar?: boolean
 }
 
@@ -45,6 +46,20 @@ class ConfigManager {
       if (existsSync(this.configPath)) {
         const content = readFileSync(this.configPath, 'utf8')
         this.sites = JSON.parse(content)
+        
+        // Migrate existing sites to include new properties
+        let hasChanges = false
+        this.sites.forEach(site => {
+          if (site.allowInternalNavigation === undefined) {
+            site.allowInternalNavigation = false // Default to false
+            hasChanges = true
+          }
+        })
+        
+        // Save if we made changes
+        if (hasChanges) {
+          this.saveConfig()
+        }
       } else {
         this.sites = []
       }
@@ -72,7 +87,7 @@ class ConfigManager {
       const windows = BrowserWindow.getAllWindows()
       windows.forEach((window: any) => {
         if (!window.isDestroyed()) {
-          console.log(`Broadcasting sites-updated to window: ${window.id}`)
+          console.log(`[CM] Broadcasting sites-updated to window: ${window.id}`)
           window.webContents.send('sites-updated', [...this.sites])
         }
       })
@@ -104,7 +119,7 @@ class ConfigManager {
       await this.saveConfig()
       await this.notifyListeners()
       
-      console.log(`Added new site: ${newSite.title} (${newSite.key})`)
+      console.log(`[CM] Added new site: ${newSite.title} (${newSite.key})`)
       return true
     } catch (error) {
       console.error('Error adding new site:', error)
@@ -125,7 +140,7 @@ class ConfigManager {
       await this.saveConfig()
       await this.notifyListeners()
       
-      console.log(`Removed site: ${siteKey}`)
+      console.log(`[CM] Removed site: ${siteKey}`)
       return true
     } catch (error) {
       console.error('Error removing site:', error)
@@ -144,7 +159,22 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated external navigation for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated external navigation for ${siteKey} to ${enabled}`)
+    return true
+  }
+
+  // Update internal navigation preference
+  async updateInternalNavigation(siteKey: string, enabled: boolean): Promise<boolean> {
+    const siteIndex = this.sites.findIndex(site => site.key === siteKey)
+    if (siteIndex === -1) {
+      return false
+    }
+
+    this.sites[siteIndex].allowInternalNavigation = enabled
+    await this.saveConfig()
+    await this.notifyListeners()
+    
+    console.log(`[CM] Updated internal navigation for ${siteKey} to ${enabled}`)
     return true
   }
 
@@ -160,7 +190,7 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated address bar for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated address bar for ${siteKey} to ${enabled}`)
     return true
   }
 
@@ -175,7 +205,7 @@ class ConfigManager {
     await this.saveConfig()
     await this.notifyListeners()
     
-    console.log(`Updated URL logging for ${siteKey} to ${enabled}`)
+    console.log(`[CM] Updated URL logging for ${siteKey} to ${enabled}`)
     return true
   }
 
