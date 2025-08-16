@@ -78,58 +78,78 @@
   // Event listeners for automatic media control
   let wasPlayingBeforeBlur = false;
 
-  // Handle when webview loses focus (blur)
-  window.addEventListener('blur', function() {
-    // Check if any media is currently playing
+  // Function to check if webview is active/focused
+  function isWebviewActive() {
+    // Check if the webview has focus within the Electron app
+    return document.hasFocus() && !document.hidden;
+  }
+
+  // Function to pause media when webview loses focus
+  function pauseMediaIfNeeded() {
     const mediaElements = Array.from(document.querySelectorAll("video,audio"));
     wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
     
     if (wasPlayingBeforeBlur) {
       pauseAllMedia();
     }
-  });
+  }
 
-  // Handle when webview gains focus (focus)
-  window.addEventListener('focus', function() {
+  // Function to resume media when webview gains focus
+  function resumeMediaIfNeeded() {
     if (wasPlayingBeforeBlur) {
       resumeMedia();
       wasPlayingBeforeBlur = false;
     }
-  });
+  }
 
-  // Handle when tab becomes hidden/visible (visibilitychange)
+  // Monitor webview focus state continuously
+  let focusCheckInterval;
+  
+  function startFocusMonitoring() {
+    let wasActive = isWebviewActive();
+    
+    focusCheckInterval = setInterval(() => {
+      const isActive = isWebviewActive();
+      
+      if (wasActive && !isActive) {
+        // Webview just lost focus
+        pauseMediaIfNeeded();
+      } else if (!wasActive && isActive) {
+        // Webview just gained focus
+        resumeMediaIfNeeded();
+      }
+      
+      wasActive = isActive;
+    }, 100); // Check every 100ms
+  }
+
+  // Start monitoring when the page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startFocusMonitoring);
+  } else {
+    startFocusMonitoring();
+  }
+
+  // Also handle traditional focus events as fallbacks
+  window.addEventListener('blur', pauseMediaIfNeeded);
+  window.addEventListener('focus', resumeMediaIfNeeded);
+  
+  document.addEventListener('blur', pauseMediaIfNeeded);
+  document.addEventListener('focus', resumeMediaIfNeeded);
+
+  // Handle when tab becomes hidden/visible
   document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
-      // Tab is hidden, pause media
-      const mediaElements = Array.from(document.querySelectorAll("video,audio"));
-      wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
-      
-      if (wasPlayingBeforeBlur) {
-        pauseAllMedia();
-      }
+      pauseMediaIfNeeded();
     } else {
-      // Tab is visible again, resume media if it was playing before
-      if (wasPlayingBeforeBlur) {
-        resumeMedia();
-        wasPlayingBeforeBlur = false;
-      }
+      resumeMediaIfNeeded();
     }
   });
 
-  // Also handle page focus/blur for better coverage
-  document.addEventListener('blur', function() {
-    const mediaElements = Array.from(document.querySelectorAll("video,audio"));
-    wasPlayingBeforeBlur = mediaElements.some(m => !m.paused);
-    
-    if (wasPlayingBeforeBlur) {
-      pauseAllMedia();
-    }
-  });
-
-  document.addEventListener('focus', function() {
-    if (wasPlayingBeforeBlur) {
-      resumeMedia();
-      wasPlayingBeforeBlur = false;
+  // Clean up interval when page unloads
+  window.addEventListener('beforeunload', function() {
+    if (focusCheckInterval) {
+      clearInterval(focusCheckInterval);
     }
   });
 
