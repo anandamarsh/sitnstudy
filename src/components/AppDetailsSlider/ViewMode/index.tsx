@@ -188,7 +188,7 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
         sx={{
           flex: 1,
           position: "relative",
-          padding: "3rem 4rem",
+          padding: "0 4rem",
           height: "calc(100vh - 120px)",
         }}
       >
@@ -347,6 +347,47 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
                   />
                 )}
               </Box>
+
+              {/* URL Logging Toggle */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  p: 2,
+                  backgroundColor: "background.paper",
+                  borderRadius: 1,
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={urlLoggingEnabled}
+                      onChange={(e) => handleUrlLoggingToggle(e.target.checked)}
+                      disabled={isTogglingLogging}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <HistoryIcon fontSize="small" />
+                      <Typography variant="body2" fontWeight="medium">
+                        {isTogglingLogging ? "Updating..." : "URL Logging"}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {urlLoggingEnabled && (
+                  <Chip
+                    label="Active"
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                  />
+                )}
+              </Box>
             </Box>
 
             {/* Divider between left and right columns */}
@@ -358,57 +399,25 @@ const ViewMode: React.FC<ViewModeProps> = ({ app, onClose, onOpenApp }) => {
               }}
             />
 
-            {/* Right column: Access History in its own scrollable pane - 50% width */}
+            {/* Right column: Access History in a contained scrollable box - 50% width */}
             <Box sx={{ width: "50%" }}>
-              <AccessHistory
-                appKey={app.key}
-                refreshTrigger={refreshTrigger}
-                urlLoggingSwitch={
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      p: 2,
-                      backgroundColor: "background.paper",
-                      borderRadius: 1,
-                      border: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={urlLoggingEnabled}
-                          onChange={(e) =>
-                            handleUrlLoggingToggle(e.target.checked)
-                          }
-                          disabled={isTogglingLogging}
-                          color="primary"
-                        />
-                      }
-                      label={
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <HistoryIcon fontSize="small" />
-                          <Typography variant="body2" fontWeight="medium">
-                            {isTogglingLogging ? "Updating..." : "URL Logging"}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    {urlLoggingEnabled && (
-                      <Chip
-                        label="Active"
-                        size="small"
-                        variant="outlined"
-                        color="success"
-                      />
-                    )}
-                  </Box>
-                }
-              />
+              <Box
+                sx={{
+                  maxHeight: "90vh",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  backgroundColor: "background.paper",
+                  overflow: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <AccessHistory
+                  appKey={app.key}
+                  refreshTrigger={refreshTrigger}
+                />
+              </Box>
             </Box>
           </Box>
         </Box>
